@@ -1,5 +1,5 @@
 #pragma once
-#include "../../commonVulkan/VulkanApp.h"
+#include "../../common/VulkanApp.h"
 
 class HelloVulkanApp :public VulkanApp
 {

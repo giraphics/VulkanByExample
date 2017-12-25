@@ -76,7 +76,7 @@ endif(WIN32)
 
 # Gather list of header and source files for compilation
 file(GLOB_RECURSE SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/source/*.*)
-file(GLOB_RECURSE COMMON_FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../commonVulkan/*.*)
+file(GLOB_RECURSE COMMON_FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../common/*.*)
 
 # Build project, give it a name and includes list of file to be compiled
 add_executable(${Recipe_Name} ${SOURCE_FILES} ${COMMON_FILES} ${RESOURCE_FILES})
