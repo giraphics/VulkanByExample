@@ -3,6 +3,31 @@
 
 extern VulkanApp* g_pApp;
 
+Window::Window()
+{
+	renderTimer = new QTimer();
+	renderTimer->setInterval(1);
+
+	connect(renderTimer, SIGNAL(timeout()), this, SLOT(Run()));
+
+	renderTimer->start();
+}
+
+Window::~Window()
+{
+	delete renderTimer;
+}
+
+void Window::Run()
+{
+	g_pApp->Run();
+}
+
+void Window::resizeEvent(QResizeEvent* p_Event)
+{
+	g_pApp->SetWindowDimension(QWindow::width(), QWindow::height());
+}
+
 VulkanApp::VulkanApp()
 {
     m_pWindow = nullptr;
@@ -77,55 +102,39 @@ bool VulkanApp::Run()
 {
     bool result = true;
 
-    // Check if applicaiton window is closed
-    while (!glfwWindowShouldClose(m_pWindow) && result)
-    {
-        // Call the derived class object to update 
-        // application specific updates
-        result = Update();
+    // Call the derived class object to update 
+    // application specific updates
+    result = Update();
 
-        // Call the base class or derived class object 
-        // to render application specific content
-        if (result) { result = Render(); }
+    // Call the base class or derived class object 
+    // to render application specific content
+    if (result) { result = Render(); }
         
-        // Present the output to back buffer
-        if (result) { result = Present(); }
+    // Present the output to back buffer
+    if (result) { result = Present(); }
 
-        if (result)
-        {
-            // Swap front and back buffers
-            glfwSwapBuffers(m_pWindow);
-
-            // Poll and process events
-            glfwPollEvents();
-        }
-    }
+	// !!! HACK - need to fix!
+	if (m_pWindow)
+	{
+		m_pWindow->resize(m_pWindow->width(), m_pWindow->height());
+	}
 
     return (result);
 }
 
 bool VulkanApp::CreateDisplayWindow()
 {
-    glfwInit();
-
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
-    // Create the application window
-    m_pWindow = glfwCreateWindow(m_windowDim.width, m_windowDim.height, 
-                                 m_appName.c_str(),nullptr,nullptr);
-
-    return (m_pWindow ? true : false);
+	m_pWindow = new Window();
+	
+	return (m_pWindow ? true : false);
 }
 
 bool VulkanApp::InitializeVulkan()
 {
     bool result = false;
 
-    // Check if Vulkan loader is supported in GLFW
-    result = (glfwVulkanSupported() == GLFW_TRUE);
-
     // Create Vulkan Instance
-    if (result) { result = CreateVulkanInstance(); }
+    result = CreateVulkanInstance();
     // Create Vulkan Device
     if (result) { result = CreateVulkanDevice(); }
     // Create Swap chain
@@ -142,7 +151,6 @@ bool VulkanApp::InitializeVulkan()
     return (result);
 }
 
-
 bool VulkanApp::CreateVulkanInstance()
 {
     VkApplicationInfo appInfo = {};
@@ -153,17 +161,7 @@ bool VulkanApp::CreateVulkanInstance()
     appInfo.pEngineName = "VulkanApp";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_0;
-
-    std::vector<const char*> extensions;
-    unsigned int glfwExtensionCount = 0;
-
-    // Get the required vulkan instance extensions from GLFW
-    const char** ppGlfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-    for (unsigned int i = 0; i < glfwExtensionCount; i++)
-    {
-        extensions.push_back(ppGlfwExtensions[i]);
-    }
+	extern std::vector<const char *> instanceExtensionNames;
 
     // Fill in the required createInfo structure
     VkInstanceCreateInfo createInfo = {};
@@ -173,8 +171,8 @@ bool VulkanApp::CreateVulkanInstance()
     createInfo.pApplicationInfo = &appInfo;
     createInfo.enabledLayerCount = 0;
     createInfo.ppEnabledLayerNames = nullptr;
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-    createInfo.ppEnabledExtensionNames = extensions.data();
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensionNames.size());
+    createInfo.ppEnabledExtensionNames = instanceExtensionNames.data();
 
     // Create the Vulkan Instance
     VkResult result = vkCreateInstance(&createInfo, nullptr, &m_hInstance);
@@ -182,7 +180,15 @@ bool VulkanApp::CreateVulkanInstance()
     if (result == VK_SUCCESS)
     {
         // Create the Vulkan surface for the application window
-        result = glfwCreateWindowSurface(m_hInstance, m_pWindow, nullptr, &m_hSurface);
+	#ifdef _WIN32
+		VkWin32SurfaceCreateInfoKHR createInfo = {};
+		createInfo.sType	 = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+		createInfo.pNext	 = NULL;
+		createInfo.hinstance = GetModuleHandle(nullptr);
+		createInfo.hwnd = HWND(m_pWindow->winId());
+
+		result = vkCreateWin32SurfaceKHR(m_hInstance, &createInfo, NULL, &m_hSurface);
+	#endif
     }
 
     if (result != VK_SUCCESS)
@@ -865,9 +871,6 @@ void VulkanApp::CleanupVulkan()
 void VulkanApp::CoreCleanup()
 {
     CleanupVulkan();
-    glfwDestroyWindow(m_pWindow);
-    m_pWindow = NULL;
-    glfwTerminate();
 }
 
 bool VulkanApp::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)

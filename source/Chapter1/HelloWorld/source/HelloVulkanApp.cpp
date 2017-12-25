@@ -94,6 +94,7 @@ bool HelloVulkanApp::CreateGraphicsPipeline()
 
     // Compile the vertex shader
 	VkShaderModule vertShader = CreateShader("../source/QuadVert.spv"); // Relative path to binary output dir
+
 	// Setup the vertex shader stage create info structures
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -103,6 +104,7 @@ bool HelloVulkanApp::CreateGraphicsPipeline()
 
     // Compile the fragment shader
 	VkShaderModule fragShader = CreateShader("../source/QuadFrag.spv"); // Relative path to binary output dir
+
 	// Setup the fragment shader stage create info structures
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
     fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;

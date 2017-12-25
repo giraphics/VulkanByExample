@@ -1,6 +1,7 @@
 #pragma once
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+//#define GLFW_INCLUDE_VULKAN
+//#include <GLFW/glfw3.h>
+#include <vulkan/vulkan.h>
 
 #include <iostream>
 #include <string>
@@ -8,9 +9,28 @@
 #include <set>
 #include <algorithm>
 #include <fstream>
+#include <QWindow>
+#include <QTimer>
 
+class Window;
 using namespace std;
+class Window : public QWindow
+{
+	Q_OBJECT
 
+public:
+	Window();
+	~Window();
+
+public slots:
+	void Run();
+
+protected:
+	void resizeEvent(QResizeEvent* p_Event) override;
+
+	// Refresh timer
+	QTimer *renderTimer;
+};
 // A structure to store physical device information
 struct PhysicalDeviceInfo
 {
@@ -68,6 +88,7 @@ public:
     void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 
     void UpdateMemory(VkDeviceMemory deviceMem, VkDeviceSize offset, VkDeviceSize size, VkMemoryMapFlags flags, const void* pData);
+	QWindow* GetApplicationWindow() const { return m_pWindow; }
 
 private:
     bool CreateDisplayWindow();
@@ -94,8 +115,8 @@ private:
     VkExtent2D SelectBestExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
 protected:
-    GLFWwindow*     m_pWindow;   // Application window object
-    VkExtent2D      m_windowDim; // Application window dimension
+    Window*			m_pWindow;   // Application window object
+	VkExtent2D      m_windowDim; // Application window dimension
     string          m_appName;   // Application name
 
     // Vulkan specific objects
