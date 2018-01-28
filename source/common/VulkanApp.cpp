@@ -1,41 +1,30 @@
 #include "VulkanApp.h"
-#include <cstddef>
 
-extern VulkanApp* g_pApp;
-
-Window::Window()
+Window::Window(VulkanApp* vulkanApp) : m_VulkanApp(vulkanApp)
 {
+	assert(vulkanApp);
+	setWidth(800);
+	setHeight(600);
+
 	renderTimer = new QTimer();
 	renderTimer->setInterval(1);
 
 	connect(renderTimer, SIGNAL(timeout()), this, SLOT(Run()));
-
 	renderTimer->start();
-}
-
-Window::~Window()
-{
-	delete renderTimer;
 }
 
 void Window::Run()
 {
-	g_pApp->Run();
-}
-
-void Window::resizeEvent(QResizeEvent* p_Event)
-{
-	g_pApp->SetWindowDimension(QWindow::width(), QWindow::height());
+	m_VulkanApp->Run();
 }
 
 VulkanApp::VulkanApp()
 {
     m_pWindow = nullptr;
 
-    // Default application name
-    SetApplicationName("Vulkan Application");
-    // Default application window dimension
-    SetWindowDimension(640, 480);
+	m_appName = "Vulkan Application";    // Default application name
+
+										 //SetWindowDimension(640, 480);    // Default application window dimension
 
     // Vulkan specific objects
     m_hInstance = VK_NULL_HANDLE;
@@ -54,8 +43,7 @@ VulkanApp::VulkanApp()
     memset(&m_swapChainExtent, 0, sizeof(m_swapChainExtent));
 
     m_hSwapChainImageViewList.clear();
-    m_hSwapChainFramebufferList.clear();
-    m_hSwapChainImageList.clear();
+    m_hFramebuffers.clear();
     m_hCommandBufferList.clear();
     
     m_activeSwapChainImageIndex = 0;
@@ -65,93 +53,61 @@ VulkanApp::VulkanApp()
     m_requiredDeviceExtensionList.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 }
 
-bool VulkanApp::Init()
-{
-    bool result = true;
-    
-    // Call the derived class to configure
-    result = Configure();
+VulkanApp::~VulkanApp()
+{ 
+	vkDestroySemaphore(m_hDevice, m_hPresentReadySemaphore, nullptr);
+	vkDestroySemaphore(m_hDevice, m_hRenderReadySemaphore, nullptr);
+	vkDestroyCommandPool(m_hDevice, m_hCommandPool, nullptr);
 
-    if (result)
-    {
-        // Create the main window
-        result = CreateDisplayWindow();
-    }
-
-    if (result)
-    {
-        // Initialize Vulkan
-        result = InitializeVulkan();
-    }
-
-    // Call the derived class to setup applications specific objects
-    result = Setup();
-
-    return (result);
-}
-
-// Helper method to log error messages
-void VulkanApp::LogError(string text)
-{
-    string outputText;
-    outputText = "Error: " + text;
-    cout << outputText;
-}
-
-bool VulkanApp::Run()
-{
-    bool result = true;
-
-    // Call the derived class object to update 
-    // application specific updates
-    result = Update();
-
-    // Call the base class or derived class object 
-    // to render application specific content
-    if (result) { result = Render(); }
-        
-    // Present the output to back buffer
-    if (result) { result = Present(); }
-
-	// !!! HACK - need to fix!
-	if (m_pWindow)
+	for (size_t i = 0; i < m_hFramebuffers.size(); i++)
 	{
-		m_pWindow->resize(m_pWindow->width(), m_pWindow->height());
+		vkDestroyFramebuffer(m_hDevice, m_hFramebuffers[i], nullptr);
 	}
 
-    return (result);
+	vkDestroyRenderPass(m_hDevice, m_hRenderPass, nullptr);
+
+	for (size_t i = 0; i < m_hSwapChainImageViewList.size(); i++)
+	{
+		vkDestroyImageView(m_hDevice, m_hSwapChainImageViewList[i], nullptr);
+	}
+
+	vkDestroySwapchainKHR(m_hDevice, m_hSwapChain, nullptr);
+	vkDestroyDevice(m_hDevice, nullptr);
+	vkDestroySurfaceKHR(m_hInstance, m_hSurface, nullptr);
+	vkDestroyInstance(m_hInstance, nullptr);
 }
 
-bool VulkanApp::CreateDisplayWindow()
+void VulkanApp::Initialize()
 {
-	m_pWindow = new Window();
-	
-	return (m_pWindow ? true : false);
+	Configure();
+    InitializeVulkan();		// Initialize Vulkan
+    Setup();				// Setup applications specific objects
 }
 
-bool VulkanApp::InitializeVulkan()
+void VulkanApp::Run()
 {
-    bool result = false;
-
-    // Create Vulkan Instance
-    result = CreateVulkanInstance();
-    // Create Vulkan Device
-    if (result) { result = CreateVulkanDevice(); }
-    // Create Swap chain
-    if (result) { result = CreateSwapChain(); }
-    // Create Render Pass
-    if (result) { result = CreateRenderPass(); }
-    // Create Frame buffer
-    if (result) { result = CreateFramebuffers(); }
-    // Create command buffers
-    if (result) { result = CreateCommandBuffers(); }
-    // Create semaphores
-    if (result) { result = CreateSemaphores(); }
-
-    return (result);
+    //Update(); // For derive implementation to update data
+    Render(); // Render application specific data
+    Present(); // Display the drawing output on presentation window
 }
 
-bool VulkanApp::CreateVulkanInstance()
+void VulkanApp::SetWindowDimension(int width, int height)
+{
+	m_windowDim.width = width;
+	m_windowDim.height = height;
+}
+
+void VulkanApp::InitializeVulkan()
+{
+	CreateVulkanInstance(); // Create Vulkan Instance
+    CreateVulkanDeviceAndQueue();   // Create Vulkan Device and Queue
+    CreateSwapChain();		// Create Swap chain
+	CreateRenderPass(); 	// Create Render Pass
+	CreateFramebuffers();   // Create Frame buffer
+	CreateSemaphores();     // Create semaphores for rendering synchronization between window system and presentaion rate 
+}
+
+void VulkanApp::CreateVulkanInstance()
 {
     VkApplicationInfo appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -161,6 +117,8 @@ bool VulkanApp::CreateVulkanInstance()
     appInfo.pEngineName = "VulkanApp";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_0;
+
+	extern std::vector<const char *> validationLayers;
 	extern std::vector<const char *> instanceExtensionNames;
 
     // Fill in the required createInfo structure
@@ -169,49 +127,58 @@ bool VulkanApp::CreateVulkanInstance()
     createInfo.pNext = nullptr;
     createInfo.flags = 0;
     createInfo.pApplicationInfo = &appInfo;
-    createInfo.enabledLayerCount = 0;
-    createInfo.ppEnabledLayerNames = nullptr;
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensionNames.size());
-    createInfo.ppEnabledExtensionNames = instanceExtensionNames.data();
+    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+    createInfo.ppEnabledLayerNames = validationLayers.data();
+	createInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensionNames.size());
+	createInfo.ppEnabledExtensionNames = instanceExtensionNames.data();
 
     // Create the Vulkan Instance
     VkResult result = vkCreateInstance(&createInfo, nullptr, &m_hInstance);
+	if (result != VK_SUCCESS)
+	{
+		LogError("Error creating Vulkan Instance");
+	}
 
-    if (result == VK_SUCCESS)
-    {
-        // Create the Vulkan surface for the application window
-	#ifdef _WIN32
-		VkWin32SurfaceCreateInfoKHR createInfo = {};
-		createInfo.sType	 = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-		createInfo.pNext	 = NULL;
-		createInfo.hinstance = GetModuleHandle(nullptr);
-		createInfo.hwnd = HWND(m_pWindow->winId());
+	CreateSurface();
 
-		result = vkCreateWin32SurfaceKHR(m_hInstance, &createInfo, NULL, &m_hSurface);
-	#endif
-    }
-
-    if (result != VK_SUCCESS)
-    {
-        LogError("Error creating Vulkan Instance");
-    }
-
-    return (result == VK_SUCCESS);
+	assert (result == VK_SUCCESS);
 }
 
-bool VulkanApp::CreateVulkanDevice()
+void VulkanApp::CreateSurface()
 {
-    // Step 1: Select the physical device suitable for Vulkan
-    bool result = SelectPhysicalDevice();
+	m_pWindow = new Window(this); // Create the window to provide display housing
+	m_pWindow->show();
 
-    if (result)
-    {
-        // Step 2 & 3: Create the Vulkan device & get pointer 
-        // to graphics & present queue
-        result = CreateDeviceAndQueueObjects();
-    }
+	VkResult  result;
+	// Create the Vulkan surface for the application window
+#ifdef _WIN32
+	VkWin32SurfaceCreateInfoKHR createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+	createInfo.pNext = NULL;
+	createInfo.hinstance = GetModuleHandle(nullptr);
+	createInfo.hwnd = HWND(m_pWindow->winId());
 
-    return (result);
+	result = vkCreateWin32SurfaceKHR(m_hInstance, &createInfo, NULL, &m_hSurface);
+#endif
+
+	if (result != VK_SUCCESS)
+	{
+		LogError("Error: Unable to create the window surface.");
+	}
+
+	assert(result == VK_SUCCESS);
+}
+
+void VulkanApp::CreateVulkanDeviceAndQueue()
+{
+	// Select the physical device(m_hPhysicalDevice) suitable for Vulkan
+    SelectPhysicalDevice();
+
+	// Query layer and extension for m_hPhysicalDevice
+	GetDeviceLayerExtensionProperties(m_hPhysicalDevice);
+
+	// Create the Vulkan device & get pointer to graphics & present queue
+    CreateDeviceAndQueueObjects();
 }
 
 // Returns detailed information for the given physical device handle
@@ -342,7 +309,7 @@ bool VulkanApp::IsDeviceSuitable(PhysicalDeviceInfo deviceInfo)
 // This method finds the appropriate physical device (GPU)
 // suitable for rendering using Vulkan. The method returns 
 // true on success, false otherwise
-bool VulkanApp::SelectPhysicalDevice()
+void VulkanApp::SelectPhysicalDevice()
 {
     bool result = true;
     uint32_t deviceCount = 0;
@@ -388,10 +355,10 @@ bool VulkanApp::SelectPhysicalDevice()
         result = false;
     }
 
-    return (result);
+    assert (result);
 }
 
-bool VulkanApp::CreateDeviceAndQueueObjects()
+void VulkanApp::CreateDeviceAndQueueObjects()
 {
     bool result = true;
 
@@ -438,16 +405,14 @@ bool VulkanApp::CreateDeviceAndQueueObjects()
         result = false;
     }
 
-    return (result);
+    assert (result);
 }
 
-bool VulkanApp::CreateSwapChain()
+void VulkanApp::CreateSwapChain()
 {
-    bool result = true;
-
     VkSurfaceFormatKHR surfaceFormat = SelectBestSurfaceFormat(m_physicalDeviceInfo.formatList);
     VkPresentModeKHR presentMode = SelectBestPresentMode(m_physicalDeviceInfo.presentModeList);
-    VkExtent2D extent = SelectBestExtent(m_physicalDeviceInfo.capabilities);
+    VkExtent2D extent = SelectBestExtent(m_physicalDeviceInfo.capabilities, m_windowDim);
     uint32_t imageCount = m_physicalDeviceInfo.capabilities.minImageCount + 1;
 
     // Validate the image count bounds
@@ -487,38 +452,37 @@ bool VulkanApp::CreateSwapChain()
     createInfo.clipped = VK_TRUE;
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 
+
     // Create the Swap chain
     if (vkCreateSwapchainKHR(m_hDevice, &createInfo, nullptr, &m_hSwapChain) != VK_SUCCESS)
     {
         LogError("vkCreateSwapchainKHR() failed!");
-        result = false;
+        assert(false);
     }
     else
     {
         // Get the count of swap chain images
         vkGetSwapchainImagesKHR(m_hDevice, m_hSwapChain, &imageCount, nullptr);
-        m_hSwapChainImageList.resize(imageCount);
+		std::vector<VkImage> swapChainImageList;
+		swapChainImageList.resize(imageCount);
         // Get the swap chain images
-        vkGetSwapchainImagesKHR(m_hDevice, m_hSwapChain, &imageCount, m_hSwapChainImageList.data());
+        vkGetSwapchainImagesKHR(m_hDevice, m_hSwapChain, &imageCount, swapChainImageList.data());
 
         m_hSwapChainImageFormat = surfaceFormat.format;
         m_swapChainExtent = extent;
 
-        m_hSwapChainImageViewList.resize(m_hSwapChainImageList.size());
+        m_hSwapChainImageViewList.resize(swapChainImageList.size());
 
         // For every image in the swap chain
-        for (size_t i = 0; i < m_hSwapChainImageList.size(); i++)
+        for (size_t i = 0; i < swapChainImageList.size(); i++)
         {
             // Fill in VkImageViewCreateInfo to create the image view
             VkImageViewCreateInfo createInfo = {};
             createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            createInfo.image = m_hSwapChainImageList[i];
+            createInfo.image = swapChainImageList[i];
             createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
             createInfo.format = m_hSwapChainImageFormat;
-            createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-            createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-            createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-            createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+			createInfo.components = VkComponentMapping{};
             createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             createInfo.subresourceRange.baseMipLevel = 0;
             createInfo.subresourceRange.levelCount = 1;
@@ -529,95 +493,14 @@ bool VulkanApp::CreateSwapChain()
             if (vkCreateImageView(m_hDevice, &createInfo, nullptr, &m_hSwapChainImageViewList[i]) != VK_SUCCESS)
             {
                 LogError("vkCreateImageView() failed!");
-                result = false;
-            }
+				assert(false);
+			}
         }
     }
-
-    return (result);
 }
 
-// Returns the best surface format to create the swap chain
-VkSurfaceFormatKHR VulkanApp::SelectBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+void VulkanApp::CreateRenderPass()
 {
-    // Choose the first format as default
-    VkSurfaceFormatKHR bestFormat = availableFormats[0];
-
-    // When no formats is available then choose the following format
-    if (availableFormats.size() == 1 && bestFormat.format == VK_FORMAT_UNDEFINED)
-    {
-        bestFormat.format = VK_FORMAT_B8G8R8A8_UNORM;
-        bestFormat.colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-    }
-    else
-    {
-        for (unsigned int i = 0; i < availableFormats.size(); i++)
-        {
-            // Choose a preferred format
-            if (availableFormats[i].format == VK_FORMAT_B8G8R8A8_UNORM &&
-                availableFormats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-            {
-                bestFormat = availableFormats[i];
-                break;
-            }
-        }
-    }
-
-    return bestFormat;
-}
-
-// Returns the best present mode to create the swap chain
-VkPresentModeKHR VulkanApp::SelectBestPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes)
-{
-    // By default set to VK_PRESENT_MODE_FIFO_KHR where the presentation engine 
-    // waits for the next vertical blanking period to update the current image
-    VkPresentModeKHR bestMode = VK_PRESENT_MODE_FIFO_KHR;
-
-    for (uint32_t i = 0; i < availablePresentModes.size(); i++)
-    {
-        if (availablePresentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
-        {
-            // Set the mode to VK_PRESENT_MODE_MAILBOX_KHR where the presentation engine 
-            // waits for the next vertical blanking period to update the current image.
-            // The image waiting to be displayed may get overwritten.
-            // This mode do not cause image tearing
-            bestMode = VK_PRESENT_MODE_MAILBOX_KHR;
-            break;
-        }
-
-        if (availablePresentModes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR)
-        {
-            // Set the mode to VK_PRESENT_MODE_IMMEDIATE_KHR where the presentation engine 
-            // will not wait for display vertical blank interval
-            // This mode may cause image tearing
-            bestMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
-        }
-    }
-
-    return bestMode;
-}
-
-// Returns the best swap chain extent to create the swap chain
-VkExtent2D VulkanApp::SelectBestExtent(const VkSurfaceCapabilitiesKHR& capabilities)
-{
-    VkExtent2D swapChainExtent = capabilities.currentExtent;
-
-    // If either the width or height is -1 then set to swap chain extent to window dimension
-    // otherwise choose the current extent from device capabilities
-/*    if (capabilities.currentExtent.width == std::numeric_limits<uint32_t>::max() ||
-        capabilities.currentExtent.height == std::numeric_limits<uint32_t>::max())*/
-    {
-        swapChainExtent.width =  m_windowDim.width;
-        swapChainExtent.height = m_windowDim.height;
-    }
-
-    return (swapChainExtent);
-}
-
-bool VulkanApp::CreateRenderPass()
-{
-    bool result = true;
-
     // Fill in the color attachment
     VkAttachmentDescription colorAttachment = {};
     colorAttachment.format = m_hSwapChainImageFormat;
@@ -663,54 +546,14 @@ bool VulkanApp::CreateRenderPass()
     if (vkCreateRenderPass(m_hDevice, &renderPassInfo, nullptr, &m_hRenderPass) != VK_SUCCESS)
     {
         LogError("vkCreateRenderPass() failed to create render pass!");
-        result = false;
+		assert(false);
     }
-
-    return (result);
 }
 
-VkShaderModule VulkanApp::CreateShader(const std::string& filename)
+void VulkanApp::CreateFramebuffers()
 {
-    VkShaderModule shaderModule = 0;
-    std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-    if (file.is_open())
-    {
-        // Read the shader file
-        size_t fileSize = (size_t)file.tellg();
-        std::vector<char> shaderCode(fileSize);
-
-        file.seekg(0);
-        file.read(shaderCode.data(), fileSize);
-        file.close();
-
-        // Now create the shader module
-        VkShaderModuleCreateInfo createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-        createInfo.codeSize = shaderCode.size();
-        createInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode.data());
-
-        VkResult result = vkCreateShaderModule(m_hDevice, &createInfo, nullptr, &shaderModule);
-
-        if (result != VK_SUCCESS)
-        {
-            LogError("Failed to create shader!");
-        }
-    }
-    else
-    {
-        LogError("Failed to open file!");
-    }
-
-    return shaderModule;
-}
-
-bool VulkanApp::CreateFramebuffers()
-{
-    bool result = true;
-
     // Resize the list based on swap chain image view count
-    m_hSwapChainFramebufferList.resize(m_hSwapChainImageViewList.size());
+    m_hFramebuffers.resize(m_hSwapChainImageViewList.size());
 
     // For each item in swap chain image view list
     for (size_t i = 0; i < m_hSwapChainImageViewList.size(); i++)
@@ -726,21 +569,17 @@ bool VulkanApp::CreateFramebuffers()
         framebufferInfo.layers = 1;
 
         // Create frame buffer object
-        VkResult vkResult = vkCreateFramebuffer(m_hDevice, &framebufferInfo, nullptr, &m_hSwapChainFramebufferList[i]);
+        VkResult vkResult = vkCreateFramebuffer(m_hDevice, &framebufferInfo, nullptr, &m_hFramebuffers[i]);
         if (vkResult != VK_SUCCESS)
         {
             LogError("vkCreateFramebuffer() failed!");
-            result = false;
+			assert(false);
         }
     }
-
-    return (result);
 }
 
-bool VulkanApp::CreateCommandBuffers()
+void VulkanApp::CreateCommandBuffers()
 {
-    bool result = true;
-
     // Create the command buffer pool object
     VkCommandPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -751,7 +590,7 @@ bool VulkanApp::CreateCommandBuffers()
 
     if (vkResult == VK_SUCCESS)
     {
-        m_hCommandBufferList.resize(m_hSwapChainFramebufferList.size());
+        m_hCommandBufferList.resize(m_hSwapChainImageViewList.size());
 
         VkCommandBufferAllocateInfo allocInfo = {};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -763,21 +602,18 @@ bool VulkanApp::CreateCommandBuffers()
         if (vkResult != VK_SUCCESS)
         {
             LogError("vkAllocateCommandBuffers() failed!");
-            result = false;
-        }
+			assert(false);
+		}
     }
     else
     {
         LogError("vkCreateCommandPool() failed!");
-        result = false;
-    }
-
-    return (result);
+		assert(false);
+	}
 }
 
-bool VulkanApp::CreateSemaphores()
+void VulkanApp::CreateSemaphores()
 {
-    bool result = true;
     VkSemaphoreCreateInfo semaphoreInfo = {};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphoreInfo.flags = 0;
@@ -789,17 +625,15 @@ bool VulkanApp::CreateSemaphores()
         vkCreateSemaphore(m_hDevice, &semaphoreInfo, nullptr, &m_hPresentReadySemaphore) != VK_SUCCESS)
     {
         LogError("vkCreateSemaphore() failed");
-        result = false;
-    }
-    return (result);
+		assert(false);
+	}
 }
-
 
 bool VulkanApp::Render()
 {
     m_activeSwapChainImageIndex = 0;
 
-	const uint64_t timeOut = 999;// std::numeric_limits<uint64_t>::max();
+	const uint64_t timeOut = 999;
     vkAcquireNextImageKHR(m_hDevice, m_hSwapChain, timeOut, m_hRenderReadySemaphore, VK_NULL_HANDLE, &m_activeSwapChainImageIndex);
 
     VkPipelineStageFlags waitDstStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
@@ -816,8 +650,9 @@ bool VulkanApp::Render()
     submitInfo.pSignalSemaphores = &m_hPresentReadySemaphore;
 
     VkResult vkResult = vkQueueSubmit(m_hGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-
-    return (vkResult == VK_SUCCESS);
+	
+    assert (vkResult == VK_SUCCESS);
+	return VK_SUCCESS;
 }
 
 bool VulkanApp::Present()
@@ -842,180 +677,4 @@ bool VulkanApp::Present()
     }
 
     return (result == VK_SUCCESS);
-}
-
-void VulkanApp::CleanupVulkan()
-{
-    vkDestroySemaphore(m_hDevice, m_hPresentReadySemaphore, nullptr);
-    vkDestroySemaphore(m_hDevice, m_hRenderReadySemaphore, nullptr);
-    vkDestroyCommandPool(m_hDevice, m_hCommandPool, nullptr);
-
-    for (size_t i = 0; i < m_hSwapChainFramebufferList.size(); i++)
-    {
-        vkDestroyFramebuffer(m_hDevice, m_hSwapChainFramebufferList[i], nullptr);
-    }
-
-    vkDestroyRenderPass(m_hDevice, m_hRenderPass, nullptr);
-
-    for (size_t i = 0; i < m_hSwapChainImageViewList.size(); i++)
-    {
-        vkDestroyImageView(m_hDevice, m_hSwapChainImageViewList[i], nullptr);
-    }
-
-    vkDestroySwapchainKHR(m_hDevice, m_hSwapChain, nullptr);
-    vkDestroyDevice(m_hDevice, nullptr);
-    vkDestroySurfaceKHR(m_hInstance, m_hSurface, nullptr);
-    vkDestroyInstance(m_hInstance, nullptr);
-}
-
-void VulkanApp::CoreCleanup()
-{
-    CleanupVulkan();
-}
-
-bool VulkanApp::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
-{
-    bool  result = true;
-
-    VkBufferCreateInfo bufferInfo = {};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = size;
-    bufferInfo.usage = usage;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-    if (vkCreateBuffer(m_hDevice, &bufferInfo, nullptr, &buffer) == VK_SUCCESS)
-    {
-        VkMemoryRequirements memRequirements = {};
-        vkGetBufferMemoryRequirements(m_hDevice, buffer, &memRequirements);
-
-        VkMemoryAllocateInfo allocInfo = {};
-        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = GetMemoryTypeIndex(properties, memRequirements.memoryTypeBits);
-
-        if (vkAllocateMemory(m_hDevice, &allocInfo, nullptr, &bufferMemory) == VK_SUCCESS)
-        {
-            vkBindBufferMemory(m_hDevice, buffer, bufferMemory, 0);
-        }
-        else
-        {
-            result = false;
-            LogError("Failed to allocate buffer memory!");
-        }
-    }
-    else
-    {
-        result = false;
-        LogError("Failed to create buffer!");
-    }
-    
-    return (result);
-}
-
-VkCommandBuffer VulkanApp::BeginSingleTimeCommands()
-{
-    VkCommandBufferAllocateInfo allocInfo = {};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool = m_hCommandPool;
-    allocInfo.commandBufferCount = 1;
-
-    VkCommandBuffer commandBuffer;
-    vkAllocateCommandBuffers(m_hDevice, &allocInfo, &commandBuffer);
-
-    VkCommandBufferBeginInfo beginInfo = {};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-    vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
-    return commandBuffer;
-}
-
-void VulkanApp::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
-{
-    vkEndCommandBuffer(commandBuffer);
-
-    VkSubmitInfo submitInfo = {};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffer;
-
-    vkQueueSubmit(m_hGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(m_hGraphicsQueue);
-
-    vkFreeCommandBuffers(m_hDevice, m_hCommandPool, 1, &commandBuffer);
-}
-
-uint32_t VulkanApp::GetMemoryTypeIndex(VkMemoryPropertyFlags properties, uint32_t memoryTypeBits)
-{
-    uint32_t memoryTypeIndex = -1;
-
-    for (uint32_t i = 0; i < m_physicalDeviceInfo.memProp.memoryTypeCount && (memoryTypeIndex == -1); i++)
-    {
-        if ((memoryTypeBits & (1 << i)) && (m_physicalDeviceInfo.memProp.memoryTypes[i].propertyFlags & properties) == properties)
-        {
-            memoryTypeIndex = i;
-        }
-    }
-
-    if (memoryTypeIndex == -1)
-    {
-        LogError("Unable to find suitable memory type!");
-    }
-
-    return (memoryTypeIndex);
-}
-
-void VulkanApp::UpdateMemory(VkDeviceMemory deviceMem, VkDeviceSize offset, VkDeviceSize size, VkMemoryMapFlags flags, const void* pData)
-{
-    void* pHostMem;
-    vkMapMemory(m_hDevice, deviceMem, offset, size, flags, &pHostMem);
-    memcpy(pHostMem, pData, (size_t)size);
-    vkUnmapMemory(m_hDevice, deviceMem);
-}
-
-
-bool VulkanApp::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
-{
-    bool result = true;
-
-    VkImageCreateInfo imageInfo = {};
-    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-    imageInfo.imageType = VK_IMAGE_TYPE_2D;
-    imageInfo.extent.width = width;
-    imageInfo.extent.height = height;
-    imageInfo.extent.depth = 1;
-    imageInfo.mipLevels = 1;
-    imageInfo.arrayLayers = 1;
-    imageInfo.format = format;
-    imageInfo.tiling = tiling;
-    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    imageInfo.usage = usage;
-    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-    if (vkCreateImage(m_hDevice, &imageInfo, nullptr, &image) == VK_SUCCESS)
-    {
-        VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(m_hDevice, image, &memRequirements);
-
-        VkMemoryAllocateInfo allocInfo = {};
-        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = GetMemoryTypeIndex(properties, memRequirements.memoryTypeBits);
-
-        if (vkAllocateMemory(m_hDevice, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
-        {
-            LogError("vkAllocateMemory() failed!");
-        }
-
-        vkBindImageMemory(m_hDevice, image, imageMemory, 0);
-    }
-    else
-    {
-        LogError("vkCreateImage() failed!");
-    }
-
-    return (result);
 }
