@@ -1,5 +1,5 @@
 #
-# Vulkan By Example - First Hello World Vulkan 
+# Vulkan By Example - Hand shake with Vulkan
 #
 
 cmake_minimum_required(VERSION 3.7.1)
