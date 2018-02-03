@@ -8,7 +8,7 @@ using namespace std;
 
 HelloVulkanApp::HelloVulkanApp()
 {
-	GetInstanceLayerExtensionProperties();
+	VulkanHelper::GetInstanceLayerExtensionProperties();
 
 	m_hPipelineLayout = VK_NULL_HANDLE;
     m_hGraphicsPipeline = VK_NULL_HANDLE;
@@ -54,7 +54,7 @@ void HelloVulkanApp::Update()
 void HelloVulkanApp::CreateGraphicsPipeline()
 {
     // Compile the vertex shader
-	VkShaderModule vertShader = CreateShader(m_hDevice, "../source/shaders/TriangleVert.spv"); // Relative path to binary output dir
+	VkShaderModule vertShader = VulkanHelper::CreateShader(m_hDevice, "../source/shaders/TriangleVert.spv"); // Relative path to binary output dir
 
 	// Setup the vertex shader stage create info structures
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
@@ -64,7 +64,7 @@ void HelloVulkanApp::CreateGraphicsPipeline()
     vertShaderStageInfo.pName = "main";
 
     // Compile the fragment shader
-	VkShaderModule fragShader = CreateShader(m_hDevice, "../source/shaders/TriangleFrag.spv"); // Relative path to binary output dir
+	VkShaderModule fragShader = VulkanHelper::CreateShader(m_hDevice, "../source/shaders/TriangleFrag.spv"); // Relative path to binary output dir
 
 	// Setup the fragment shader stage create info structures
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
@@ -158,7 +158,7 @@ void HelloVulkanApp::CreateGraphicsPipeline()
 
 	if (vkResult != VK_SUCCESS)
 	{
-		LogError("vkCreatePipelineLayout() failed!");
+		VulkanHelper::LogError("vkCreatePipelineLayout() failed!");
 		assert(false);
 	}
 
@@ -181,7 +181,7 @@ void HelloVulkanApp::CreateGraphicsPipeline()
 	vkResult = vkCreateGraphicsPipelines(m_hDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_hGraphicsPipeline);
 	if (vkResult != VK_SUCCESS)
 	{
-		LogError("vkCreateGraphicsPipelines() failed!");
+		VulkanHelper::LogError("vkCreateGraphicsPipelines() failed!");
 		assert(false);
 	}
 
@@ -240,7 +240,7 @@ void HelloVulkanApp::RecordCommandBuffer()
 		VkResult vkResult = vkEndCommandBuffer(m_hCommandBufferList[i]);
 		if (vkResult != VK_SUCCESS)
 		{
-			LogError("vkEndCommandBuffer() failed!");
+			VulkanHelper::LogError("vkEndCommandBuffer() failed!");
 			assert(false);
 		}
 	}

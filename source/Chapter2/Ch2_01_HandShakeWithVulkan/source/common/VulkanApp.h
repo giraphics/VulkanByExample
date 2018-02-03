@@ -3,7 +3,7 @@
 
 
 // Base class for Vulkan application
-class VulkanApp : public VulkanHelper
+class VulkanApp
 {
 public:
     VulkanApp();

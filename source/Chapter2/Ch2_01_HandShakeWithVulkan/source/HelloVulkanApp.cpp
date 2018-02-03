@@ -3,7 +3,7 @@ using namespace std;
 
 HelloVulkanApp::HelloVulkanApp()
 {
-	GetValidationLayers();
+	VulkanHelper::GetValidationLayers();
 }
 
 HelloVulkanApp::~HelloVulkanApp()

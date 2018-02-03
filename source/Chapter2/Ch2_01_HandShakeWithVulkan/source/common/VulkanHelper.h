@@ -36,11 +36,8 @@ public:
 	VulkanHelper();
 	virtual ~VulkanHelper();
 
-
-protected:
-
 	// Layer and Extension helper functions
-	VkResult GetValidationLayers();
+	static VkResult GetValidationLayers();
 
 private:
 	// Layer property list containing Layers and respective extensions
