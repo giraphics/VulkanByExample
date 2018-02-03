@@ -145,7 +145,7 @@ void VulkanApp::CreateVulkanInstance()
     VkResult result = vkCreateInstance(&createInfo, nullptr, &m_hInstance);
 	if (result != VK_SUCCESS)
 	{
-		LogError("Error creating Vulkan Instance");
+		VulkanHelper::LogError("Error creating Vulkan Instance");
 	}
 
 	CreateSurface();
@@ -172,7 +172,7 @@ void VulkanApp::CreateSurface()
 
 	if (result != VK_SUCCESS)
 	{
-		LogError("Error: Unable to create the window surface.");
+		VulkanHelper::LogError("Error: Unable to create the window surface.");
 	}
 
 	assert(result == VK_SUCCESS);
@@ -184,7 +184,7 @@ void VulkanApp::CreateVulkanDeviceAndQueue()
     SelectPhysicalDevice();
 
 	// Query layer and extension for m_hPhysicalDevice
-	GetDeviceLayerExtensionProperties(m_hPhysicalDevice);
+	VulkanHelper::GetDeviceLayerExtensionProperties(m_hPhysicalDevice);
 
 	// Create the Vulkan device & get pointer to graphics & present queue
     CreateDeviceAndQueueObjects();
@@ -354,13 +354,13 @@ void VulkanApp::SelectPhysicalDevice()
 
         if (m_hPhysicalDevice == VK_NULL_HANDLE)
         {
-            LogError("Could not find a suitable GPU");
+			VulkanHelper::LogError("Could not find a suitable GPU");
             result = false;
         }
     }
     else
     {
-        LogError("Could not find a GPU that supports Vulkan");
+		VulkanHelper::LogError("Could not find a GPU that supports Vulkan");
         result = false;
     }
 
@@ -410,7 +410,7 @@ void VulkanApp::CreateDeviceAndQueueObjects()
     }
     else
     {
-        LogError("Vulkan Device creation failed");
+		VulkanHelper::LogError("Vulkan Device creation failed");
         result = false;
     }
 
@@ -419,9 +419,9 @@ void VulkanApp::CreateDeviceAndQueueObjects()
 
 void VulkanApp::CreateSwapChain()
 {
-    VkSurfaceFormatKHR surfaceFormat = SelectBestSurfaceFormat(m_physicalDeviceInfo.formatList);
-    VkPresentModeKHR presentMode = SelectBestPresentMode(m_physicalDeviceInfo.presentModeList);
-    VkExtent2D extent = SelectBestExtent(m_physicalDeviceInfo.capabilities, m_windowDim);
+    VkSurfaceFormatKHR surfaceFormat = VulkanHelper::SelectBestSurfaceFormat(m_physicalDeviceInfo.formatList);
+    VkPresentModeKHR presentMode = VulkanHelper::SelectBestPresentMode(m_physicalDeviceInfo.presentModeList);
+    VkExtent2D extent = VulkanHelper::SelectBestExtent(m_physicalDeviceInfo.capabilities, m_windowDim);
     uint32_t imageCount = m_physicalDeviceInfo.capabilities.minImageCount + 1;
 
     // Validate the image count bounds
@@ -464,7 +464,7 @@ void VulkanApp::CreateSwapChain()
     // Create the Swap chain
     if (vkCreateSwapchainKHR(m_hDevice, &createInfo, nullptr, &m_hSwapChain) != VK_SUCCESS)
     {
-        LogError("vkCreateSwapchainKHR() failed!");
+		VulkanHelper::LogError("vkCreateSwapchainKHR() failed!");
         assert(false);
     }
     else
@@ -500,7 +500,7 @@ void VulkanApp::CreateSwapChain()
             // Create the swap chain image view
             if (vkCreateImageView(m_hDevice, &createInfo, nullptr, &m_hSwapChainImageViewList[i]) != VK_SUCCESS)
             {
-                LogError("vkCreateImageView() failed!");
+				VulkanHelper::LogError("vkCreateImageView() failed!");
 				assert(false);
 			}
         }
@@ -585,7 +585,7 @@ void VulkanApp::CreateDepthImage()
 		imgViewInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 	}
 
-	if (!m_hCommandPool) { CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo); }
+	if (!m_hCommandPool) { VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo); }
 
 	// Use command buffer to create the depth image. This includes -
 	// Command buffer allocation, recording with begin/end scope and submission.
@@ -676,7 +676,7 @@ void VulkanApp::CreateRenderPass()
     // Create the render pass
     if (vkCreateRenderPass(m_hDevice, &renderPassInfo, nullptr, &m_hRenderPass) != VK_SUCCESS)
     {
-        LogError("vkCreateRenderPass() failed to create render pass!");
+		VulkanHelper::LogError("vkCreateRenderPass() failed to create render pass!");
 		assert(false);
     }
 }
@@ -711,7 +711,7 @@ void VulkanApp::CreateFramebuffers()
         VkResult vkResult = vkCreateFramebuffer(m_hDevice, &framebufferInfo, nullptr, &m_hFramebuffers[i]);
         if (vkResult != VK_SUCCESS)
         {
-            LogError("vkCreateFramebuffer() failed!");
+			VulkanHelper::LogError("vkCreateFramebuffer() failed!");
 			assert(false);
         }
     }
@@ -722,7 +722,7 @@ void VulkanApp::CreateCommandBuffers()
     // Create the command buffer pool object
 	if (!m_hCommandPool)
 	{ 
-		CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo); 
+		VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo);
 	}
 
 	VkResult vkResult;
@@ -739,13 +739,13 @@ void VulkanApp::CreateCommandBuffers()
         vkResult = vkAllocateCommandBuffers(m_hDevice, &allocInfo, m_hCommandBufferList.data());
         if (vkResult != VK_SUCCESS)
         {
-            LogError("vkAllocateCommandBuffers() failed!");
+			VulkanHelper::LogError("vkAllocateCommandBuffers() failed!");
 			assert(false);
 		}
     }
     else
     {
-        LogError("vkCreateCommandPool() failed!");
+		VulkanHelper::LogError("vkCreateCommandPool() failed!");
 		assert(false);
 	}
 }
@@ -762,7 +762,7 @@ void VulkanApp::CreateSemaphores()
     if (vkCreateSemaphore(m_hDevice, &semaphoreInfo, nullptr, &m_hRenderReadySemaphore) != VK_SUCCESS ||
         vkCreateSemaphore(m_hDevice, &semaphoreInfo, nullptr, &m_hPresentReadySemaphore) != VK_SUCCESS)
     {
-        LogError("vkCreateSemaphore() failed");
+		VulkanHelper::LogError("vkCreateSemaphore() failed");
 		assert(false);
 	}
 }

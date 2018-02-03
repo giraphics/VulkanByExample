@@ -25,7 +25,7 @@ private:
 #define NUM_SAMPLES VK_SAMPLE_COUNT_1_BIT
 
 // Base class for Vulkan application
-class VulkanApp : public VulkanHelper
+class VulkanApp
 {
 public:
     VulkanApp();
