@@ -20,8 +20,8 @@ HelloVulkanApp::~HelloVulkanApp()
 	vkDestroyPipelineLayout(m_hDevice, m_hPipelineLayout, nullptr);
 
 	// Destroy Vertex Buffer
-	//vkDestroyBuffer(m_hDevice, VertexBuffer.buffer, NULL);
-	//vkFreeMemory(m_hDevice, VertexBuffer.memory, NULL);
+	//vkDestroyBuffer(m_hDevice, VertexBuffer.m_Buffer, NULL);
+	//vkFreeMemory(m_hDevice, VertexBuffer.m_Memory, NULL);
 }
 
 void HelloVulkanApp::SetApplicationName(string name)
@@ -49,62 +49,6 @@ void HelloVulkanApp::Setup()
 
 void HelloVulkanApp::Update()
 {
-	// The following code records the commands to draw
-	// a quad in a blue background
-	static float a = 0.00000002;
-	a += 0.0002;
-
-	// Background color (Blue)
-	// The color values are defined in this order (Red,Green,Blue,Alpha)
-	VkClearValue clearColor = { 0.0f + a, 0.0f, 0.0f, 1.0f };
-	// Offset to render in the frame buffer
-	VkOffset2D   renderOffset = { 0, 0 };
-	// Width & Height to render in the frame buffer
-	VkExtent2D   renderExtent = m_swapChainExtent;
-
-	// For each command buffers in the command buffer list
-	for (size_t i = 0; i < m_hCommandBufferList.size(); i++)
-	{
-		VkCommandBufferBeginInfo beginInfo = {};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		// Indicate that the command buffer can be resubmitted to the queue
-		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-
-		// Step 1: Begin command buffer
-		vkBeginCommandBuffer(m_hCommandBufferList[i], &beginInfo);
-
-		VkRenderPassBeginInfo renderPassInfo = {};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = m_hRenderPass;
-		renderPassInfo.framebuffer = m_hFramebuffers[i];
-		renderPassInfo.renderArea.offset = renderOffset;
-		renderPassInfo.renderArea.extent = renderExtent;
-		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearColor;
-
-		// Step 2: Begin render pass
-		vkCmdBeginRenderPass(m_hCommandBufferList[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-		// Step 3: Bind graphics pipeline
-		vkCmdBindPipeline(m_hCommandBufferList[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_hGraphicsPipeline);
-
-		const VkDeviceSize offsets[1] = { 0 };
-		vkCmdBindVertexBuffers(m_hCommandBufferList[i], 0, 1, &VertexBuffer.m_Buffer, offsets);
-
-		// Step 4: Draw a quad using 3 vertices 
-		vkCmdDraw(m_hCommandBufferList[i], 3, 1, 0, 0);
-
-		// Step 5: End the Render pass
-		vkCmdEndRenderPass(m_hCommandBufferList[i]);
-
-		// Step 6: End the Command buffer
-		VkResult vkResult = vkEndCommandBuffer(m_hCommandBufferList[i]);
-		if (vkResult != VK_SUCCESS)
-		{
-			LogError("vkEndCommandBuffer() failed!");
-			assert(false);
-		}
-	}
 }
 
 void HelloVulkanApp::CreateGraphicsPipeline()
@@ -248,12 +192,9 @@ void HelloVulkanApp::CreateGraphicsPipeline()
 
 void HelloVulkanApp::RecordCommandBuffer()
 {
-	// The following code records the commands to draw
-	// a quad in a blue background
-	static float a = 0.0002;
 	// Background color (Blue)
 	// The color values are defined in this order (Red,Green,Blue,Alpha)
-	VkClearValue clearColor = { 0.0f + a++, 0.0f, 1.0f, 1.0f };
+	VkClearValue clearColor = { 0.0f, 0.0f, 1.0f, 1.0f };
 	// Offset to render in the frame buffer
 	VkOffset2D   renderOffset = { 0, 0 };
 	// Width & Height to render in the frame buffer
@@ -402,6 +343,7 @@ int main(int argc, char **argv)
 	QApplication qtApp(argc, argv);
 
 	VulkanApp* helloVulkanApp = new HelloVulkanApp(); // Create Vulkan app instance
+	helloVulkanApp->EnableDepthBuffer(false);
 	helloVulkanApp->Initialize();
 	qtApp.exec();
 	
