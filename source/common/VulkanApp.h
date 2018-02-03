@@ -22,6 +22,8 @@ private:
 	VulkanApp* m_VulkanApp; // Used to call run() by the timer
 };
 
+#define NUM_SAMPLES VK_SAMPLE_COUNT_1_BIT
+
 // Base class for Vulkan application
 class VulkanApp : public VulkanHelper
 {
@@ -33,7 +35,9 @@ public:
     void Run();  // Render loop
 
 	void SetWindowDimension(int width, int height);
-
+	void EnableDepthBuffer(bool depthEnabled) { m_DepthEnabled = depthEnabled; }
+	virtual void CreateCommandBuffers(); // Overide the default implementation as per application requirement
+	
 protected:
 	// Core virtual methods used by derived classes
 	virtual void Configure() = 0; // Application's user configuration prior to Setup()
@@ -42,7 +46,6 @@ protected:
 
 	virtual bool Render();		  // Draw the primitive on surface
 	virtual bool Present();		  // Swap the drawn surface on application window
-	virtual void CreateCommandBuffers(); // Overide the default implementation as per application requirement
 
 private:
 	// Initialization functions for Vulkan application
@@ -59,17 +62,27 @@ private:
 	void CreateDeviceAndQueueObjects();
 
 	void CreateSwapChain();
+	void CreateDepthImage();
 
 	void CreateSemaphores();
 
 	virtual void CreateRenderPass();
 	void CreateFramebuffers();
 
-protected:
+public:
+	struct {
+		VkFormat		m_Format;
+		VkImage			m_Image;
+		VkDeviceMemory	m_DeviceMemory;
+		VkImageView		m_ImageView;
+	}DepthImage;
+	VkCommandBuffer		cmdBufferDepthImage;			// Command buffer for depth image layout
+
 	// Application display window
-    Window*		    m_pWindow;   // Display window object
-	VkExtent2D		m_windowDim; // Display window dimension
-	string          m_appName;   // Display name
+    Window*		    m_pWindow;		// Display window object
+	VkExtent2D		m_windowDim;	// Display window dimension
+	string          m_appName;		// Display name
+	bool			m_DepthEnabled; // Is depth buffer supported
 
     // Vulkan specific objects
     VkInstance      m_hInstance; // Vulkan instance object    
