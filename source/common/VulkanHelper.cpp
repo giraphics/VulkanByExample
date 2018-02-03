@@ -1,5 +1,6 @@
 #include "VulkanHelper.h"
 
+std::vector<LayerProperties> VulkanHelper::m_LayerPropertyList = {};
 VulkanHelper::VulkanHelper()
 {
 }
@@ -21,6 +22,8 @@ VkResult VulkanHelper::GetInstanceLayerExtensionProperties()
 	uint32_t						instanceLayerCount;		// Stores number of layers supported by instance
 	std::vector<VkLayerProperties>	layerProperties;		// Vector to store layer properties
 	VkResult						result;					// Variable to check Vulkan API result status
+
+	m_LayerPropertyList.clear();
 
 	// Query all the layers
 	result = vkEnumerateInstanceLayerProperties(&instanceLayerCount, NULL);
@@ -239,4 +242,178 @@ bool VulkanHelper::MemoryTypeFromProperties(VkPhysicalDeviceMemoryProperties mem
 	}
 	// No memory types matched, return failure
 	return false;
+}
+
+void VulkanHelper::CreateCommandPool(const VkDevice& device, VkCommandPool& cmdPool, const PhysicalDeviceInfo& deviceInfo, const VkCommandPoolCreateInfo* commandPoolInfo)
+{
+	VkResult vkResult;
+	if (commandPoolInfo)
+	{
+		vkResult = vkCreateCommandPool(device, commandPoolInfo, nullptr, &cmdPool);
+		assert(!vkResult);
+	}
+	else
+	{
+		// Create the command buffer pool object
+		VkCommandPoolCreateInfo poolInfo = {};
+		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		poolInfo.flags = 0;
+		poolInfo.queueFamilyIndex = deviceInfo.graphicsFamilyIndex;
+		vkResult = vkCreateCommandPool(device, &poolInfo, nullptr, &cmdPool);
+		assert(!vkResult);
+	}
+}
+
+void VulkanHelper::AllocateCommandBuffer(const VkDevice device, const VkCommandPool cmdPool, VkCommandBuffer* cmdBuf, const VkCommandBufferAllocateInfo* commandBufferInfo)
+{
+	// Dependency on the intialize SwapChain Extensions and initialize CommandPool
+	VkResult result;
+
+	// If command information is available use it as it is.
+	if (commandBufferInfo) {
+		result = vkAllocateCommandBuffers(device, commandBufferInfo, cmdBuf);
+		assert(!result);
+		return;
+	}
+
+	// Default implementation, create the command buffer
+	// allocation info and use the supplied parameter into it
+	VkCommandBufferAllocateInfo cmdInfo = {};
+	cmdInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	cmdInfo.pNext = NULL;
+	cmdInfo.commandPool = cmdPool;
+	cmdInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	cmdInfo.commandBufferCount = (uint32_t) sizeof(cmdBuf) / sizeof(VkCommandBuffer);;
+
+	result = vkAllocateCommandBuffers(device, &cmdInfo, cmdBuf);
+	assert(!result);
+}
+
+void VulkanHelper::BeginCommandBuffer(VkCommandBuffer cmdBuf, VkCommandBufferBeginInfo* inCmdBufInfo)
+{
+	// Dependency on  the initialieCommandBuffer()
+	VkResult  result;
+	// If the user has specified the custom command buffer use it
+	if (inCmdBufInfo) {
+		result = vkBeginCommandBuffer(cmdBuf, inCmdBufInfo);
+		assert(result == VK_SUCCESS);
+		return;
+	}
+
+	// Otherwise, use the default implementation.
+	VkCommandBufferInheritanceInfo cmdBufInheritInfo = {};
+	cmdBufInheritInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+	cmdBufInheritInfo.pNext = NULL;
+	cmdBufInheritInfo.renderPass = VK_NULL_HANDLE;
+	cmdBufInheritInfo.subpass = 0;
+	cmdBufInheritInfo.framebuffer = VK_NULL_HANDLE;
+	cmdBufInheritInfo.occlusionQueryEnable = VK_FALSE;
+	cmdBufInheritInfo.queryFlags = 0;
+	cmdBufInheritInfo.pipelineStatistics = 0;
+
+	VkCommandBufferBeginInfo cmdBufInfo = {};
+	cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	cmdBufInfo.pNext = NULL;
+	cmdBufInfo.flags = 0;
+	cmdBufInfo.pInheritanceInfo = &cmdBufInheritInfo;
+
+	result = vkBeginCommandBuffer(cmdBuf, &cmdBufInfo);
+
+	assert(result == VK_SUCCESS);
+}
+
+void VulkanHelper::EndCommandBuffer(VkCommandBuffer commandBuffer)
+{
+	VkResult  result;
+	result = vkEndCommandBuffer(commandBuffer);
+	assert(result == VK_SUCCESS);
+}
+
+void VulkanHelper::SubmitCommandBuffer(const VkQueue& queue, const VkCommandBuffer commandBuffer, const VkSubmitInfo* inSubmitInfo, const VkFence& fence)
+{
+	VkResult result;
+
+	// If Subimt information is avialable use it as it is, this assumes that 
+	// the commands are already specified in the structure, hence ignore command buffer 
+	if (inSubmitInfo) {
+		result = vkQueueSubmit(queue, 1, inSubmitInfo, fence);
+		assert(!result);
+
+		result = vkQueueWaitIdle(queue);
+		assert(!result);
+		return;
+	}
+
+	// Otherwise, create the submit information with specified buffer commands
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.pNext = NULL;
+	submitInfo.waitSemaphoreCount = 0;
+	submitInfo.pWaitSemaphores = NULL;
+	submitInfo.pWaitDstStageMask = NULL;
+	submitInfo.commandBufferCount = (uint32_t)sizeof(commandBuffer) / sizeof(VkCommandBuffer);
+	submitInfo.pCommandBuffers = &commandBuffer;
+	submitInfo.signalSemaphoreCount = 0;
+	submitInfo.pSignalSemaphores = NULL;
+
+	result = vkQueueSubmit(queue, 1, &submitInfo, fence);
+	assert(!result);
+
+	result = vkQueueWaitIdle(queue);
+	assert(!result);
+}
+
+void VulkanHelper::SetImageLayout(VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout, VkAccessFlagBits srcAccessMask, const VkCommandBuffer& commandBuffer)
+{
+	// Dependency on commandBuffer
+	assert(commandBuffer != VK_NULL_HANDLE);
+
+	VkImageMemoryBarrier imgMemoryBarrier = {};
+	imgMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imgMemoryBarrier.pNext = NULL;
+	imgMemoryBarrier.srcAccessMask = srcAccessMask;
+	imgMemoryBarrier.dstAccessMask = 0;
+	imgMemoryBarrier.oldLayout = oldImageLayout;
+	imgMemoryBarrier.newLayout = newImageLayout;
+	imgMemoryBarrier.image = image;
+	imgMemoryBarrier.subresourceRange.aspectMask = aspectMask;
+	imgMemoryBarrier.subresourceRange.baseMipLevel = 0;
+	imgMemoryBarrier.subresourceRange.levelCount = 1;
+	imgMemoryBarrier.subresourceRange.layerCount = 1;
+
+	if (oldImageLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+		imgMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	}
+
+	switch (newImageLayout)
+	{
+		// Ensure that anything that was copying from this image has completed
+		// An image in this layout can only be used as the destination operand of the commands
+	case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+	case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+		imgMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		break;
+
+		// Ensure any Copy or CPU writes to image are flushed
+		// An image in this layout can only be used as a read-only shader resource
+	case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+		imgMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		imgMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		break;
+
+		// An image in this layout can only be used as a framebuffer color attachment
+	case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+		imgMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+		break;
+
+		// An image in this layout can only be used as a framebuffer depth/stencil attachment
+	case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+		imgMemoryBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		break;
+	}
+
+	VkPipelineStageFlags srcStages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+	VkPipelineStageFlags destStages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+
+	vkCmdPipelineBarrier(commandBuffer, srcStages, destStages, 0, 0, NULL, 0, NULL, 1, &imgMemoryBarrier);
 }

@@ -36,26 +36,32 @@ public:
 	VulkanHelper();
 	virtual ~VulkanHelper();
 
-
-protected:
-	// General helper functions
-	void LogError(string text);
+	// Create Swap chain helper functions
+	static VkSurfaceFormatKHR SelectBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+	static VkPresentModeKHR SelectBestPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
+	static VkExtent2D SelectBestExtent(const VkSurfaceCapabilitiesKHR& capabilities, VkExtent2D& windowDim);
 
 	// Layer and Extension helper functions
-	VkResult GetInstanceLayerExtensionProperties();
-	VkResult GetDeviceLayerExtensionProperties(VkPhysicalDevice gpu);
-	VkResult GetExtensionProperties(LayerProperties &layerProps, VkPhysicalDevice gpu = nullptr);
+	static VkResult GetInstanceLayerExtensionProperties();
+	static VkResult GetDeviceLayerExtensionProperties(VkPhysicalDevice gpu);
+	static VkResult GetExtensionProperties(LayerProperties &layerProps, VkPhysicalDevice gpu = nullptr);
 
-	// Create Swap chain helper functions
-	VkSurfaceFormatKHR SelectBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-	VkPresentModeKHR SelectBestPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
-	VkExtent2D SelectBestExtent(const VkSurfaceCapabilitiesKHR& capabilities, VkExtent2D& windowDim);
+	// General helper functions
+	static void LogError(string text);
 
 	// Shader helper funcitons
-	VkShaderModule CreateShader(VkDevice device, const std::string& filename);
+	static VkShaderModule CreateShader(VkDevice device, const std::string& filename);
 
 	static bool MemoryTypeFromProperties(VkPhysicalDeviceMemoryProperties memoryProperties, uint32_t typeBits, VkFlags requirementsMask, uint32_t *typeIndex);
-private:
+
+	static void CreateCommandPool(const VkDevice& device, VkCommandPool& cmdPool, const PhysicalDeviceInfo& deviceInfo, const VkCommandPoolCreateInfo* commandBufferInfo = NULL);
+	static void AllocateCommandBuffer(const VkDevice device, const VkCommandPool cmdPool, VkCommandBuffer* cmdBuf, const VkCommandBufferAllocateInfo* commandBufferInfo = NULL);
+	static void BeginCommandBuffer(VkCommandBuffer cmdBuf, VkCommandBufferBeginInfo* inCmdBufInfo = NULL);
+	static void EndCommandBuffer(VkCommandBuffer cmdBuf);
+	static void SubmitCommandBuffer(const VkQueue& queue, const VkCommandBuffer cmdBufList, const VkSubmitInfo* submitInfo = NULL, const VkFence& fence = VK_NULL_HANDLE);
+	static void SetImageLayout(VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout, VkAccessFlagBits srcAccessMask, const VkCommandBuffer& commandBuffer);
+
+public:
 	// Layer property list containing Layers and respective extensions
-	std::vector<LayerProperties> m_LayerPropertyList;
+	static std::vector<LayerProperties> m_LayerPropertyList;
 };
