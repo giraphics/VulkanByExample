@@ -34,7 +34,7 @@ class VulkanHelper
 {
 public:
 	VulkanHelper();
-	virtual ~VulkanHelper();
+	~VulkanHelper();
 
 	// Create Swap chain helper functions
 	static VkSurfaceFormatKHR SelectBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
