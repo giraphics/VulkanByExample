@@ -61,6 +61,10 @@ public:
 	static void SubmitCommandBuffer(const VkQueue& queue, const VkCommandBuffer cmdBufList, const VkSubmitInfo* submitInfo = NULL, const VkFence& fence = VK_NULL_HANDLE);
 	static void SetImageLayout(VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout, VkAccessFlagBits srcAccessMask, const VkCommandBuffer& commandBuffer);
 
+	static VkResult createBuffer(const VkDevice logicalDevice, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkPhysicalDeviceMemoryProperties deviceMemProp, VkDeviceSize size, void * data, VkBuffer * buffer, VkDeviceMemory * memory); // Please refrain the use of this createBuffer, still under experiment
+	static VkResult createBuffer(const VkDevice device, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkPhysicalDeviceMemoryProperties deviceMemProp, VkDeviceSize size, VkBuffer *buffer, VkDeviceMemory *memory, void *data = nullptr); // Please refrain the use of this createBuffer, still under experiment
+	static void CreateBuffer(const VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemProp, const void * vertexData, uint32_t dataSize, uint32_t dataStride, VkBuffer *buffer, VkDeviceMemory* memory); // Please use this Create Buffer currently begin used
+
 public:
 	// Layer property list containing Layers and respective extensions
 	static std::vector<LayerProperties> m_LayerPropertyList;

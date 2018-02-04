@@ -230,7 +230,7 @@ bool VulkanHelper::MemoryTypeFromProperties(VkPhysicalDeviceMemoryProperties mem
 											VkFlags requirementsMask, uint32_t *typeIndex)
 {
 	// Search memtypes to find first index with those properties
-	for (uint32_t i = 0; i < 32; i++) {
+	for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++) {
 		if ((typeBits & 1) == 1) {
 			// Type is available, does it match user properties?
 			if ((memoryProperties.memoryTypes[i].propertyFlags & requirementsMask) == requirementsMask) {
@@ -359,7 +359,7 @@ void VulkanHelper::SubmitCommandBuffer(const VkQueue& queue, const VkCommandBuff
 	result = vkQueueSubmit(queue, 1, &submitInfo, fence);
 	assert(!result);
 
-	result = vkQueueWaitIdle(queue);
+	result = vkQueueWaitIdle(queue); // May be put this in a flag to wait for vkQueue idle
 	assert(!result);
 }
 
@@ -417,3 +417,147 @@ void VulkanHelper::SetImageLayout(VkImage image, VkImageAspectFlags aspectMask, 
 
 	vkCmdPipelineBarrier(commandBuffer, srcStages, destStages, 0, 0, NULL, 0, NULL, 1, &imgMemoryBarrier);
 }
+
+VkResult VulkanHelper::createBuffer(const VkDevice device, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkPhysicalDeviceMemoryProperties deviceMemProp, VkDeviceSize size, void * data, VkBuffer * buffer, VkDeviceMemory * memory)
+{
+	VkMemoryRequirements memReqs;
+	VkMemoryAllocateInfo memAlloc = {};
+	memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	memAlloc.pNext = NULL;
+	memAlloc.allocationSize = 0;
+	memAlloc.memoryTypeIndex = 0;
+
+	VkBufferCreateInfo bufferCreateInfo = {};
+	bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferCreateInfo.pNext = NULL;
+	bufferCreateInfo.usage = usageFlags;
+	bufferCreateInfo.size = size;
+	bufferCreateInfo.flags = 0;
+
+	VkResult result;
+	result = vkCreateBuffer(device, &bufferCreateInfo, nullptr, buffer);
+
+	vkGetBufferMemoryRequirements(device, *buffer, &memReqs);
+	memAlloc.allocationSize = memReqs.size;
+	MemoryTypeFromProperties(deviceMemProp, memReqs.memoryTypeBits, memoryPropertyFlags, &memAlloc.memoryTypeIndex);
+
+	result = vkAllocateMemory(device, &memAlloc, nullptr, memory);
+	if (data != nullptr)
+	{
+		void *mapped;
+		result = vkMapMemory(device, *memory, 0, size, 0, &mapped);
+		memcpy(mapped, data, size);
+		vkUnmapMemory(device, *memory);
+	}
+	result = vkBindBufferMemory(device, *buffer, *memory, 0);
+
+	return result;
+}
+
+VkResult VulkanHelper::createBuffer(const VkDevice logicalDevice, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkPhysicalDeviceMemoryProperties deviceMemProp, VkDeviceSize size, VkBuffer *buffer, VkDeviceMemory *memory, void *data)
+{
+	// Create the buffer handle
+	VkBufferCreateInfo bufferCreateInfo = {};
+	bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferCreateInfo.pNext = NULL;
+	bufferCreateInfo.usage = usageFlags;
+	bufferCreateInfo.size = size;
+	bufferCreateInfo.flags = 0;
+
+	bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	VkResult result;
+	result = vkCreateBuffer(logicalDevice, &bufferCreateInfo, nullptr, buffer);
+
+	// Create the memory backing up the buffer handle
+	VkMemoryRequirements memReqs;
+
+	VkMemoryAllocateInfo memAlloc = {};
+	memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	memAlloc.pNext = NULL;
+	memAlloc.allocationSize = 0;
+	memAlloc.memoryTypeIndex = 0;
+
+	vkGetBufferMemoryRequirements(logicalDevice, *buffer, &memReqs);
+	memAlloc.allocationSize = memReqs.size;
+	// Find a memory type index that fits the properties of the buffer
+	//memAlloc.memoryTypeIndex = getMemoryType(memReqs.memoryTypeBits, memoryPropertyFlags);
+	MemoryTypeFromProperties(deviceMemProp, memReqs.memoryTypeBits, memoryPropertyFlags, &memAlloc.memoryTypeIndex);
+	
+	result = vkAllocateMemory(logicalDevice, &memAlloc, nullptr, memory);
+
+	// If a pointer to the buffer data has been passed, map the buffer and copy over the data
+	if (data != nullptr)
+	{
+		void *mapped;
+		result = vkMapMemory(logicalDevice, *memory, 0, size, 0, &mapped);
+		memcpy(mapped, data, size);
+		vkUnmapMemory(logicalDevice, *memory);
+	}
+
+	// Attach the memory to the buffer object
+	result = vkBindBufferMemory(logicalDevice, *buffer, *memory, 0);
+
+	return result;
+}
+
+void VulkanHelper::CreateBuffer(const VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemProp, const void * vertexData, uint32_t dataSize, uint32_t dataStride, VkBuffer* buffer, VkDeviceMemory* memory)
+{
+	VkResult  result;
+	bool  pass;
+
+	// 1. Create the Buffer resource
+	/*******************************/
+	VkBufferCreateInfo bufInfo = {};
+	bufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufInfo.pNext = NULL;
+	bufInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	bufInfo.size = dataSize;
+	bufInfo.queueFamilyIndexCount = 0;
+	bufInfo.pQueueFamilyIndices = NULL;
+	bufInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	bufInfo.flags = 0;
+
+	result = vkCreateBuffer(device, &bufInfo, NULL, buffer);
+	assert(result == VK_SUCCESS);
+
+	// 2. Get memory specific requirements
+	/**************************************************************/
+
+	// 2a. Get the Buffer resource requirements
+	VkMemoryRequirements memRqrmnt;
+	vkGetBufferMemoryRequirements(device, *buffer, &memRqrmnt);
+
+	// 2b. Get the compatible type of memory
+	VkMemoryAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.pNext = NULL;
+	allocInfo.memoryTypeIndex = 0;
+	allocInfo.allocationSize = memRqrmnt.size;
+
+	pass = VulkanHelper::MemoryTypeFromProperties(deviceMemProp, memRqrmnt.memoryTypeBits,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &allocInfo.memoryTypeIndex);
+	assert(pass);
+
+	// 3. Allocate the physical backing
+	/******************************************************/
+	result = vkAllocateMemory(device, &allocInfo, NULL, memory);
+	assert(result == VK_SUCCESS);
+
+	// 4. Copy data into buffer
+	/**************************/
+	// 4a. Map the physical device memory region to the host 
+	uint8_t *pData;
+	result = vkMapMemory(device, *memory, 0, memRqrmnt.size, 0, (void **)&pData);
+	assert(result == VK_SUCCESS);
+
+	// 4b. Copy the data in the mapped memory
+	memcpy(pData, vertexData, dataSize);
+
+	// 4c. Unmap the device memory
+	vkUnmapMemory(device, *memory);
+
+	// 5. Bind the allocated buffer resource to the device memory
+	result = vkBindBufferMemory(device, *buffer, *memory, 0);
+	assert(result == VK_SUCCESS);
+}
+
