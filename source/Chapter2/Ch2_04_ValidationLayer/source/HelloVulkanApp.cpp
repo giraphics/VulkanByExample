@@ -248,66 +248,8 @@ void HelloVulkanApp::RecordCommandBuffer()
 
 void HelloVulkanApp::CreateVertexBuffer(const void * vertexData, uint32_t dataSize, uint32_t dataStride)
 {
-	VkResult  result;
-	bool  pass;
-
-	// 1. Create the Buffer resource
-	/*******************************/
-	VkBufferCreateInfo bufInfo = {};
-	bufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	bufInfo.pNext = NULL;
-	bufInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-	bufInfo.size = dataSize;
-	bufInfo.queueFamilyIndexCount = 0;
-	bufInfo.pQueueFamilyIndices = NULL;
-	bufInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	bufInfo.flags = 0;
-
-	result = vkCreateBuffer(m_hDevice, &bufInfo, NULL, &VertexBuffer.m_Buffer);
-	assert(result == VK_SUCCESS);
-
-	// 2. Get memory specific requirements
-	/**************************************************************/
-
-	// 2a. Get the Buffer resource requirements
-	VkMemoryRequirements memRqrmnt;
-	vkGetBufferMemoryRequirements(m_hDevice, VertexBuffer.m_Buffer, &memRqrmnt);
-
-	// 2b. Get the compatible type of memory
-	VkMemoryAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	allocInfo.pNext = NULL;
-	allocInfo.memoryTypeIndex = 0;
-	allocInfo.allocationSize = memRqrmnt.size;
-
-	pass = VulkanHelper::MemoryTypeFromProperties(m_physicalDeviceInfo.memProp, memRqrmnt.memoryTypeBits,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &allocInfo.memoryTypeIndex);
-	assert(pass);
-
-	// 3. Allocate the physical backing
-	/******************************************************/
-	result = vkAllocateMemory(m_hDevice, &allocInfo, NULL, &(VertexBuffer.m_Memory));
-	assert(result == VK_SUCCESS);
-	VertexBuffer.m_BufferInfo.range = memRqrmnt.size;
-	VertexBuffer.m_BufferInfo.offset = 0;
-
-	// 4. Copy data into buffer
-	/**************************/
-	// 4a. Map the physical device memory region to the host 
-	uint8_t *pData;
-	result = vkMapMemory(m_hDevice, VertexBuffer.m_Memory, 0, memRqrmnt.size, 0, (void **)&pData);
-	assert(result == VK_SUCCESS);
-
-	// 4b. Copy the data in the mapped memory
-	memcpy(pData, vertexData, dataSize);
-
-	// 4c. Unmap the device memory
-	vkUnmapMemory(m_hDevice, VertexBuffer.m_Memory);
-
-	// 5. Bind the allocated buffer resource to the device memory
-	result = vkBindBufferMemory(m_hDevice, VertexBuffer.m_Buffer, VertexBuffer.m_Memory, 0);
-	assert(result == VK_SUCCESS);
-
+	VulkanHelper::CreateBuffer(m_hDevice, m_physicalDeviceInfo.memProp,
+		vertexData, dataSize, dataStride, &VertexBuffer.m_Buffer, &VertexBuffer.m_Memory);
 
 	// Indicates the rate at which the information will be
 	// injected for vertex input.
