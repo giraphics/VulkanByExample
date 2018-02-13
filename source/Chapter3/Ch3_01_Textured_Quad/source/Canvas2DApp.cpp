@@ -63,7 +63,7 @@ Canvas2DApp::~Canvas2DApp()
 // Returns the count of jpg files
 int Canvas2DApp::GetImageFilenames()
 {
-    QDirIterator qDirIt(".", QStringList() << "*.jpg", QDir::Files, QDirIterator::Subdirectories);
+    QDirIterator qDirIt("../source/resource", QStringList() << "*.jpg", QDir::Files, QDirIterator::Subdirectories);
 
     while (qDirIt.hasNext())
     {
