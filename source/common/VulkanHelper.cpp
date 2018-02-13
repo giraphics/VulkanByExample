@@ -1,6 +1,7 @@
 #include "VulkanHelper.h"
 
 std::vector<LayerProperties> VulkanHelper::m_LayerPropertyList = {};
+
 VulkanHelper::VulkanHelper()
 {
 }
@@ -15,6 +16,7 @@ void VulkanHelper::LogError(string text)
 	string outputText;
 	outputText = "Error: " + text;
 	cout << outputText;
+    assert(0);
 }
 
 VkResult VulkanHelper::GetInstanceLayerExtensionProperties()
@@ -33,9 +35,9 @@ VkResult VulkanHelper::GetInstanceLayerExtensionProperties()
 	// Query all the extensions for each layer and store it.
 	std::cout << "\nInstanced Layers" << std::endl;
 	std::cout << "===================" << std::endl;
+    std::cout << "\n" << std::left << std::setw(40) << "Instance Layer Name" << " | " << std::setw(40) << "Instance Layer Description" << " | " << "Available Extensions\n";
+    std::cout << "-------------------------------------------------------------------------------------------------------------------" << std::endl;
 	for (auto globalLayerProp : layerProperties) {
-		std::cout << "\n" << globalLayerProp.description << "\n\t|\n\t|---[Layer Name]--> " << globalLayerProp.layerName << "\n";
-
 		LayerProperties layerProps;
 		layerProps.properties = globalLayerProp;
 
@@ -44,20 +46,38 @@ VkResult VulkanHelper::GetInstanceLayerExtensionProperties()
 		if (result) continue;
 
 		m_LayerPropertyList.push_back(layerProps);
-		// Print extension name for each instance layer
-		for (auto j : layerProps.extensions) {
-			std::cout << "\t\t|\n\t\t|---[Layer Extension]--> " << j.extensionName << "\n";
-		}
+
+        // Get extension name for each instance layer
+        string extensions = "[ ";
+        if (layerProps.extensions.size()) {
+            for (auto j : layerProps.extensions) {
+                extensions += j.extensionName;
+                extensions += " ";
+            }
+        }
+        else {
+            extensions = "None";
+        }
+
+        extensions += " ]";
+
+        // Print Instance Layer info
+        std::cout << "\n" << std::left << std::setw(40) << globalLayerProp.layerName << " | " << std::setw(40) << globalLayerProp.description << " | " << extensions;
 	}
+    std::cout << "\n-------------------------------------------------------------------------------------------------------------------" << std::endl;
 	return result;
 }
 
 VkResult VulkanHelper::GetDeviceLayerExtensionProperties(VkPhysicalDevice gpu)
 {
-	std::cout << "Device extensions" << std::endl;
-	std::cout << "===================" << std::endl;
+	std::cout << "\n\nDevice layer extensions" << std::endl;
+	std::cout << "==========================" << std::endl;
 	VkResult result;
 	std::vector<LayerProperties> instanceLayerProp = m_LayerPropertyList;
+
+    std::cout << "\n" << std::left << std::setw(40) << "Device Layer Name" << " | " << std::setw(40) << "Device Layer Description" << " | " << "Available Extensions\n";
+    std::cout << "-------------------------------------------------------------------------------------------------------------------" << std::endl;
+
 	for (auto globalLayerProp : instanceLayerProp) {
 		LayerProperties layerProps;
 		layerProps.properties = globalLayerProp.properties;
@@ -65,18 +85,24 @@ VkResult VulkanHelper::GetDeviceLayerExtensionProperties(VkPhysicalDevice gpu)
 		if (result = GetExtensionProperties(layerProps, gpu))
 			continue;
 
-		std::cout << "\n" << globalLayerProp.properties.description << "\n\t|\n\t|---[Layer Name]--> " << globalLayerProp.properties.layerName << "\n";
-		m_LayerPropertyList.push_back(layerProps);
+        m_LayerPropertyList.push_back(layerProps);
 
+        string extensions = "[ ";
 		if (layerProps.extensions.size()) {
 			for (auto j : layerProps.extensions) {
-				std::cout << "\t\t|\n\t\t|---[Device Extesion]--> " << j.extensionName << "\n";
+                extensions += j.extensionName;
+                extensions += " ";
 			}
 		}
 		else {
-			std::cout << "\t\t|\n\t\t|---[Device Extesion]--> No extension found \n";
+            extensions += "None";
 		}
+        extensions += " ]";
+
+        // Print Device Layer info
+        std::cout << "\n" << std::left << std::setw(40) << globalLayerProp.properties.layerName << " | " << std::setw(40) << globalLayerProp.properties.description << " | " << extensions;
 	}
+    std::cout << "\n-------------------------------------------------------------------------------------------------------------------" << std::endl;
 	return result;
 }
 
@@ -363,6 +389,59 @@ void VulkanHelper::SubmitCommandBuffer(const VkQueue& queue, const VkCommandBuff
 	assert(!result);
 }
 
+bool VulkanHelper::SetImageLayoutEx(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout, const VkCommandBuffer& commandBuffer)
+{
+    bool result = true;
+
+    VkImageMemoryBarrier barrier = {};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout = oldLayout;
+    barrier.newLayout = newLayout;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = image;
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+
+    VkPipelineStageFlags sourceStage;
+    VkPipelineStageFlags destinationStage;
+
+    if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
+        newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+    {
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+        sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    }
+    else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+        newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+    {
+        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+        sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    }
+    else
+    {
+        result = false;
+        VulkanHelper::LogError("Unsupported layout transition!");
+    }
+
+    if (result)
+    {
+        vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage,
+            0, 0, nullptr, 0, nullptr, 1, &barrier);
+    }
+
+    return (result);
+}
+
 void VulkanHelper::SetImageLayout(VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout, VkAccessFlagBits srcAccessMask, const VkCommandBuffer& commandBuffer)
 {
 	// Dependency on commandBuffer
@@ -510,7 +589,7 @@ void VulkanHelper::CreateBuffer(const VkDevice device, VkPhysicalDeviceMemoryPro
 	VkBufferCreateInfo bufInfo = {};
 	bufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	bufInfo.pNext = NULL;
-	bufInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    bufInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 	bufInfo.size = dataSize;
 	bufInfo.queueFamilyIndexCount = 0;
 	bufInfo.pQueueFamilyIndices = NULL;
@@ -561,3 +640,62 @@ void VulkanHelper::CreateBuffer(const VkDevice device, VkPhysicalDeviceMemoryPro
 	assert(result == VK_SUCCESS);
 }
 
+void VulkanHelper::CreateImage(const VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemProp,
+    VkMemoryPropertyFlags imageMemProp, VkImageCreateInfo* pImageInfo, VkImage* pImage, VkDeviceMemory* pImageMemory)
+{
+    VkResult result = vkCreateImage(device, pImageInfo, nullptr, pImage);
+    assert(result == VK_SUCCESS);
+
+    VkMemoryRequirements memRequirements;
+    vkGetImageMemoryRequirements(device, *pImage, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+
+    VulkanHelper::MemoryTypeFromProperties(deviceMemProp, memRequirements.memoryTypeBits,
+        imageMemProp, &allocInfo.memoryTypeIndex);
+
+    result = vkAllocateMemory(device, &allocInfo, nullptr, pImageMemory);
+    assert(result == VK_SUCCESS);
+
+    vkBindImageMemory(device, *pImage, *pImageMemory, 0);
+}
+
+void VulkanHelper::UpdateMemory(const VkDevice device, VkDeviceMemory deviceMem, VkDeviceSize offset, VkDeviceSize size, VkMemoryMapFlags flags, const void* pData)
+{
+    assert(pData);
+
+    void* pHostMem = nullptr;
+    vkMapMemory(device, deviceMem, offset, size, flags, &pHostMem);
+    assert(pHostMem);
+
+    if (pHostMem)
+    {
+        memcpy(pHostMem, pData, (size_t)size);
+    }
+    vkUnmapMemory(device, deviceMem);
+}
+
+
+VkImageView VulkanHelper::CreateImageView(const VkDevice device, VkImage image, VkImageViewType type /*= VK_IMAGE_VIEW_TYPE_2D*/, VkFormat format /*= VK_FORMAT_R8G8B8A8_UNORM*/)
+{
+    VkImageView imageView = nullptr;
+
+    VkImageViewCreateInfo viewInfo = {};
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image = image;
+    viewInfo.viewType = type; //  VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = format; // VK_FORMAT_R8G8B8A8_UNORM;
+    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = 1;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 1;
+
+    VkResult result = vkCreateImageView(device, &viewInfo, nullptr, &imageView);
+
+    assert(result == VK_SUCCESS);
+
+    return imageView;
+}

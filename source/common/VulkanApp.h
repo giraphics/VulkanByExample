@@ -3,6 +3,16 @@
 
 #include <QWindow>
 #include <QTimer>
+#include <QMainWindow>
+#include <QHBoxLayout>
+#include <QApplication>
+
+#if 1
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include "glm/vec4.hpp"
+#include <glm/mat4x4.hpp>
+#endif
 
 class VulkanApp;
 
@@ -34,8 +44,15 @@ public:
     void Initialize(); // Initialize the Vulkan application
     void Run();  // Render loop
 
+    void SetApplicationName(string appName) { m_appName = appName; }
+    string GetAppllicationName() { return (m_appName); }
 	void SetWindowDimension(int width, int height);
+    VkExtent2D GetWindowDimension() { return (m_windowDim); }
 	void EnableDepthBuffer(bool depthEnabled) { m_DepthEnabled = depthEnabled; }
+    
+    void AddValidationLayer(char* pName) { m_validationLayers.push_back(pName);  }
+    void AddInstanceExtension(char* pName) { m_instanceExtensionNames.push_back(pName); }
+
 	virtual void CreateCommandBuffers(); // Overide the default implementation as per application requirement
 	
 protected:
@@ -44,8 +61,8 @@ protected:
 	virtual void Setup() = 0;     // Set's up the drawing pipeline
 	virtual void Update() = 0;    // Update data prior to Render() & Present() such as updating locals, uniforms etc.
 
-	virtual bool Render();		  // Draw the primitive on surface
-	virtual bool Present();		  // Swap the drawn surface on application window
+    virtual bool Render();		  // Draw the primitive on surface
+    virtual bool Present();		  // Swap the drawn surface on application window
 
 private:
 	// Initialization functions for Vulkan application
@@ -83,6 +100,9 @@ public:
 	VkExtent2D		m_windowDim;	// Display window dimension
 	string          m_appName;		// Display name
 	bool			m_DepthEnabled; // Is depth buffer supported
+
+    std::vector<const char *> m_instanceExtensionNames;
+    std::vector<const char *> m_validationLayers;
 
     // Vulkan specific objects
     VkInstance      m_hInstance; // Vulkan instance object    

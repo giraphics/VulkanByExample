@@ -3,8 +3,12 @@
 Window::Window(VulkanApp* vulkanApp) : m_VulkanApp(vulkanApp)
 {
 	assert(vulkanApp);
-	setWidth(800);
-	setHeight(600);
+
+    VkExtent2D dimension = vulkanApp->GetWindowDimension();
+
+	setWidth(dimension.width);
+	setHeight(dimension.height);
+    setTitle(QString(vulkanApp->GetAppllicationName().c_str()));
 
 	renderTimer = new QTimer();
 	renderTimer->setInterval(1);
@@ -24,7 +28,7 @@ VulkanApp::VulkanApp()
 
 	m_appName = "Vulkan Application";    // Default application name
 
-										 //SetWindowDimension(640, 480);    // Default application window dimension
+    SetWindowDimension(640, 480);    // Default application window dimension
 
     // Vulkan specific objects
     m_hInstance = VK_NULL_HANDLE;
@@ -53,7 +57,7 @@ VulkanApp::VulkanApp()
     m_requiredDeviceExtensionList.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
 	memset(&DepthImage, 0, sizeof(DepthImage));
-	m_DepthEnabled = true;
+	m_DepthEnabled = false;
 }
 
 VulkanApp::~VulkanApp()
@@ -127,19 +131,16 @@ void VulkanApp::CreateVulkanInstance()
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_0;
 
-	extern std::vector<const char *> validationLayers;
-	extern std::vector<const char *> instanceExtensionNames;
-
     // Fill in the required createInfo structure
     VkInstanceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pNext = nullptr;
     createInfo.flags = 0;
     createInfo.pApplicationInfo = &appInfo;
-    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-    createInfo.ppEnabledLayerNames = validationLayers.data();
-	createInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensionNames.size());
-	createInfo.ppEnabledExtensionNames = instanceExtensionNames.data();
+    createInfo.enabledLayerCount = static_cast<uint32_t>(m_validationLayers.size());
+    createInfo.ppEnabledLayerNames = m_validationLayers.data();
+	createInfo.enabledExtensionCount = static_cast<uint32_t>(m_instanceExtensionNames.size());
+	createInfo.ppEnabledExtensionNames = m_instanceExtensionNames.data();
 
     // Create the Vulkan Instance
     VkResult result = vkCreateInstance(&createInfo, nullptr, &m_hInstance);
