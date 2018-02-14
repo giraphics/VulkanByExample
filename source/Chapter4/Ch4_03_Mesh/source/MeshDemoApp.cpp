@@ -15,17 +15,25 @@ MeshDemoApp::MeshDemoApp()
 
 MeshDemoApp::~MeshDemoApp()
 {
-	delete m_Cube;
+    if (m_Cube) { delete m_Cube; }
 }
 
 void MeshDemoApp::Configure()
 {
-	m_appName = "Simple Mesh Application";
+    SetApplicationName("Simple Mesh Application");
+    SetWindowDimension(800, 600);
+
+    // Add Validation Layers
+    AddValidationLayer("VK_LAYER_LUNARG_standard_validation");
+
+    // Add Vulkan instance extensions
+    AddInstanceExtension(VK_KHR_SURFACE_EXTENSION_NAME);
+    AddInstanceExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+    AddInstanceExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 }
 
 void MeshDemoApp::Setup()
 {
-	m_pWindow->setTitle(QString(m_appName.c_str()));
 	m_Cube->Setup();
 }
 
@@ -33,17 +41,6 @@ void MeshDemoApp::Update()
 {
 	m_Cube->Update();
 }
-
-std::vector<const char *> validationLayers = {
-	"VK_LAYER_LUNARG_standard_validation"
-};
-
-// Allow the user to specify the Vulkan instance extensions
-std::vector<const char *> instanceExtensionNames = {
-	VK_KHR_SURFACE_EXTENSION_NAME,
-	VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
-	VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
-};
 
 int main(int argc, char **argv)
 {
