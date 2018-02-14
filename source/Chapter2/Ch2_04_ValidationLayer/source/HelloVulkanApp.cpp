@@ -24,20 +24,22 @@ HelloVulkanApp::~HelloVulkanApp()
 	//vkFreeMemory(m_hDevice, VertexBuffer.m_Memory, NULL);
 }
 
-void HelloVulkanApp::SetApplicationName(string name)
-{
-	m_appName = name;
-}
-
 void HelloVulkanApp::Configure()
 {
     SetApplicationName("Hello World!");
+    SetWindowDimension(800, 600);
+
+    // Add Validation Layers
+    AddValidationLayer("VK_LAYER_LUNARG_standard_validation");
+
+    // Add Vulkan instance extensions
+    AddInstanceExtension(VK_KHR_SURFACE_EXTENSION_NAME);
+    AddInstanceExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+    AddInstanceExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 }
 
 void HelloVulkanApp::Setup()
 {
-	m_pWindow->setTitle(QString(m_appName.c_str()));
-	
 	CreateVertexBuffer(s_TriangleVertices, sizeof(s_TriangleVertices), sizeof(s_TriangleVertices[0]));
 	
 	CreateGraphicsPipeline();
@@ -268,17 +270,6 @@ void HelloVulkanApp::CreateVertexBuffer(const void * vertexData, uint32_t dataSi
 	m_VertexInputAttribute[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
 	m_VertexInputAttribute[1].offset = offsetof(struct Vertex, m_Color);
 }
-
-std::vector<const char *> validationLayers = {
-	"VK_LAYER_LUNARG_standard_validation"
-};
-
-// Allow the user to specify the Vulkan instance extensions
-std::vector<const char *> instanceExtensionNames = {
-	VK_KHR_SURFACE_EXTENSION_NAME,
-	VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
-	VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
-};
 
 int main(int argc, char **argv)
 {

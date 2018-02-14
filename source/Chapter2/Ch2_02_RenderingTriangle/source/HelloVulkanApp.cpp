@@ -20,20 +20,19 @@ HelloVulkanApp::~HelloVulkanApp()
 	vkDestroyPipelineLayout(m_hDevice, m_hPipelineLayout, nullptr);
 }
 
-void HelloVulkanApp::SetApplicationName(string name)
-{
-	m_appName = name;
-}
-
 void HelloVulkanApp::Configure()
 {
     SetApplicationName("Hello World!");
+    SetWindowDimension(800, 600);
+
+    // Add Vulkan instance extensions
+    AddInstanceExtension(VK_KHR_SURFACE_EXTENSION_NAME);
+    AddInstanceExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+    AddInstanceExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 }
 
 void HelloVulkanApp::Setup()
 {
-	m_pWindow->setTitle(QString(m_appName.c_str()));
-	
 	CreateGraphicsPipeline();
 
 	CreateCommandBuffers(); // Create command buffers
@@ -288,15 +287,6 @@ void HelloVulkanApp::RecordCommandBuffer()
 		}
 	}
 }
-
-std::vector<const char *> validationLayers = {};
-
-// Allow the user to specify the Vulkan instance extensions
-std::vector<const char *> instanceExtensionNames = {
-	VK_KHR_SURFACE_EXTENSION_NAME,
-	VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
-	VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
-};
 
 int main(int argc, char **argv)
 {
