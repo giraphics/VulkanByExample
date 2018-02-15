@@ -19,6 +19,8 @@ HelloVulkanApp::~HelloVulkanApp()
 	vkDestroyPipeline(m_hDevice, m_hGraphicsPipeline, nullptr);
 	vkDestroyPipelineLayout(m_hDevice, m_hPipelineLayout, nullptr);
 
+    // The below code is intentionally commentted in order to demonstrate Validation layers in action.
+    // Expected output: The validation layer must complaint about the below memory leak
 	// Destroy Vertex Buffer
 	//vkDestroyBuffer(m_hDevice, VertexBuffer.m_Buffer, NULL);
 	//vkFreeMemory(m_hDevice, VertexBuffer.m_Memory, NULL);
