@@ -15,7 +15,7 @@ out gl_PerVertex {
 
 void main() 
 {
-    gl_Position = myBufferVals.mvp * inPosition;
+    gl_Position = inPosition;
     fragColor = inColor;
 	gl_Position.z = (gl_Position.z + gl_Position.w) / 2.0;
 

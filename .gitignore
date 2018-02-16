@@ -340,3 +340,17 @@ generate.stamp.depend
 generate.stamp
 
 moc_*.cpp
+cmake_install.cmake
+CMakeCCompilerId.c
+CMakeCCompiler.cmake
+CMakeCXXCompiler.cmake
+CMakeCXXCompilerId.cpp
+CMakeDetermineCompilerABI_C.bin
+CMakeDetermineCompilerABI_CXX.bin
+ALL_BUILD.vcxproj
+AutogenInfo.cmake
+AutomocOldMocDefinitions.cmake
+*.sln
+*.vcxproj
+*_automoc.cpp
+cmake.check_cache

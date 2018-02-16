@@ -15,6 +15,5 @@ public:
 
 private:
     Cube* m_Cube;
-//	Camera m_Camera;
 };
 

@@ -1,10 +1,10 @@
 #
-# Vulkan By Example - Bring in the depth buffer
+# Vulkan By Example - Add 3D Transformation to Simple Cube
 #
 
 cmake_minimum_required(VERSION 3.7.1)
 
-set(Example_Name "Ch4_01_SimpleCube")
+set(Example_Name "Ch4_01a_SimpleCube_DefineGeometry")
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(CMAKE_INCLUDE_CURRENT_DIR ON) # 

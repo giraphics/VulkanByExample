@@ -1,5 +1,5 @@
 #
-# Vulkan By Example - Bring in the depth buffer
+# Vulkan By Example - Simple Mesh Rendering
 #
 
 cmake_minimum_required(VERSION 3.7.1)

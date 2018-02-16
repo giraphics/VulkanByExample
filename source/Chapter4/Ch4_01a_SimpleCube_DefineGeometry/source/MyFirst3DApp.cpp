@@ -11,6 +11,7 @@ int main(int argc, char **argv)
 	QApplication qtApp(argc, argv);
 
 	MyFirst3DApp* helloVulkanApp = new MyFirst3DApp(); // Create Vulkan app instance
+	helloVulkanApp->SetWindowDimension(800, 600);    // Default application window dimension
 	helloVulkanApp->EnableDepthBuffer(false);
 	helloVulkanApp->Initialize();
 	qtApp.exec();
