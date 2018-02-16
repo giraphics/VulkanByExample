@@ -7,19 +7,11 @@
 #include <assimp/postprocess.h>
 #include <assimp/cimport.h>
 
-/*********** GLM HEADER FILES ***********/
-#define GLM_FORCE_RADIANS
-#include "glm/glm.hpp"
-#include <glm/gtc/matrix_transform.hpp>
-
-class Cube
+class Cube : public DrawableInterface
 {
-	struct {
-		VulkanBuffer m_BufObj;
-		//VkBuffer m_Buffer;
-		//VkDeviceMemory m_Memory;
-		//VkDescriptorBufferInfo m_BufferInfo;
-    } VertexBuffer;
+//	struct {
+//		VulkanBuffer m_BufObj;
+//    } VertexBuffer;
 
 	struct {
 		VulkanBuffer					m_BufObj;
@@ -75,24 +67,21 @@ private:
 	////////////////////////
 	// GPU Data structure for Meshes contain device buffer and memory
 	struct MeshVertices{ 
-		VkBuffer m_Buffer; 
-		VkDeviceMemory m_Memory; 
+        VulkanBuffer bufObj;
 	};
 	struct MeshIndices {
 		int m_IndexCount;
-		VkBuffer m_Buffer;
-		VkDeviceMemory m_Memory;
+        VulkanBuffer bufObj;
 	};
 	struct Mesh {
-		struct MeshVertices m_Vertices;
-		struct MeshIndices m_Indices;
-	} mesh;
+        struct MeshVertices vertices;
+        struct MeshIndices indices;
+    } m_Mesh;
 
 	// CPU Data structure for Meshes
 	struct Vertex
 	{
 		Vertex(const glm::vec3& pos) { m_pos = pos; }
-
 		glm::vec3 m_pos;
 	};
 
@@ -103,11 +92,11 @@ private:
 
 	void LoadMesh();
 	void LoadMeshNew();
-	bool Load(const char* filename);
-	void MeshInit(MeshEntry *meshEntry, const aiMesh* paiMesh, const aiScene* pScene);
+    bool Load(const char* p_Filename);
+    void MeshInit(MeshEntry* p_MeshEntry, const aiMesh* p_pAiMesh);
 	uint32_t numVertices = 0;
-	Assimp::Importer Importer;
-	const aiScene* pScene;
+    Assimp::Importer m_Importer;
+    const aiScene* m_pScene;
 
 
 	std::vector<MeshEntry> m_Entries;

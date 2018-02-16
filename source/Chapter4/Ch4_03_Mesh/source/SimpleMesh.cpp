@@ -24,7 +24,7 @@ Cube::Cube(VulkanApp* p_VulkanApp)
     m_hGraphicsPipeline = VK_NULL_HANDLE;
 
     memset(&UniformBuffer, 0, sizeof(UniformBuffer));
-    memset(&VertexBuffer.m_BufObj, 0, sizeof(VertexBuffer.m_BufObj));
+//    memset(&VertexBuffer.m_BufObj, 0, sizeof(VertexBuffer.m_BufObj)); #### init the mesh vertex buffer
 
 	m_VulkanApplication = p_VulkanApp;
 }
@@ -33,9 +33,9 @@ Cube::~Cube()
 {
 	vkDestroyPipeline(m_VulkanApplication->m_hDevice, m_hGraphicsPipeline, nullptr);
 
-	// Destroy Vertex Buffer
-    vkDestroyBuffer(m_VulkanApplication->m_hDevice, VertexBuffer.m_BufObj.m_Buffer, NULL);
-    vkFreeMemory(m_VulkanApplication->m_hDevice, VertexBuffer.m_BufObj.m_Memory, NULL);
+//	// Destroy Vertex Buffer
+//    vkDestroyBuffer(m_VulkanApplication->m_hDevice, VertexBuffer.m_BufObj.m_Buffer, NULL);
+//    vkFreeMemory(m_VulkanApplication->m_hDevice, VertexBuffer.m_BufObj.m_Memory, NULL);
 
 	// Destroy descriptors
 	for (int i = 0; i < descLayout.size(); i++) {
@@ -134,12 +134,11 @@ void Cube::CreateGraphicsPipeline()
 	vertexInputInfo.vertexAttributeDescriptionCount = sizeof(m_VertexInputAttribute) / sizeof(VkVertexInputAttributeDescription);
 	vertexInputInfo.pVertexAttributeDescriptions = m_VertexInputAttribute;
 
-
     // Setup input assembly
     // We will be rendering 1 triangle using triangle strip topology
     VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
     inputAssembly.primitiveRestartEnable = VK_FALSE;
 
 	// Setup viewport to the maximum widht and height of the window
@@ -319,13 +318,13 @@ void Cube::RecordCommandBuffer()
 		
 		/////////////////////////////////////////////////////////////////////
 		// Bind mesh vertex buffer
-		vkCmdBindVertexBuffers(m_VulkanApplication->m_hCommandBufferList[i], 0, 1, &mesh.m_Vertices.m_Buffer, offsets);
+        vkCmdBindVertexBuffers(m_VulkanApplication->m_hCommandBufferList[i], 0, 1, &m_Mesh.vertices.bufObj.m_Buffer, offsets);
 
 		// Bind mesh index buffer
-		vkCmdBindIndexBuffer(m_VulkanApplication->m_hCommandBufferList[i], mesh.m_Indices.m_Buffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindIndexBuffer(m_VulkanApplication->m_hCommandBufferList[i], m_Mesh.indices.bufObj.m_Buffer, 0, VK_INDEX_TYPE_UINT32);
 
 		// Render mesh vertex buffer using it's indices
-		vkCmdDrawIndexed(m_VulkanApplication->m_hCommandBufferList[i], mesh.m_Indices.m_IndexCount, 1, 0, 0, 0);
+        vkCmdDrawIndexed(m_VulkanApplication->m_hCommandBufferList[i], m_Mesh.indices.m_IndexCount, 1, 0, 0, 0);
 		////////////////////////////////////////////////////////////////////
 
 		// End the Render pass
@@ -345,21 +344,21 @@ void Cube::CreateCommandBuffers()
 	m_VulkanApplication->CreateCommandBuffers();
 }
 
-bool Cube::Load(const char* filename)
+bool Cube::Load(const char* p_Filename)
 {
-	pScene = Importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipWindingOrder | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals);
+    m_pScene = m_Importer.ReadFile(p_Filename, aiProcess_Triangulate | aiProcess_FlipWindingOrder | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals);
 
-	if (pScene)
+    if (m_pScene)
 	{
 		m_Entries.clear();
-		m_Entries.resize(pScene->mNumMeshes);
+        m_Entries.resize(m_pScene->mNumMeshes);
 		// Read in all meshes in the scene
 		for (auto i = 0; i < m_Entries.size(); i++)
 		{
 			//m_Entries[i].vertexBase = numVertices;
-			numVertices += pScene->mMeshes[i]->mNumVertices;
-			const aiMesh* paiMesh = pScene->mMeshes[i];
-			MeshInit(&m_Entries[i], paiMesh, pScene);
+            numVertices += m_pScene->mMeshes[i]->mNumVertices;
+            const aiMesh* paiMesh = m_pScene->mMeshes[i];
+            MeshInit(&m_Entries[i], paiMesh);
 		}
 		return true;
 	}
@@ -372,23 +371,23 @@ bool Cube::Load(const char* filename)
 
 }
 
-void Cube::MeshInit(MeshEntry *meshEntry, const aiMesh* paiMesh, const aiScene* pScene)
+void Cube::MeshInit(MeshEntry *p_MeshEntry, const aiMesh* p_pAiMesh)
 {
-	for (unsigned int i = 0; i < paiMesh->mNumVertices; i++)
+    for (unsigned int i = 0; i < p_pAiMesh->mNumVertices; i++)
 	{
-		aiVector3D* position = &(paiMesh->mVertices[i]);
-		meshEntry->Vertices.push_back(Vertex(glm::vec3(position->x, -position->y, position->z)));
+        aiVector3D* position = &(p_pAiMesh->mVertices[i]);
+        p_MeshEntry->Vertices.push_back(Vertex(glm::vec3(position->x, -position->y, position->z)));
 	}
 
-	uint32_t indexBase = static_cast<uint32_t>(meshEntry->Indices.size());
-	for (unsigned int i = 0; i < paiMesh->mNumFaces; i++)
+    uint32_t indexBase = static_cast<uint32_t>(p_MeshEntry->Indices.size());
+    for (unsigned int i = 0; i < p_pAiMesh->mNumFaces; i++)
 	{
-		const aiFace& Face = paiMesh->mFaces[i];
+        const aiFace& Face = p_pAiMesh->mFaces[i];
 		if (Face.mNumIndices != 3)
 			continue;
-		meshEntry->Indices.push_back(indexBase + Face.mIndices[0]);
-		meshEntry->Indices.push_back(indexBase + Face.mIndices[1]);
-		meshEntry->Indices.push_back(indexBase + Face.mIndices[2]);
+        p_MeshEntry->Indices.push_back(indexBase + Face.mIndices[0]);
+        p_MeshEntry->Indices.push_back(indexBase + Face.mIndices[1]);
+        p_MeshEntry->Indices.push_back(indexBase + Face.mIndices[2]);
 	}
 }
 
@@ -423,11 +422,11 @@ void Cube::LoadMeshNew()
 	}
 
 	uint32_t indexBufferSize = indexBuffer.size() * sizeof(uint32_t);
-	mesh.m_Indices.m_IndexCount = indexBuffer.size();
+    m_Mesh.indices.m_IndexCount = indexBuffer.size();
 
 	// Static mesh should always be device local
 
-	bool useStaging = true;
+	bool useStaging = !true;
 
 	if (useStaging)
 	{
@@ -467,8 +466,8 @@ void Cube::LoadMeshNew()
 			m_VulkanApplication->m_physicalDeviceInfo.memProp,
 			vertexBufferSize,
 			nullptr,
-			&mesh.m_Vertices.m_Buffer,
-			&mesh.m_Vertices.m_Memory);
+            &m_Mesh.vertices.bufObj.m_Buffer,
+            &m_Mesh.vertices.bufObj.m_Memory);
 		// Index buffer
 		VulkanHelper::createBuffer(
 			m_VulkanApplication->m_hDevice,
@@ -477,8 +476,8 @@ void Cube::LoadMeshNew()
 			m_VulkanApplication->m_physicalDeviceInfo.memProp,
 			indexBufferSize,
 			nullptr,
-			&mesh.m_Indices.m_Buffer,
-			&mesh.m_Indices.m_Memory);
+            &m_Mesh.indices.bufObj.m_Buffer,
+            &m_Mesh.indices.bufObj.m_Memory);
 
 
 		// Copy from staging buffers
@@ -493,7 +492,7 @@ void Cube::LoadMeshNew()
 		vkCmdCopyBuffer(
 			copyCmd,
             vertexStaging.m_Buffer,
-			mesh.m_Vertices.m_Buffer,
+            m_Mesh.vertices.bufObj.m_Buffer,
 			1,
 			&copyRegion);
 
@@ -501,7 +500,7 @@ void Cube::LoadMeshNew()
 		vkCmdCopyBuffer(
 			copyCmd,
             indexStaging.m_Buffer,
-			mesh.m_Indices.m_Buffer,
+            m_Mesh.indices.bufObj.m_Buffer,
 			1,
 			&copyRegion);
 
@@ -518,25 +517,21 @@ void Cube::LoadMeshNew()
 	else
 	{
 		// Vertex buffer
-		VulkanHelper::createBuffer(
-			m_VulkanApplication->m_hDevice,
-			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-			m_VulkanApplication->m_physicalDeviceInfo.memProp,
-			vertexBufferSize,
-			vertexBuffer.data(),
-			&mesh.m_Vertices.m_Buffer,
-			&mesh.m_Vertices.m_Memory);
+        m_Mesh.vertices.bufObj.m_DataSize = vertexBufferSize;
+        m_Mesh.vertices.bufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+        VulkanHelper::CreateBuffer(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_physicalDeviceInfo.memProp, m_Mesh.vertices.bufObj);
+        VulkanHelper::WriteBuffer(m_VulkanApplication->m_hDevice, vertexBuffer.data(), m_Mesh.vertices.bufObj);
+
 		// Index buffer
-		VulkanHelper::createBuffer(
-			m_VulkanApplication->m_hDevice,
-			VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-			m_VulkanApplication->m_physicalDeviceInfo.memProp,
-			indexBufferSize,
-			indexBuffer.data(),
-			&mesh.m_Indices.m_Buffer,
-			&mesh.m_Indices.m_Memory);
+		VkBufferCreateInfo indexBufCreateInfo = {};
+		indexBufCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		indexBufCreateInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+		indexBufCreateInfo.size = indexBufferSize;
+
+		m_Mesh.indices.bufObj.m_DataSize = indexBufferSize;
+		m_Mesh.indices.bufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+		VulkanHelper::CreateBuffer(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_physicalDeviceInfo.memProp, m_Mesh.indices.bufObj, &indexBufCreateInfo);
+		VulkanHelper::WriteBuffer(m_VulkanApplication->m_hDevice, indexBuffer.data(), m_Mesh.indices.bufObj);
 	}
 
 	// Indicates the rate at which the information will be

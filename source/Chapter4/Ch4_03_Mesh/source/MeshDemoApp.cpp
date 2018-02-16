@@ -15,7 +15,7 @@ MeshDemoApp::MeshDemoApp()
 
 MeshDemoApp::~MeshDemoApp()
 {
-    if (m_Cube) { delete m_Cube; }
+	delete m_Cube;
 }
 
 void MeshDemoApp::Configure()
@@ -30,6 +30,11 @@ void MeshDemoApp::Configure()
     AddInstanceExtension(VK_KHR_SURFACE_EXTENSION_NAME);
     AddInstanceExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
     AddInstanceExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+
+	static glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+	static glm::mat4 View = glm::lookAt(glm::vec3(0, 0, 5), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	m_Cube->SetProjection(&Projection);
+	m_Cube->SetView(&View);
 }
 
 void MeshDemoApp::Setup()
@@ -39,6 +44,9 @@ void MeshDemoApp::Setup()
 
 void MeshDemoApp::Update()
 {
+	static float rot = 0;
+	rot += .005f;
+	m_Cube->Rotate(rot, 1.0f, 1.0f, 1.0f);
 	m_Cube->Update();
 }
 
