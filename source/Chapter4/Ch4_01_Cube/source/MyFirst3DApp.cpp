@@ -27,7 +27,7 @@ MyFirst3DApp::MyFirst3DApp()
 
 MyFirst3DApp::~MyFirst3DApp()
 {
-    if (m_Cube) { delete m_Cube; }
+	delete m_Cube;
 }
 
 void MyFirst3DApp::Configure()
