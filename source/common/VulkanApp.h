@@ -7,32 +7,17 @@
 #include <QHBoxLayout>
 #include <QApplication>
 
-#if 1
+/*********** GLM HEADER FILES ***********/
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include "glm/vec4.hpp"
-#include <glm/mat4x4.hpp>
-#endif
-
-class VulkanApp;
-
-class Window : public QWindow
-{
-	Q_OBJECT
-
-public:
-	Window(VulkanApp* parent = NULL);
-	~Window() { delete renderTimer; }
-
-public slots:
-	void Run();
-
-private:
-	QTimer* renderTimer;	// Refresh timer
-	VulkanApp* m_VulkanApp; // Used to call run() by the timer
-};
+#include "glm/glm.hpp"
+#include <glm/gtc/matrix_transform.hpp>
 
 #define NUM_SAMPLES VK_SAMPLE_COUNT_1_BIT
+
+class VulkanApp;
+class Window;
+class DrawableInterface;
 
 // Base class for Vulkan application
 class VulkanApp
@@ -137,4 +122,49 @@ public:
 	// Presentation synchronization objects
 	VkSemaphore                     m_hRenderReadySemaphore;
     VkSemaphore                     m_hPresentReadySemaphore;
+};
+
+class Window : public QWindow
+{
+	Q_OBJECT
+
+public:
+	Window(VulkanApp* parent = NULL);
+	~Window() { delete renderTimer; }
+
+	public slots:
+	void Run();
+
+private:
+	QTimer* renderTimer;	// Refresh timer
+	VulkanApp* m_VulkanApp; // Used to call run() by the timer
+};
+
+class DrawableInterface
+{
+#define GETSET(type, var) protected: type m_##var; public: type Get##var() { return m_##var; } void Set##var(type val) { m_##var = val; } type& GetRef##var() { return m_##var; } void Set##var(type& val) { m_##var = val; }
+#define UNIMPLEMENTED_INTEFACE { printf("\n Attempting to use an unimplemented default interface: %s\n", __FUNCTION__); assert(0); }
+
+public:
+	// Life Cycle
+	virtual void Setup() UNIMPLEMENTED_INTEFACE
+		virtual void Update() UNIMPLEMENTED_INTEFACE
+
+	// Transformation
+	void Rotate(float p_Angle, float p_X, float p_Y, float p_Z) { m_Model = glm::rotate(glm::mat4(), p_Angle, glm::vec3(p_X, p_Y, p_Z)); }
+	void Translate(float p_X, float p_Y, float p_Z) { m_Model = glm::translate(glm::mat4(), glm::vec3(p_X, p_Y, p_Z)); }
+	void Scale(float p_X, float p_Y, float p_Z) { m_Model = glm::translate(glm::mat4(), glm::vec3(p_X, p_Y, p_Z)); }
+	void Reset() { m_Model = glm::mat4(); }
+	GETSET(glm::mat4, Model)		// Owned by drawable item
+	GETSET(glm::mat4*, Projection)	// Not owned by drawable item  
+	GETSET(glm::mat4*, View)		// Not owned by drawable item
+
+									// Mouse interaction: Dummy interface for now.
+	virtual void mousePressEvent() UNIMPLEMENTED_INTEFACE
+	virtual void mouseReleaseEvent() UNIMPLEMENTED_INTEFACE
+	virtual void mouseMoveEvent() UNIMPLEMENTED_INTEFACE
+	virtual void mouseDoubleClickEvent() UNIMPLEMENTED_INTEFACE
+
+	// Key interaction: Dummy interface for now.
+	virtual void keyPressEvent() UNIMPLEMENTED_INTEFACE
 };
