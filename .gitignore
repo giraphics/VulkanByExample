@@ -354,3 +354,4 @@ AutomocOldMocDefinitions.cmake
 *.vcxproj
 *_automoc.cpp
 cmake.check_cache
+*.bak
