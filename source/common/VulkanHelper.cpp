@@ -584,25 +584,31 @@ VkResult VulkanHelper::createBuffer(const VkDevice logicalDevice, VkBufferUsageF
 	return result;
 }
 
-void VulkanHelper::CreateBuffer(const VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemProp, const void * vertexData, uint32_t dataSize, VulkanBuffer& p_VulkanBuffer, VkBufferCreateInfo* p_pBufInfo)
+void VulkanHelper::CreateBuffer(const VkDevice p_Device, VkPhysicalDeviceMemoryProperties p_DeviceMemProp, VulkanBuffer& p_VulkanBuffer, VkBufferCreateInfo* p_pBufInfo)
 {
+	if (p_VulkanBuffer.m_DataSize <= 0)
+	{
+		LogError("Error: Trying to create buffer with invalid size");
+		assert(0);
+	}
+
 	VkResult  result;
 	// 1. Create the Buffer resource - Default usage - vertex buffer
 	/*******************************/
 	if (p_pBufInfo){
-		result = vkCreateBuffer(device, p_pBufInfo, NULL, &p_VulkanBuffer.m_Buffer);
+		result = vkCreateBuffer(p_Device, p_pBufInfo, NULL, &p_VulkanBuffer.m_Buffer);
 	}
 	else {
 		VkBufferCreateInfo bufInfo = {};
 		bufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		bufInfo.pNext = NULL;
 		bufInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-		bufInfo.size = dataSize;
+		bufInfo.size = p_VulkanBuffer.m_DataSize;
 		bufInfo.queueFamilyIndexCount = 0;
 		bufInfo.pQueueFamilyIndices = NULL;
 		bufInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		bufInfo.flags = 0;
-		result = vkCreateBuffer(device, &bufInfo, NULL, &p_VulkanBuffer.m_Buffer);
+		result = vkCreateBuffer(p_Device, &bufInfo, NULL, &p_VulkanBuffer.m_Buffer);
 	}
 	assert(result == VK_SUCCESS);
 
@@ -610,7 +616,7 @@ void VulkanHelper::CreateBuffer(const VkDevice device, VkPhysicalDeviceMemoryPro
 	/**************************************************************/
 
 	// 2a. Get the Buffer resource requirements
-	vkGetBufferMemoryRequirements(device, p_VulkanBuffer.m_Buffer, &p_VulkanBuffer.m_MemRqrmnt);
+	vkGetBufferMemoryRequirements(p_Device, p_VulkanBuffer.m_Buffer, &p_VulkanBuffer.m_MemRqrmnt);
 
 	// 2b. Get the compatible type of memory
 	VkMemoryAllocateInfo allocInfo = {};
@@ -619,7 +625,7 @@ void VulkanHelper::CreateBuffer(const VkDevice device, VkPhysicalDeviceMemoryPro
 	allocInfo.memoryTypeIndex = 0;
 	allocInfo.allocationSize = p_VulkanBuffer.m_MemRqrmnt.size;
 	
-	if (!VulkanHelper::MemoryTypeFromProperties(deviceMemProp, p_VulkanBuffer.m_MemRqrmnt.memoryTypeBits,
+	if (!VulkanHelper::MemoryTypeFromProperties(p_DeviceMemProp, p_VulkanBuffer.m_MemRqrmnt.memoryTypeBits,
 		p_VulkanBuffer.m_MemoryFlags, &allocInfo.memoryTypeIndex))
 	{
 		LogError("Failed to match compatible memory!");
@@ -628,28 +634,36 @@ void VulkanHelper::CreateBuffer(const VkDevice device, VkPhysicalDeviceMemoryPro
 
 	// 3. Allocate the physical backing
 	/******************************************************/
-	result = vkAllocateMemory(device, &allocInfo, NULL, &p_VulkanBuffer.m_Memory);
+	result = vkAllocateMemory(p_Device, &allocInfo, NULL, &p_VulkanBuffer.m_Memory);
 	assert(result == VK_SUCCESS);
 
-	if (vertexData)
-	{
-		// 4. Copy data into buffer
-		/**************************/
-		// 4a. Map the physical device memory region to the host 
-		uint8_t *pData;
-		result = vkMapMemory(device, p_VulkanBuffer.m_Memory, 0, p_VulkanBuffer.m_MemRqrmnt.size, 0, (void **)&pData);
-		assert(result == VK_SUCCESS);
-
-		// 4b. Copy the data in the mapped memory
-		memcpy(pData, vertexData, dataSize);
-
-		// 4c. Unmap the device memory
-		vkUnmapMemory(device, p_VulkanBuffer.m_Memory);
-	}
-
-	// 5. Bind the allocated buffer resource to the device memory
-	result = vkBindBufferMemory(device, p_VulkanBuffer.m_Buffer, p_VulkanBuffer.m_Memory, 0);
+	// 4. Bind the allocated buffer resource to the device memory
+	result = vkBindBufferMemory(p_Device, p_VulkanBuffer.m_Buffer, p_VulkanBuffer.m_Memory, 0);
 	assert(result == VK_SUCCESS);
+}
+
+bool VulkanHelper::WriteBuffer(const VkDevice p_Device, const void* p_VertexData, const VulkanBuffer& p_VulkanBuffer)
+{
+	if (!p_VertexData) return false;
+
+	// NOTE: For the existing cases this function needs to grow overtime to accound for memoryTypeFlag.
+	// The below code preassume the buffer to be host visible
+
+	// 1. Copy data into buffer
+	/**************************/
+
+	// 1a. Map the physical device memory region to the host 
+	uint8_t *pData;
+	VkResult  result = vkMapMemory(p_Device, p_VulkanBuffer.m_Memory, 0, p_VulkanBuffer.m_MemRqrmnt.size, 0, (void **)&pData);
+	assert(result == VK_SUCCESS);
+
+	// 1b. Copy the data in the mapped memory
+	memcpy(pData, p_VertexData, p_VulkanBuffer.m_DataSize);
+
+	// 1c. Unmap the device memory
+	vkUnmapMemory(p_Device, p_VulkanBuffer.m_Memory);
+
+	return true;
 }
 
 void VulkanHelper::CreateImage(const VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemProp,
