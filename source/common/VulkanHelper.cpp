@@ -442,6 +442,11 @@ bool VulkanHelper::SetImageLayoutEx(VkImage image, VkImageLayout oldLayout, VkIm
     return (result);
 }
 
+void * VulkanHelper::map(uint32_t memFlags, const size_t size, const size_t offset)
+{
+	return nullptr;
+}
+
 void VulkanHelper::SetImageLayout(VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout, VkAccessFlagBits srcAccessMask, const VkCommandBuffer& commandBuffer)
 {
 	// Dependency on commandBuffer
@@ -579,64 +584,71 @@ VkResult VulkanHelper::createBuffer(const VkDevice logicalDevice, VkBufferUsageF
 	return result;
 }
 
-void VulkanHelper::CreateBuffer(const VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemProp, const void * vertexData, uint32_t dataSize, uint32_t dataStride, VkBuffer* buffer, VkDeviceMemory* memory)
+void VulkanHelper::CreateBuffer(const VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemProp, const void * vertexData, uint32_t dataSize, VulkanBuffer& p_VulkanBuffer, VkBufferCreateInfo* p_pBufInfo)
 {
 	VkResult  result;
-	bool  pass;
-
-	// 1. Create the Buffer resource
+	// 1. Create the Buffer resource - Default usage - vertex buffer
 	/*******************************/
-	VkBufferCreateInfo bufInfo = {};
-	bufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	bufInfo.pNext = NULL;
-    bufInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-	bufInfo.size = dataSize;
-	bufInfo.queueFamilyIndexCount = 0;
-	bufInfo.pQueueFamilyIndices = NULL;
-	bufInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	bufInfo.flags = 0;
-
-	result = vkCreateBuffer(device, &bufInfo, NULL, buffer);
+	if (p_pBufInfo){
+		result = vkCreateBuffer(device, p_pBufInfo, NULL, &p_VulkanBuffer.m_Buffer);
+	}
+	else {
+		VkBufferCreateInfo bufInfo = {};
+		bufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufInfo.pNext = NULL;
+		bufInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+		bufInfo.size = dataSize;
+		bufInfo.queueFamilyIndexCount = 0;
+		bufInfo.pQueueFamilyIndices = NULL;
+		bufInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		bufInfo.flags = 0;
+		result = vkCreateBuffer(device, &bufInfo, NULL, &p_VulkanBuffer.m_Buffer);
+	}
 	assert(result == VK_SUCCESS);
 
 	// 2. Get memory specific requirements
 	/**************************************************************/
 
 	// 2a. Get the Buffer resource requirements
-	VkMemoryRequirements memRqrmnt;
-	vkGetBufferMemoryRequirements(device, *buffer, &memRqrmnt);
+	vkGetBufferMemoryRequirements(device, p_VulkanBuffer.m_Buffer, &p_VulkanBuffer.m_MemRqrmnt);
 
 	// 2b. Get the compatible type of memory
 	VkMemoryAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocInfo.pNext = NULL;
 	allocInfo.memoryTypeIndex = 0;
-	allocInfo.allocationSize = memRqrmnt.size;
-
-	pass = VulkanHelper::MemoryTypeFromProperties(deviceMemProp, memRqrmnt.memoryTypeBits,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &allocInfo.memoryTypeIndex);
-	assert(pass);
+	allocInfo.allocationSize = p_VulkanBuffer.m_MemRqrmnt.size;
+	
+	if (!VulkanHelper::MemoryTypeFromProperties(deviceMemProp, p_VulkanBuffer.m_MemRqrmnt.memoryTypeBits,
+		p_VulkanBuffer.m_MemoryFlags, &allocInfo.memoryTypeIndex))
+	{
+		LogError("Failed to match compatible memory!");
+		assert(0);
+	} 
 
 	// 3. Allocate the physical backing
 	/******************************************************/
-	result = vkAllocateMemory(device, &allocInfo, NULL, memory);
+	result = vkAllocateMemory(device, &allocInfo, NULL, &p_VulkanBuffer.m_Memory);
 	assert(result == VK_SUCCESS);
 
-	// 4. Copy data into buffer
-	/**************************/
-	// 4a. Map the physical device memory region to the host 
-	uint8_t *pData;
-	result = vkMapMemory(device, *memory, 0, memRqrmnt.size, 0, (void **)&pData);
-	assert(result == VK_SUCCESS);
+	if (vertexData)
+	{
+		// 4. Copy data into buffer
+		/**************************/
+		// 4a. Map the physical device memory region to the host 
+		uint8_t *pData;
+		result = vkMapMemory(device, p_VulkanBuffer.m_Memory, 0, p_VulkanBuffer.m_MemRqrmnt.size, 0, (void **)&pData);
+		assert(result == VK_SUCCESS);
 
-	// 4b. Copy the data in the mapped memory
-	memcpy(pData, vertexData, dataSize);
+		// 4b. Copy the data in the mapped memory
+		memcpy(pData, vertexData, dataSize);
 
-	// 4c. Unmap the device memory
-	vkUnmapMemory(device, *memory);
+		// 4c. Unmap the device memory
+		vkUnmapMemory(device, p_VulkanBuffer.m_Memory);
+	}
 
 	// 5. Bind the allocated buffer resource to the device memory
-	result = vkBindBufferMemory(device, *buffer, *memory, 0);
+	result = vkBindBufferMemory(device, p_VulkanBuffer.m_Buffer, p_VulkanBuffer.m_Memory, 0);
 	assert(result == VK_SUCCESS);
 }
 

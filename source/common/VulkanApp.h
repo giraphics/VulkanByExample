@@ -142,13 +142,10 @@ private:
 
 class DrawableInterface
 {
-#define GETSET(type, var) protected: type m_##var; public: type Get##var() { return m_##var; } void Set##var(type val) { m_##var = val; } type& GetRef##var() { return m_##var; } void Set##var(type& val) { m_##var = val; }
-#define UNIMPLEMENTED_INTEFACE { printf("\n Attempting to use an unimplemented default interface: %s\n", __FUNCTION__); assert(0); }
-
 public:
 	// Life Cycle
 	virtual void Setup() UNIMPLEMENTED_INTEFACE
-		virtual void Update() UNIMPLEMENTED_INTEFACE
+	virtual void Update() UNIMPLEMENTED_INTEFACE
 
 	// Transformation
 	void Rotate(float p_Angle, float p_X, float p_Y, float p_Z) { m_Model = glm::rotate(glm::mat4(), p_Angle, glm::vec3(p_X, p_Y, p_Z)); }
@@ -159,7 +156,7 @@ public:
 	GETSET(glm::mat4*, Projection)	// Not owned by drawable item  
 	GETSET(glm::mat4*, View)		// Not owned by drawable item
 
-									// Mouse interaction: Dummy interface for now.
+	// Mouse interaction: Dummy interface for now.
 	virtual void mousePressEvent() UNIMPLEMENTED_INTEFACE
 	virtual void mouseReleaseEvent() UNIMPLEMENTED_INTEFACE
 	virtual void mouseMoveEvent() UNIMPLEMENTED_INTEFACE
