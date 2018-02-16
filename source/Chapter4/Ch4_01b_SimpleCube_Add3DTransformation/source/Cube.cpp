@@ -8,15 +8,12 @@
 
 using namespace std;
 
-//glm::mat4 Model;
-glm::mat4 MVP;
-
 Cube::Cube(VulkanApp* p_VulkanApp)
 {
 	m_hPipelineLayout = VK_NULL_HANDLE;
     m_hGraphicsPipeline = VK_NULL_HANDLE;
 
-	memset(&Uniform, 0, sizeof(Uniform));
+	memset(&UniformBuffer, 0, sizeof(UniformBuffer));
 	memset(&VertexBuffer, 0, sizeof(VertexBuffer));
 
     m_VulkanApplication = p_VulkanApp;
@@ -27,8 +24,8 @@ Cube::~Cube()
     vkDestroyPipeline(m_VulkanApplication->m_hDevice, m_hGraphicsPipeline, nullptr);
 
 	// Destroy Vertex Buffer
-    vkDestroyBuffer(m_VulkanApplication->m_hDevice, VertexBuffer.m_Buffer, NULL);
-    vkFreeMemory(m_VulkanApplication->m_hDevice, VertexBuffer.m_Memory, NULL);
+    vkDestroyBuffer(m_VulkanApplication->m_hDevice, VertexBuffer.m_BufObj.m_Buffer, NULL);
+    vkFreeMemory(m_VulkanApplication->m_hDevice, VertexBuffer.m_BufObj.m_Memory, NULL);
 
 	// Destroy descriptors
 	for (int i = 0; i < descLayout.size(); i++) {
@@ -41,9 +38,9 @@ Cube::~Cube()
     vkFreeDescriptorSets(m_VulkanApplication->m_hDevice, descriptorPool, (uint32_t)descriptorSet.size(), &descriptorSet[0]);
     vkDestroyDescriptorPool(m_VulkanApplication->m_hDevice, descriptorPool, NULL);
 
-    vkUnmapMemory(m_VulkanApplication->m_hDevice, Uniform.m_Memory);
-    vkDestroyBuffer(m_VulkanApplication->m_hDevice, Uniform.m_Buffer, NULL);
-    vkFreeMemory(m_VulkanApplication->m_hDevice, Uniform.m_Memory, NULL);
+    vkUnmapMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory);
+    vkDestroyBuffer(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Buffer, NULL);
+    vkFreeMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory, NULL);
 }
 
 void Cube::Setup()
@@ -65,13 +62,13 @@ void Cube::Update()
 {
 	glm::mat4 MVP = (*m_Projection) * (*m_View) * m_Model;
 
-    VkResult res = vkInvalidateMappedMemoryRanges(m_VulkanApplication->m_hDevice, 1, &Uniform.m_MappedRange[0]);
+    VkResult res = vkInvalidateMappedMemoryRanges(m_VulkanApplication->m_hDevice, 1, &UniformBuffer.m_MappedRange[0]);
 	assert(res == VK_SUCCESS);
 
 	// Copy updated data into the mapped memory
-    memcpy(Uniform.m_Data, &MVP, sizeof(MVP));
+    memcpy(UniformBuffer.m_Data, &MVP, sizeof(MVP));
 
-    res = vkFlushMappedMemoryRanges(m_VulkanApplication->m_hDevice, 1, &Uniform.m_MappedRange[0]);
+    res = vkFlushMappedMemoryRanges(m_VulkanApplication->m_hDevice, 1, &UniformBuffer.m_MappedRange[0]);
 	assert(res == VK_SUCCESS);
 }
 
@@ -258,7 +255,7 @@ void Cube::RecordCommandBuffer()
 
 		// Specify vertex buffer information
 		const VkDeviceSize offsets[1] = { 0 };
-        vkCmdBindVertexBuffers(m_VulkanApplication->m_hCommandBufferList[i], 0, 1, &VertexBuffer.m_Buffer, offsets);
+        vkCmdBindVertexBuffers(m_VulkanApplication->m_hCommandBufferList[i], 0, 1, &VertexBuffer.m_BufObj.m_Buffer, offsets);
 		
 		// Draw a quad using 3 vertices 
         vkCmdDraw(m_VulkanApplication->m_hCommandBufferList[i], 3 * 2 * 6, 1, 0, 0);
@@ -278,9 +275,11 @@ void Cube::RecordCommandBuffer()
 
 void Cube::CreateVertexBuffer(const void * vertexData, uint32_t dataSize, uint32_t dataStride)
 {
-    VulkanHelper::CreateBuffer(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_physicalDeviceInfo.memProp,
-							   vertexData, dataSize, dataStride, &VertexBuffer.m_Buffer, 
-							   &VertexBuffer.m_Memory);
+	VertexBuffer.m_BufObj.m_DataSize = dataSize;
+	VertexBuffer.m_BufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+	VulkanHelper::CreateBuffer(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_physicalDeviceInfo.memProp,
+							   vertexData, dataSize, VertexBuffer.m_BufObj);
 
 	// Indicates the rate at which the information will be
 	// injected for vertex input.
@@ -307,84 +306,47 @@ void Cube::CreateCommandBuffers()
 
 void Cube::CreateUniformBuffer()
 {
-	VkResult  result;
-	bool  pass;
+	UniformBuffer.m_BufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	UniformBuffer.m_BufObj.m_DataSize = sizeof(glm::mat4);
 
+	VkResult  result;
 	// Create buffer resource states using VkBufferCreateInfo
 	VkBufferCreateInfo bufInfo = {};
 	bufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	bufInfo.pNext = NULL;
 	bufInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-	bufInfo.size = sizeof(MVP);
+	bufInfo.size = UniformBuffer.m_BufObj.m_DataSize;
 	bufInfo.queueFamilyIndexCount = 0;
 	bufInfo.pQueueFamilyIndices = NULL;
 	bufInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	bufInfo.flags = 0;
 
-	// Use create buffer info and create the buffer objects
-    result = vkCreateBuffer(m_VulkanApplication->m_hDevice, &bufInfo, NULL, &Uniform.m_Buffer);
-	assert(result == VK_SUCCESS);
-
-	// Get the buffer memory requirements
-	VkMemoryRequirements memRqrmnt;
-    vkGetBufferMemoryRequirements(m_VulkanApplication->m_hDevice, Uniform.m_Buffer, &memRqrmnt);
-
-	VkMemoryAllocateInfo memAllocInfo = {}; // ############# rename this
-	memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	memAllocInfo.pNext = NULL;
-	memAllocInfo.memoryTypeIndex = 0;
-	memAllocInfo.allocationSize = memRqrmnt.size;
-
-	// Determine the type of memory required 
-	// with the help of memory properties
-	//pass = VulkanHelper::MemoryTypeFromProperties(memRqrmnt.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &memAllocInfo.memoryTypeIndex);
-    pass = VulkanHelper::MemoryTypeFromProperties(m_VulkanApplication->m_physicalDeviceInfo.memProp, memRqrmnt.memoryTypeBits,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &memAllocInfo.memoryTypeIndex);
-
-	assert(pass);
-
-	// Allocate the memory for buffer objects
-    result = vkAllocateMemory(m_VulkanApplication->m_hDevice, &memAllocInfo, NULL, &(Uniform.m_Memory));
-	assert(result == VK_SUCCESS);
+	VulkanHelper::CreateBuffer(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_physicalDeviceInfo.memProp, NULL, 0, UniformBuffer.m_BufObj, &bufInfo);
 
 	// Map the GPU memory on to local host
-    result = vkMapMemory(m_VulkanApplication->m_hDevice, Uniform.m_Memory, 0, memRqrmnt.size, 0, (void **)&Uniform.m_Data);
+	result = vkMapMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory, 0, UniformBuffer.m_BufObj.m_MemRqrmnt.size, 0, (void **)&UniformBuffer.m_Data);
 	assert(result == VK_SUCCESS);
-
-	// Copy computed data in the mapped buffer
-    memcpy(Uniform.m_Data, &MVP, sizeof(MVP));
 
 	// We have only one Uniform buffer object to update
-    Uniform.m_MappedRange.resize(1);
+    UniformBuffer.m_MappedRange.resize(1);
 
 	// Populate the VkMappedMemoryRange data structure
-    Uniform.m_MappedRange[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-    Uniform.m_MappedRange[0].memory = Uniform.m_Memory;
-    Uniform.m_MappedRange[0].offset = 0;
-    Uniform.m_MappedRange[0].size = sizeof(MVP);
-
-	// Invalidate the range of mapped buffer in order to make it visible to the host.
-	// If the memory property is set with VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-	// then the driver may take care of this, otherwise for non-coherent 
-	// mapped memory vkInvalidateMappedMemoryRanges() needs to be called explicitly.
-    vkInvalidateMappedMemoryRanges(m_VulkanApplication->m_hDevice, 1, &Uniform.m_MappedRange[0]);
-
-	// Bind the buffer device memory 
-    result = vkBindBufferMemory(m_VulkanApplication->m_hDevice, Uniform.m_Buffer, Uniform.m_Memory, 0);
-	assert(result == VK_SUCCESS);
+    UniformBuffer.m_MappedRange[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+    UniformBuffer.m_MappedRange[0].memory = UniformBuffer.m_BufObj.m_Memory;
+    UniformBuffer.m_MappedRange[0].offset = 0;
+    UniformBuffer.m_MappedRange[0].size = sizeof(glm::mat4);
 
 	// Update the local data structure with uniform buffer for house keeping
-    Uniform.m_BufferInfo.buffer = Uniform.m_Buffer;
-    Uniform.m_BufferInfo.offset = 0;
-    Uniform.m_BufferInfo.range = sizeof(MVP);
-    Uniform.m_MemmoryRequirement = memRqrmnt;
+    UniformBuffer.m_BufferInfo.buffer = UniformBuffer.m_BufObj.m_Buffer;
+    UniformBuffer.m_BufferInfo.offset = 0;
+    UniformBuffer.m_BufferInfo.range = sizeof(glm::mat4);
 }
 
 void Cube::DestroyUniformBuffer()
 {
-    vkUnmapMemory(m_VulkanApplication->m_hDevice, Uniform.m_Memory);
-    vkDestroyBuffer(m_VulkanApplication->m_hDevice, Uniform.m_Buffer, NULL);
-    vkFreeMemory(m_VulkanApplication->m_hDevice, Uniform.m_Memory, NULL);
+    vkUnmapMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory);
+    vkDestroyBuffer(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Buffer, NULL);
+    vkFreeMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory, NULL);
 }
 
 void Cube::CreateDescriptorSetLayout(bool useTexture)
@@ -511,7 +473,7 @@ void Cube::CreateDescriptorSet(bool useTexture)
 	writes[0].dstSet = descriptorSet[0];
 	writes[0].descriptorCount = 1;
 	writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    writes[0].pBufferInfo = &Uniform.m_BufferInfo;
+    writes[0].pBufferInfo = &UniformBuffer.m_BufferInfo;
 	writes[0].dstArrayElement = 0;
 	writes[0].dstBinding = 0; // DESCRIPTOR_SET_BINDING_INDEX
 

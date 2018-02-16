@@ -75,19 +75,16 @@ private:
 	void CreateCommandBuffers(); // Overide the default implementation as per application requirement
 
 	struct {
-		VkBuffer m_Buffer;
-		VkDeviceMemory m_Memory;
-		VkDescriptorBufferInfo m_BufferInfo;
+		VulkanBuffer m_BufObj;
 	} VertexBuffer;
 
 	struct {
-		VkBuffer						m_Buffer;			// Buffer resource object
-		VkDeviceMemory					m_Memory;			// Buffer resourece object's allocated device memory
+		VulkanBuffer					m_BufObj;
 		VkDescriptorBufferInfo			m_BufferInfo;		// Buffer info that need to supplied into write descriptor set (VkWriteDescriptorSet)
-		VkMemoryRequirements			m_MemmoryRequirement;		// Store the queried memory requirement of the uniform buffer
-		std::vector<VkMappedMemoryRange>m_MappedRange;	// Metadata of memory mapped objects
-		uint8_t*						m_Data;			// Host pointer containing the mapped device address which is used to write data into.
-	} Uniform; // ########## rename this to uniform
+		std::vector<VkMappedMemoryRange>m_MappedRange;		// Metadata of memory mapped objects
+		uint8_t*						m_Data;				// Host pointer containing the mapped device address which is used to write data into.
+		size_t							m_DataSize;			// Data size.
+	} UniformBuffer;
 
 	void CreateUniformBuffer();
 	void DestroyUniformBuffer();
