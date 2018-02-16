@@ -333,3 +333,10 @@ ASALocalRun/
 ZERO_CHECK.vcxproj
 windows_metafile.rc.in
 windows_metafile.rc
+
+feature_tests.bin
+feature_tests.cxx
+generate.stamp.depend
+generate.stamp
+
+moc_*.cpp
