@@ -139,8 +139,7 @@ void Canvas2DApp::CreateImageTiles()
             if (idx < m_numImageFiles)
             {
                 // Create vertex buffer for QUAD
-                VkBuffer        vertexBuffer;
-                VkDeviceMemory  vertexBufferMemory;
+				VulkanBuffer buffObj;
 
                 // Calculate vertex positions in normalized device coordinates
                 float xf = (float)i*w;
@@ -160,11 +159,14 @@ void Canvas2DApp::CreateImageTiles()
                     { { x2, y2 },{ 1.0f, 0.0f, 0.0f },{ 1.0f,1.0f } }  // Bottom right
                 };
 
-                VulkanHelper::CreateBuffer(m_hDevice, m_physicalDeviceInfo.memProp,
-                    vertices, sizeof(vertices), sizeof(vertices[0]), &vertexBuffer, &vertexBufferMemory);
+				buffObj.m_DataSize = sizeof(vertices);
+				buffObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
-                m_quad[idx].m_VertexBuffer = vertexBuffer;
-                m_quad[idx].m_VertexBufferMemory = vertexBufferMemory;
+				VulkanHelper::CreateBuffer(m_hDevice, m_physicalDeviceInfo.memProp, buffObj);
+				VulkanHelper::WriteBuffer(m_hDevice, vertices, buffObj);
+
+                m_quad[idx].m_VertexBuffer = buffObj.m_Buffer;
+                m_quad[idx].m_VertexBufferMemory = buffObj.m_Memory;
                 
                 // Create texture for QUAD
                 VkImage                     textureImage;

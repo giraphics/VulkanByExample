@@ -75,7 +75,7 @@ void Cube::Update()
 void Cube::CreateGraphicsPipeline()
 {
     // Compile the vertex shader
-    VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/TriangleVert.spv"); // Relative path to binary output dir
+    VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CubeVert.spv"); // Relative path to binary output dir
 
 	// Setup the vertex shader stage create info structures
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
@@ -85,7 +85,7 @@ void Cube::CreateGraphicsPipeline()
     vertShaderStageInfo.pName = "main";
 
     // Compile the fragment shader
-    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/TriangleFrag.spv"); // Relative path to binary output dir
+    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CubeFrag.spv"); // Relative path to binary output dir
 
 	// Setup the fragment shader stage create info structures
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
@@ -278,8 +278,10 @@ void Cube::CreateVertexBuffer(const void * vertexData, uint32_t dataSize, uint32
 	VertexBuffer.m_BufObj.m_DataSize = dataSize;
 	VertexBuffer.m_BufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
-	VulkanHelper::CreateBuffer(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_physicalDeviceInfo.memProp,
-							   vertexData, dataSize, VertexBuffer.m_BufObj);
+	const VkPhysicalDeviceMemoryProperties& memProp = m_VulkanApplication->m_physicalDeviceInfo.memProp;
+	const VkDevice& device = m_VulkanApplication->m_hDevice;
+	VulkanHelper::CreateBuffer(device, memProp, VertexBuffer.m_BufObj);
+	VulkanHelper::WriteBuffer(device, vertexData, VertexBuffer.m_BufObj);
 
 	// Indicates the rate at which the information will be
 	// injected for vertex input.
@@ -321,7 +323,7 @@ void Cube::CreateUniformBuffer()
 	bufInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	bufInfo.flags = 0;
 
-	VulkanHelper::CreateBuffer(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_physicalDeviceInfo.memProp, NULL, 0, UniformBuffer.m_BufObj, &bufInfo);
+	VulkanHelper::CreateBuffer(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_physicalDeviceInfo.memProp, UniformBuffer.m_BufObj, &bufInfo);
 
 	// Map the GPU memory on to local host
 	result = vkMapMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory, 0, UniformBuffer.m_BufObj.m_MemRqrmnt.size, 0, (void **)&UniformBuffer.m_Data);
