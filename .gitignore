@@ -331,7 +331,6 @@ ASALocalRun/
 
 *.vcxproj.filters
 ZERO_CHECK.vcxproj
-windows_metafile.rc.in
 windows_metafile.rc
 
 feature_tests.bin
