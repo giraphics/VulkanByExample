@@ -12,30 +12,25 @@
 #include "glm/glm.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
-class SimpleMesh
+class Cube
 {
-	//struct VertexUI {
-	//	glm::vec3 pos;
-	//};
+	struct {
+		VulkanBuffer m_BufObj;
+		//VkBuffer m_Buffer;
+		//VkDeviceMemory m_Memory;
+		//VkDescriptorBufferInfo m_BufferInfo;
+    } VertexBuffer;
 
 	struct {
-		VkBuffer m_Buffer;
-		VkDeviceMemory m_Memory;
-		VkDescriptorBufferInfo m_BufferInfo;
-	} VertexBuffer;
-
-	struct {
-		VkBuffer						buffer;			// Buffer resource object
-		VkDeviceMemory					memory;			// Buffer resourece object's allocated device memory
-		VkDescriptorBufferInfo			bufferInfo;		// Buffer info that need to supplied into write descriptor set (VkWriteDescriptorSet)
-		VkMemoryRequirements			memRqrmnt;		// Store the queried memory requirement of the uniform buffer
-		std::vector<VkMappedMemoryRange>mappedRange;	// Metadata of memory mapped objects
-		uint8_t*						pData;			// Host pointer containing the mapped device address which is used to write data into.
-	} Uniform;
+		VulkanBuffer					m_BufObj;
+		VkDescriptorBufferInfo			m_BufferInfo;		// Buffer info that need to supplied into write descriptor set (VkWriteDescriptorSet)
+        std::vector<VkMappedMemoryRange>m_MappedRange;	// Metadata of memory mapped objects
+        uint8_t*						m_Data;			// Host pointer containing the mapped device address which is used to write data into.
+    } UniformBuffer;
 
 public:
-	SimpleMesh(VulkanApp * p_VulkanApp);
-	virtual ~SimpleMesh();
+    Cube(VulkanApp * p_VulkanApp);
+    virtual ~Cube();
 
 	void Setup();
 	void Update();

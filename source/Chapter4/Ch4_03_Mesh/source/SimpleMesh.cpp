@@ -18,24 +18,24 @@ glm::mat4 View;
 glm::mat4 Model;
 glm::mat4 MVP;
 
-SimpleMesh::SimpleMesh(VulkanApp* p_VulkanApp)
+Cube::Cube(VulkanApp* p_VulkanApp)
 {
 	m_hPipelineLayout = VK_NULL_HANDLE;
     m_hGraphicsPipeline = VK_NULL_HANDLE;
 
-	memset(&Uniform, 0, sizeof(Uniform));
-	memset(&VertexBuffer, 0, sizeof(VertexBuffer));
+    memset(&UniformBuffer, 0, sizeof(UniformBuffer));
+    memset(&VertexBuffer.m_BufObj, 0, sizeof(VertexBuffer.m_BufObj));
 
 	m_VulkanApplication = p_VulkanApp;
 }
 
-SimpleMesh::~SimpleMesh()
+Cube::~Cube()
 {
 	vkDestroyPipeline(m_VulkanApplication->m_hDevice, m_hGraphicsPipeline, nullptr);
 
 	// Destroy Vertex Buffer
-	vkDestroyBuffer(m_VulkanApplication->m_hDevice, VertexBuffer.m_Buffer, NULL);
-	vkFreeMemory(m_VulkanApplication->m_hDevice, VertexBuffer.m_Memory, NULL);
+    vkDestroyBuffer(m_VulkanApplication->m_hDevice, VertexBuffer.m_BufObj.m_Buffer, NULL);
+    vkFreeMemory(m_VulkanApplication->m_hDevice, VertexBuffer.m_BufObj.m_Memory, NULL);
 
 	// Destroy descriptors
 	for (int i = 0; i < descLayout.size(); i++) {
@@ -48,12 +48,12 @@ SimpleMesh::~SimpleMesh()
 	vkFreeDescriptorSets(m_VulkanApplication->m_hDevice, descriptorPool, (uint32_t)descriptorSet.size(), &descriptorSet[0]);
 	vkDestroyDescriptorPool(m_VulkanApplication->m_hDevice, descriptorPool, NULL);
 
-	vkUnmapMemory(m_VulkanApplication->m_hDevice, Uniform.memory);
-	vkDestroyBuffer(m_VulkanApplication->m_hDevice, Uniform.buffer, NULL);
-	vkFreeMemory(m_VulkanApplication->m_hDevice, Uniform.memory, NULL);
+    vkUnmapMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory);
+    vkDestroyBuffer(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Buffer, NULL);
+    vkFreeMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory, NULL);
 }
 
-void SimpleMesh::Setup()
+void Cube::Setup()
 {
 	//CreateVertexBuffer(s_TriangleVertices, sizeof(s_TriangleVertices), sizeof(Vertex));
 //	LoadMesh();
@@ -68,7 +68,7 @@ void SimpleMesh::Setup()
 	RecordCommandBuffer();
 }
 
-void SimpleMesh::Update()
+void Cube::Update()
 {
 	Projection = glm::perspective(glm::radians(45.0f), 800.0f/600.0f, 0.1f, 100.0f);
 	View = glm::lookAt(
@@ -87,22 +87,22 @@ void SimpleMesh::Update()
 	// If the memory property is set with VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 	// then the driver may take care of this, otherwise for non-coherent 
 	// mapped memory vkInvalidateMappedMemoryRanges() needs to be called explicitly.
-	VkResult res = vkInvalidateMappedMemoryRanges(m_VulkanApplication->m_hDevice, 1, &Uniform.mappedRange[0]);
+    VkResult res = vkInvalidateMappedMemoryRanges(m_VulkanApplication->m_hDevice, 1, &UniformBuffer.m_MappedRange[0]);
 	assert(res == VK_SUCCESS);
 
 	// Copy updated data into the mapped memory
-	memcpy(Uniform.pData, &MVP, sizeof(MVP));
+    memcpy(UniformBuffer.m_Data, &MVP, sizeof(MVP));
 
 	// Flush the range of mapped buffer in order to make it visible to the device
 	// If the memory is coherent (memory property must be beVK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
 	// then the driver may take care of this, otherwise for non-coherent 
 	// mapped memory vkFlushMappedMemoryRanges() needs to be called explicitly to flush out 
 	// the pending writes on the host side.
-	res = vkFlushMappedMemoryRanges(m_VulkanApplication->m_hDevice, 1, &Uniform.mappedRange[0]);
+    res = vkFlushMappedMemoryRanges(m_VulkanApplication->m_hDevice, 1, &UniformBuffer.m_MappedRange[0]);
 	assert(res == VK_SUCCESS);
 }
 
-void SimpleMesh::CreateGraphicsPipeline()
+void Cube::CreateGraphicsPipeline()
 {
     // Compile the vertex shader
 	VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/TriangleVert.spv"); // Relative path to binary output dir
@@ -266,7 +266,7 @@ void SimpleMesh::CreateGraphicsPipeline()
 	vkDestroyShaderModule(m_VulkanApplication->m_hDevice, vertShader, nullptr);
 }
 
-void SimpleMesh::RecordCommandBuffer()
+void Cube::RecordCommandBuffer()
 {
 	// Specify the clear color value
 	VkClearValue clearColor[2];
@@ -340,12 +340,12 @@ void SimpleMesh::RecordCommandBuffer()
 	}
 }
 
-void SimpleMesh::CreateCommandBuffers()
+void Cube::CreateCommandBuffers()
 {
 	m_VulkanApplication->CreateCommandBuffers();
 }
 
-bool SimpleMesh::Load(const char* filename)
+bool Cube::Load(const char* filename)
 {
 	pScene = Importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipWindingOrder | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals);
 
@@ -372,7 +372,7 @@ bool SimpleMesh::Load(const char* filename)
 
 }
 
-void SimpleMesh::MeshInit(MeshEntry *meshEntry, const aiMesh* paiMesh, const aiScene* pScene)
+void Cube::MeshInit(MeshEntry *meshEntry, const aiMesh* paiMesh, const aiScene* pScene)
 {
 	for (unsigned int i = 0; i < paiMesh->mNumVertices; i++)
 	{
@@ -392,10 +392,10 @@ void SimpleMesh::MeshInit(MeshEntry *meshEntry, const aiMesh* paiMesh, const aiS
 	}
 }
 
-void SimpleMesh::LoadMeshNew()
+void Cube::LoadMeshNew()
 {
 	//////////////////////////////////////////////////////////////////////////////////////
-	Load("../../../resources/teapot.dae");
+	Load("../../../resources/models/teapot.dae");
 
 	// Generate vertex buffer
 	std::vector<Vertex> vertexBuffer;
@@ -432,8 +432,8 @@ void SimpleMesh::LoadMeshNew()
 	if (useStaging)
 	{
 		struct {
-			VkBuffer buffer;
-			VkDeviceMemory memory;
+            VkBuffer m_Buffer;
+            VkDeviceMemory m_Memory;
 		} vertexStaging, indexStaging;
 
 		// Create staging buffers
@@ -445,8 +445,8 @@ void SimpleMesh::LoadMeshNew()
 			m_VulkanApplication->m_physicalDeviceInfo.memProp,
 			vertexBufferSize,
 			vertexBuffer.data(),
-			&vertexStaging.buffer,
-			&vertexStaging.memory);
+            &vertexStaging.m_Buffer,
+            &vertexStaging.m_Memory);
 		// Index data
 		VulkanHelper::createBuffer(
 			m_VulkanApplication->m_hDevice,
@@ -455,8 +455,8 @@ void SimpleMesh::LoadMeshNew()
 			m_VulkanApplication->m_physicalDeviceInfo.memProp,
 			indexBufferSize,
 			indexBuffer.data(),
-			&indexStaging.buffer,
-			&indexStaging.memory);
+            &indexStaging.m_Buffer,
+            &indexStaging.m_Memory);
 
 		// Create device local buffers
 		// Vertex buffer
@@ -492,7 +492,7 @@ void SimpleMesh::LoadMeshNew()
 		copyRegion.size = vertexBufferSize;
 		vkCmdCopyBuffer(
 			copyCmd,
-			vertexStaging.buffer,
+            vertexStaging.m_Buffer,
 			mesh.m_Vertices.m_Buffer,
 			1,
 			&copyRegion);
@@ -500,7 +500,7 @@ void SimpleMesh::LoadMeshNew()
 		copyRegion.size = indexBufferSize;
 		vkCmdCopyBuffer(
 			copyCmd,
-			indexStaging.buffer,
+            indexStaging.m_Buffer,
 			mesh.m_Indices.m_Buffer,
 			1,
 			&copyRegion);
@@ -510,10 +510,10 @@ void SimpleMesh::LoadMeshNew()
 		VulkanHelper::SubmitCommandBuffer(m_VulkanApplication->m_hGraphicsQueue, copyCmd);
 		vkFreeCommandBuffers(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_hCommandPool, 1, &copyCmd);
 
-		vkDestroyBuffer(m_VulkanApplication->m_hDevice, vertexStaging.buffer, nullptr);
-		vkFreeMemory(m_VulkanApplication->m_hDevice, vertexStaging.memory, nullptr);
-		vkDestroyBuffer(m_VulkanApplication->m_hDevice, indexStaging.buffer, nullptr);
-		vkFreeMemory(m_VulkanApplication->m_hDevice, indexStaging.memory, nullptr);
+        vkDestroyBuffer(m_VulkanApplication->m_hDevice, vertexStaging.m_Buffer, nullptr);
+        vkFreeMemory(m_VulkanApplication->m_hDevice, vertexStaging.m_Memory, nullptr);
+        vkDestroyBuffer(m_VulkanApplication->m_hDevice, indexStaging.m_Buffer, nullptr);
+        vkFreeMemory(m_VulkanApplication->m_hDevice, indexStaging.m_Memory, nullptr);
 	}
 	else
 	{
@@ -553,7 +553,7 @@ void SimpleMesh::LoadMeshNew()
 	//////////////////////////////////////////////////////////////////////////////////////
 }
 
-void SimpleMesh::LoadMesh()
+void Cube::LoadMesh()
 {
 	////////////////////////////////////////////////////////////////////////////////////////
 	//MeshLoader* meshLoader = new MeshLoader(m_VulkanApplication);
@@ -724,7 +724,7 @@ void SimpleMesh::LoadMesh()
 	////////////////////////////////////////////////////////////////////////////////////////
 }
 
-void SimpleMesh::CreateUniformBuffer()
+void Cube::CreateUniformBuffer()
 {
 	VkResult  result;
 	bool  pass;
@@ -749,12 +749,12 @@ void SimpleMesh::CreateUniformBuffer()
 	bufInfo.flags = 0;
 
 	// Use create buffer info and create the buffer objects
-	result = vkCreateBuffer(m_VulkanApplication->m_hDevice, &bufInfo, NULL, &Uniform.buffer);
+    result = vkCreateBuffer(m_VulkanApplication->m_hDevice, &bufInfo, NULL, &UniformBuffer.m_BufObj.m_Buffer);
 	assert(result == VK_SUCCESS);
 
 	// Get the buffer memory requirements
 	VkMemoryRequirements memRqrmnt;
-	vkGetBufferMemoryRequirements(m_VulkanApplication->m_hDevice, Uniform.buffer, &memRqrmnt);
+    vkGetBufferMemoryRequirements(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Buffer, &memRqrmnt);
 
 	VkMemoryAllocateInfo memAllocInfo = {}; // ############# rename this
 	memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -771,50 +771,50 @@ void SimpleMesh::CreateUniformBuffer()
 	assert(pass);
 
 	// Allocate the memory for buffer objects
-	result = vkAllocateMemory(m_VulkanApplication->m_hDevice, &memAllocInfo, NULL, &(Uniform.memory));
+    result = vkAllocateMemory(m_VulkanApplication->m_hDevice, &memAllocInfo, NULL, &(UniformBuffer.m_BufObj.m_Memory));
 	assert(result == VK_SUCCESS);
 
 	// Map the GPU memory on to local host
-	result = vkMapMemory(m_VulkanApplication->m_hDevice, Uniform.memory, 0, memRqrmnt.size, 0, (void **)&Uniform.pData);
+    result = vkMapMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory, 0, memRqrmnt.size, 0, (void **)&UniformBuffer.m_Data);
 	assert(result == VK_SUCCESS);
 
 	// Copy computed data in the mapped buffer
-	memcpy(Uniform.pData, &MVP, sizeof(MVP));
+    memcpy(UniformBuffer.m_Data, &MVP, sizeof(MVP));
 
 	// We have only one Uniform buffer object to update
-	Uniform.mappedRange.resize(1);
+    UniformBuffer.m_MappedRange.resize(1);
 
 	// Populate the VkMappedMemoryRange data structure
-	Uniform.mappedRange[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-	Uniform.mappedRange[0].memory = Uniform.memory;
-	Uniform.mappedRange[0].offset = 0;
-	Uniform.mappedRange[0].size = sizeof(MVP);
+    UniformBuffer.m_MappedRange[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+    UniformBuffer.m_MappedRange[0].memory = UniformBuffer.m_BufObj.m_Memory;
+    UniformBuffer.m_MappedRange[0].offset = 0;
+    UniformBuffer.m_MappedRange[0].size = sizeof(MVP);
 
 	// Invalidate the range of mapped buffer in order to make it visible to the host.
 	// If the memory property is set with VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 	// then the driver may take care of this, otherwise for non-coherent 
 	// mapped memory vkInvalidateMappedMemoryRanges() needs to be called explicitly.
-	vkInvalidateMappedMemoryRanges(m_VulkanApplication->m_hDevice, 1, &Uniform.mappedRange[0]);
+    vkInvalidateMappedMemoryRanges(m_VulkanApplication->m_hDevice, 1, &UniformBuffer.m_MappedRange[0]);
 
 	// Bind the buffer device memory 
-	result = vkBindBufferMemory(m_VulkanApplication->m_hDevice, Uniform.buffer, Uniform.memory, 0);
+    result = vkBindBufferMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Buffer, UniformBuffer.m_BufObj.m_Memory, 0);
 	assert(result == VK_SUCCESS);
 
 	// Update the local data structure with uniform buffer for house keeping
-	Uniform.bufferInfo.buffer = Uniform.buffer;
-	Uniform.bufferInfo.offset = 0;
-	Uniform.bufferInfo.range = sizeof(MVP);
-	Uniform.memRqrmnt = memRqrmnt;
+    UniformBuffer.m_BufferInfo.buffer = UniformBuffer.m_BufObj.m_Buffer;
+    UniformBuffer.m_BufferInfo.offset = 0;
+    UniformBuffer.m_BufferInfo.range = sizeof(MVP);
+    UniformBuffer.m_BufObj.m_MemRqrmnt = memRqrmnt;
 }
 
-void SimpleMesh::DestroyUniformBuffer()
+void Cube::DestroyUniformBuffer()
 {
-	vkUnmapMemory(m_VulkanApplication->m_hDevice, Uniform.memory);
-	vkDestroyBuffer(m_VulkanApplication->m_hDevice, Uniform.buffer, NULL);
-	vkFreeMemory(m_VulkanApplication->m_hDevice, Uniform.memory, NULL);
+    vkUnmapMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory);
+    vkDestroyBuffer(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Buffer, NULL);
+    vkFreeMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory, NULL);
 }
 
-void SimpleMesh::CreateDescriptorSetLayout(bool useTexture)
+void Cube::CreateDescriptorSetLayout(bool useTexture)
 {
 	// Define the layout binding information for the descriptor set(before creating it)
 	// Specify binding point, shader type(like vertex shader below), count etc.
@@ -851,7 +851,7 @@ void SimpleMesh::CreateDescriptorSetLayout(bool useTexture)
 	assert(result == VK_SUCCESS);
 }
 
-void SimpleMesh::DestroyDescriptorLayout()
+void Cube::DestroyDescriptorLayout()
 {
 	for (int i = 0; i < descLayout.size(); i++) {
 		vkDestroyDescriptorSetLayout(m_VulkanApplication->m_hDevice, descLayout[i], NULL);
@@ -859,7 +859,7 @@ void SimpleMesh::DestroyDescriptorLayout()
 	descLayout.clear();
 }
 
-void SimpleMesh::CreateDescriptor(bool useTexture)
+void Cube::CreateDescriptor(bool useTexture)
 {
 	CreateDescriptorSetLayout(useTexture);
 
@@ -874,7 +874,7 @@ void SimpleMesh::CreateDescriptor(bool useTexture)
 	CreateDescriptorSet(useTexture);
 }
 
-void SimpleMesh::CreateDescriptorPool(bool useTexture)
+void Cube::CreateDescriptorPool(bool useTexture)
 {
 	VkResult  result;
 	// Define the size of descriptor pool based on the
@@ -906,7 +906,7 @@ void SimpleMesh::CreateDescriptorPool(bool useTexture)
 	assert(result == VK_SUCCESS);
 }
 
-void SimpleMesh::CreateDescriptorSet(bool useTexture)
+void Cube::CreateDescriptorSet(bool useTexture)
 {
 	VkResult  result;
 
@@ -938,7 +938,7 @@ void SimpleMesh::CreateDescriptorSet(bool useTexture)
 	writes[0].dstSet = descriptorSet[0];
 	writes[0].descriptorCount = 1;
 	writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	writes[0].pBufferInfo = &Uniform.bufferInfo;
+    writes[0].pBufferInfo = &UniformBuffer.m_BufferInfo;
 	writes[0].dstArrayElement = 0;
 	writes[0].dstBinding = 0; // DESCRIPTOR_SET_BINDING_INDEX
 

@@ -10,7 +10,7 @@
 MeshDemoApp::MeshDemoApp()
 {
 	VulkanHelper::GetInstanceLayerExtensionProperties();
-	m_Cube = new SimpleMesh(this);
+	m_Cube = new Cube(this);
 }
 
 MeshDemoApp::~MeshDemoApp()
