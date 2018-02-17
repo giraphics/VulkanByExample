@@ -49,7 +49,7 @@ void Cube::Setup()
     uint32_t dataStride = sizeof(cubeVertices[0]);
     CreateVertexBuffer(cubeVertices, dataSize, dataStride);
 	
-	CreateDescriptor(false);
+	CreateDescriptor();
 
 	CreateGraphicsPipeline();
 
@@ -257,7 +257,8 @@ void Cube::RecordCommandBuffer()
         vkCmdBindVertexBuffers(m_VulkanApplication->m_hCommandBufferList[i], 0, 1, &VertexBuffer.m_BufObj.m_Buffer, offsets);
 		
 		// Draw the Cube 
-        vkCmdDraw(m_VulkanApplication->m_hCommandBufferList[i], 3 * 2 * 6, 1, 0, 0);
+		const int vertexCount = sizeof(cubeVertices) / sizeof(Vertex);
+		vkCmdDraw(m_VulkanApplication->m_hCommandBufferList[i], vertexCount, 1, 0, 0);
 
 		// End the Render pass
         vkCmdEndRenderPass(m_VulkanApplication->m_hCommandBufferList[i]);
@@ -275,7 +276,7 @@ void Cube::RecordCommandBuffer()
 void Cube::CreateVertexBuffer(const void * vertexData, uint32_t dataSize, uint32_t dataStride)
 {
 	VertexBuffer.m_BufObj.m_DataSize = dataSize;
-	VertexBuffer.m_BufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	VertexBuffer.m_BufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 
 	const VkPhysicalDeviceMemoryProperties& memProp = m_VulkanApplication->m_physicalDeviceInfo.memProp;
 	const VkDevice& device = m_VulkanApplication->m_hDevice;
@@ -350,33 +351,23 @@ void Cube::DestroyUniformBuffer()
     vkFreeMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory, NULL);
 }
 
-void Cube::CreateDescriptorSetLayout(bool useTexture)
+void Cube::CreateDescriptorSetLayout()
 {
 	// Define the layout binding information for the descriptor set(before creating it)
 	// Specify binding point, shader type(like vertex shader below), count etc.
-	VkDescriptorSetLayoutBinding layoutBindings[2];
+	VkDescriptorSetLayoutBinding layoutBindings[1];
 	layoutBindings[0].binding = 0; // DESCRIPTOR_SET_BINDING_INDEX
 	layoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	layoutBindings[0].descriptorCount = 1;
 	layoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	layoutBindings[0].pImmutableSamplers = NULL;
 
-	// If texture is being used then there existing second binding in the fragment shader
-	if (useTexture) // ############## remove this flag and related stuff with textures
-	{
-		layoutBindings[1].binding = 1; // DESCRIPTOR_SET_BINDING_INDEX
-		layoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		layoutBindings[1].descriptorCount = 1;
-		layoutBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-		layoutBindings[1].pImmutableSamplers = NULL;
-	}
-
 	// Specify the layout bind into the VkDescriptorSetLayoutCreateInfo
 	// and use it to create a descriptor set layout
 	VkDescriptorSetLayoutCreateInfo descriptorLayout = {};
 	descriptorLayout.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	descriptorLayout.pNext = NULL;
-	descriptorLayout.bindingCount = useTexture ? 2 : 1;
+	descriptorLayout.bindingCount = 1;
 	descriptorLayout.pBindings = layoutBindings;
 
 	VkResult  result;
@@ -395,22 +386,15 @@ void Cube::DestroyDescriptorLayout()
 	descLayout.clear();
 }
 
-void Cube::CreateDescriptor(bool useTexture)
+void Cube::CreateDescriptor()
 {
-	CreateDescriptorSetLayout(useTexture);
-
-	// Create the uniform bufunifer resource 
+	CreateDescriptorSetLayout();
 	CreateUniformBuffer();
-
-	// Create the descriptor pool and 
-	// use it for descriptor set allocation
-	CreateDescriptorPool(useTexture);
-
-	// Create descriptor set with uniform buffer data in it
-	CreateDescriptorSet(useTexture);
+	CreateDescriptorPool();
+	CreateDescriptorSet();
 }
 
-void Cube::CreateDescriptorPool(bool useTexture)
+void Cube::CreateDescriptorPool()
 {
 	VkResult  result;
 	// Define the size of descriptor pool based on the
@@ -419,12 +403,6 @@ void Cube::CreateDescriptorPool(bool useTexture)
 
 	// The first descriptor pool object is of type Uniform buffer
 	descriptorTypePool.push_back(VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 });
-
-	// If texture is supported then define second object with 
-	// descriptor type to be Image sampler
-	if (useTexture) {
-		descriptorTypePool.push_back(VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1 });
-	}
 
 	// Populate the descriptor pool state information
 	// in the create info structure.
@@ -442,7 +420,7 @@ void Cube::CreateDescriptorPool(bool useTexture)
 	assert(result == VK_SUCCESS);
 }
 
-void Cube::CreateDescriptorSet(bool useTexture)
+void Cube::CreateDescriptorSet()
 {
 	VkResult  result;
 
@@ -462,8 +440,8 @@ void Cube::CreateDescriptorSet(bool useTexture)
     result = vkAllocateDescriptorSets(m_VulkanApplication->m_hDevice, dsAllocInfo, descriptorSet.data());
 	assert(result == VK_SUCCESS);
 
-	// Allocate two write descriptors for - 1. MVP and 2. Texture
-	VkWriteDescriptorSet writes[2];
+	// Allocate one write descriptors for transformation (MVP)
+	VkWriteDescriptorSet writes[1];
 	memset(&writes, 0, sizeof(writes));
 
 	// Specify the uniform buffer related 
@@ -478,20 +456,6 @@ void Cube::CreateDescriptorSet(bool useTexture)
 	writes[0].dstArrayElement = 0;
 	writes[0].dstBinding = 0; // DESCRIPTOR_SET_BINDING_INDEX
 
-							  // If texture is used then update the second write descriptor structure
-	if (useTexture)
-	{
-		// In this sample textures are not used
-		writes[1] = {};
-		writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		writes[1].dstSet = descriptorSet[0];
-		writes[1].dstBinding = 1; // DESCRIPTOR_SET_BINDING_INDEX
-		writes[1].descriptorCount = 1;
-		writes[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		writes[1].pImageInfo = NULL;
-		writes[1].dstArrayElement = 0;
-	}
-
 	// Update the uniform buffer into the allocated descriptor set
-    vkUpdateDescriptorSets(m_VulkanApplication->m_hDevice, useTexture ? 2 : 1, writes, 0, NULL);
+    vkUpdateDescriptorSets(m_VulkanApplication->m_hDevice, 1, writes, 0, NULL);
 }

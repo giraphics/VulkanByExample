@@ -33,7 +33,7 @@ MyFirst3DApp::~MyFirst3DApp()
 
 void MyFirst3DApp::Configure()
 {
-    SetApplicationName("My First 3D Application");
+    SetApplicationName("My First 3D Application - Defining Geometry");
     SetWindowDimension(800, 600);
 
     // Add Validation Layers

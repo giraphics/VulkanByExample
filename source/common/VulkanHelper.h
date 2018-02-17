@@ -45,7 +45,7 @@ struct VulkanBuffer
 {
 	VkBuffer				m_Buffer;			// Buffer resource object
 	uint64_t				m_DataSize;			// Actual data size request for, use m_MemRqrmnt.size for actual backing size
-	VkDeviceMemory			m_Memory;			// Buffer resourece object's allocated device memory
+	VkDeviceMemory			m_Memory;			// Buffer resource object's allocated device memory
 	VkMemoryRequirements	m_MemRqrmnt;		// Memory requirement for the allocation buffer, useful in mapping/unmapping
 	VkMemoryPropertyFlags	m_MemoryFlags;		// Memory properties flags
 };

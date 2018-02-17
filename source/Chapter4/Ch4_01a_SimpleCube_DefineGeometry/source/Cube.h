@@ -7,7 +7,7 @@ struct Vertex
     glm::vec3 m_Color;    // Color format => r, g, b
 };
 
-const float dimension = .5;
+const float dimension = 0.75f;
 static const Vertex cubeVertices[] =
 {
 	{ glm::vec3(dimension, -dimension, -dimension),		glm::vec3(0.f, 0.f, 0.f) },

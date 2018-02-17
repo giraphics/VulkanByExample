@@ -7,7 +7,7 @@ struct Vertex
     glm::vec3 m_Color;    // Color format => r, g, b
 };
 
-const float dimension = .5;
+const float dimension = 0.75f;
 static const Vertex cubeVertices[] =
 {
 	{ glm::vec3(dimension, -dimension, -dimension),		glm::vec3(0.f, 0.f, 0.f) },
@@ -83,17 +83,17 @@ private:
 	void CreateUniformBuffer();
 	void DestroyUniformBuffer();
 	
-	void CreateDescriptorSetLayout(bool useTexture);
+	void CreateDescriptorSetLayout();
 	void DestroyDescriptorLayout();
 
-	void CreateDescriptor(bool useTexture);
+	void CreateDescriptor();
 
 	// Creates the descriptor pool, this function depends on - 
 	// createDescriptorSetLayout()
-	void CreateDescriptorPool(bool useTexture);
+	void CreateDescriptorPool();
 	// Creates the descriptor sets using descriptor pool.
 	// This function depend on the createDescriptorPool() and createUniformBuffer().
-	void CreateDescriptorSet(bool useTexture);
+	void CreateDescriptorSet();
 
 	// List of all the VkDescriptorSetLayouts 
 	std::vector<VkDescriptorSetLayout> descLayout;
