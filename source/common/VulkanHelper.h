@@ -41,6 +41,7 @@ struct LayerProperties
 	std::vector<VkExtensionProperties>		extensions;
 };
 
+// TODO: remove the m_ prefix from the structures
 struct VulkanBuffer
 {
 	VkBuffer				m_Buffer;			// Buffer resource object
@@ -52,9 +53,11 @@ struct VulkanBuffer
 
 struct VulkanImage
 {
-	VkImage					m_Image;
-	VkDeviceMemory			m_Memory;
-	VkMemoryRequirements	m_MemRqrmnt;	// Memory requirement for the allocation buffer, useful in mapping/unmapping
+	VkImage					image;			// Image resource object
+	VkExtent3D				extent;			// Image extent
+	VkDeviceMemory			deviceMemory;	// Image resource object's allocated device memory
+	VkMemoryRequirements	memRqrmnt;		// Retrived Memory requirement for the image allocation
+	VkMemoryPropertyFlags   memoryFlags;	// Memory properties flags
 };
 
 class VulkanHelper
@@ -89,14 +92,15 @@ public:
 	static void SetImageLayout(VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout, VkAccessFlagBits srcAccessMask, const VkCommandBuffer& commandBuffer);
 
     
-	static VkResult createBuffer(const VkDevice logicalDevice, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkPhysicalDeviceMemoryProperties deviceMemProp, VkDeviceSize size, void * data, VkBuffer * buffer, VkDeviceMemory * memory); // Please refrain the use of this createBuffer, still under experiment
-	static VkResult createBuffer(const VkDevice device, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkPhysicalDeviceMemoryProperties deviceMemProp, VkDeviceSize size, VkBuffer *buffer, VkDeviceMemory *memory, void *data = nullptr); // Please refrain the use of this createBuffer, still under experiment
+	static VkResult createBuffer(const VkDevice logicalDevice, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkPhysicalDeviceMemoryProperties deviceMemProp, VkDeviceSize size, void * data, VkBuffer * buffer, VkDeviceMemory * memory); // Parminder: This function marked as obsolete
+	static VkResult createBuffer(const VkDevice device, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkPhysicalDeviceMemoryProperties deviceMemProp, VkDeviceSize size, VkBuffer *buffer, VkDeviceMemory *memory, void *data = nullptr); // Parminder: This function marked as obsolete
 	static void CreateBuffer(const VkDevice p_Device, VkPhysicalDeviceMemoryProperties p_DeviceMemProp, VulkanBuffer& p_VulkanBuffer, VkBufferCreateInfo* p_pBufInfo = NULL); // Please use this Create Buffer currently begin used
 	static bool WriteBuffer(const VkDevice p_Device, const void* p_VertexData, const VulkanBuffer& p_VulkanBuffer);
 
-    // Chapter 3
-    static void CreateImage(const VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemProp, VkMemoryPropertyFlags imageMemProp, VkImageCreateInfo* pImageInfo, VkImage* pTextureImage, VkDeviceMemory* pTextureImageMemory);
-    static VkImageView CreateImageView(const VkDevice device, VkImage image, VkImageViewType type = VK_IMAGE_VIEW_TYPE_2D, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
+    // Chapter 3 => For Selva: Adding chapter name may be not very useful, now onwards almost every change uses image nad buffer so I dont think this would be helpful.
+	static void CreateImage(const VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemProp, VkMemoryPropertyFlags imageMemProp, VkImageCreateInfo* pImageInfo, VkImage* pTextureImage, VkDeviceMemory* pTextureImageMemory);// Parminder: This function marked as obsolete
+	static void CreateImage(const VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemProp, VulkanImage& p_VulkanImage, VkImageCreateInfo* pImageInfo = NULL);
+	static VkImageView CreateImageView(const VkDevice device, VkImage image, VkImageViewType type = VK_IMAGE_VIEW_TYPE_2D, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
     static void UpdateMemory(const VkDevice device, VkDeviceMemory deviceMem, VkDeviceSize offset, VkDeviceSize size, VkMemoryMapFlags flags, const void* pData);
     //@todo Remove this method once SetImageLayout is generalzied to handle all layout transition
     static bool SetImageLayoutEx(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout, const VkCommandBuffer& commandBuffer);

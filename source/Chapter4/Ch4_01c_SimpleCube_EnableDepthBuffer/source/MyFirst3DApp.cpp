@@ -33,7 +33,7 @@ MyFirst3DApp::~MyFirst3DApp()
 
 void MyFirst3DApp::Configure()
 {
-    SetApplicationName("My First 3D Application");
+    SetApplicationName("My First 3D Application - Depth buffer");
     SetWindowDimension(800, 600);
 
     // Add Validation Layers
@@ -50,7 +50,7 @@ void MyFirst3DApp::Setup()
 	static glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 	m_Cube->SetProjection(&Projection);
 
-	static glm::mat4 View = glm::lookAt(glm::vec3(0, 0, 5), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	static glm::mat4 View = glm::lookAt(glm::vec3(1, -2, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	m_Cube->SetView(&View);
 
 	m_Cube->Setup();
@@ -59,6 +59,6 @@ void MyFirst3DApp::Setup()
 void MyFirst3DApp::Update()
 {
 	static float rot = 0;
-	m_Cube->Rotate(rot += .005f, 1.0f, 1.0f, 1.0f);
+	m_Cube->Rotate(rot += .001f, 0.0f, 1.0f, 0.0f);
 	m_Cube->Update();
 }

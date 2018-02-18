@@ -24,18 +24,17 @@ struct Quad
     {
         m_VertexBuffer = nullptr;
         m_VertexBufferMemory = nullptr;
-        m_textureImage = nullptr;
-        m_textureImageMemory = nullptr;
+		m_TextureImage = {};
         m_textureImageView = nullptr;
         m_descriptorSet = nullptr;
     }
 
+	// Todo: For Selva: Do you like to use Vulkan Buffer instead?
     VkBuffer            m_VertexBuffer;
     VkDeviceMemory      m_VertexBufferMemory;
     
-    VkImage             m_textureImage;
-    VkDeviceMemory      m_textureImageMemory;
-    VkImageView         m_textureImageView;
+	VulkanImage			m_TextureImage;
+	VkImageView         m_textureImageView;
     VkDescriptorSet     m_descriptorSet;
 };
 
@@ -97,7 +96,7 @@ private:
 
     void TransitionImageLayout(VkImage textureImage, VkImageLayout currentLayout, VkImageLayout newLayout);
     void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-    void CreateTexture(string textureFilename, VkImage& textureImage, VkDeviceMemory& textureImageMemory, VkImageView& textureImageView);
+    void CreateTexture(string textureFilename, VulkanImage& textureImage, VkImageView& textureImageView);
     
     VkDescriptorSet CreateDescriptorSet(VkImageView imageView);
 };

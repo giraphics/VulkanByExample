@@ -336,12 +336,12 @@ void Cube::CreateUniformBuffer()
     UniformBuffer.m_MappedRange[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
     UniformBuffer.m_MappedRange[0].memory = UniformBuffer.m_BufObj.m_Memory;
     UniformBuffer.m_MappedRange[0].offset = 0;
-    UniformBuffer.m_MappedRange[0].size = sizeof(glm::mat4);
+    UniformBuffer.m_MappedRange[0].size = UniformBuffer.m_BufObj.m_DataSize;
 
-	// Update the local data structure with uniform buffer for house keeping
-    UniformBuffer.m_BufferInfo.buffer = UniformBuffer.m_BufObj.m_Buffer;
-    UniformBuffer.m_BufferInfo.offset = 0;
-    UniformBuffer.m_BufferInfo.range = sizeof(glm::mat4);
+	// Update descriptor buffer info in order to write the descriptors
+    UniformBuffer.m_DescriptorBufInfo.buffer = UniformBuffer.m_BufObj.m_Buffer;
+    UniformBuffer.m_DescriptorBufInfo.offset = 0;
+    UniformBuffer.m_DescriptorBufInfo.range = UniformBuffer.m_BufObj.m_DataSize;
 }
 
 void Cube::DestroyUniformBuffer()
@@ -452,7 +452,7 @@ void Cube::CreateDescriptorSet()
 	writes[0].dstSet = descriptorSet[0];
 	writes[0].descriptorCount = 1;
 	writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    writes[0].pBufferInfo = &UniformBuffer.m_BufferInfo;
+    writes[0].pBufferInfo = &UniformBuffer.m_DescriptorBufInfo;
 	writes[0].dstArrayElement = 0;
 	writes[0].dstBinding = 0; // DESCRIPTOR_SET_BINDING_INDEX
 

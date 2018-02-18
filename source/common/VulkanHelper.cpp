@@ -666,6 +666,50 @@ bool VulkanHelper::WriteBuffer(const VkDevice p_Device, const void* p_VertexData
 	return true;
 }
 
+void VulkanHelper::CreateImage(const VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemProp, VulkanImage& p_VulkanImage, VkImageCreateInfo* pImageInfo)
+{
+	VkResult result;
+	if (pImageInfo)
+	{
+		result = vkCreateImage(device, pImageInfo, nullptr, &p_VulkanImage.image);
+	}
+	else
+	{
+		VkImageCreateInfo imageInfo;
+		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageInfo.pNext = NULL;
+		imageInfo.imageType = VK_IMAGE_TYPE_2D;
+		imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+		imageInfo.extent = p_VulkanImage.extent;
+		imageInfo.mipLevels = 1;
+		imageInfo.arrayLayers = 1;
+		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		imageInfo.queueFamilyIndexCount = 0;
+		imageInfo.pQueueFamilyIndices = NULL;
+		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		imageInfo.usage = (VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+		result = vkCreateImage(device, &imageInfo, nullptr, &p_VulkanImage.image);
+	}
+	
+	assert(result == VK_SUCCESS);
+
+	vkGetImageMemoryRequirements(device, p_VulkanImage.image, &p_VulkanImage.memRqrmnt);
+
+	VkMemoryAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize = p_VulkanImage.memRqrmnt.size;
+
+	VulkanHelper::MemoryTypeFromProperties(deviceMemProp, p_VulkanImage.memRqrmnt.memoryTypeBits,
+										   p_VulkanImage.memoryFlags, &allocInfo.memoryTypeIndex);
+
+	result = vkAllocateMemory(device, &allocInfo, nullptr, &p_VulkanImage.deviceMemory);
+	assert(result == VK_SUCCESS);
+
+	vkBindImageMemory(device, p_VulkanImage.image, p_VulkanImage.deviceMemory, 0);
+}
+
 void VulkanHelper::CreateImage(const VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemProp,
     VkMemoryPropertyFlags imageMemProp, VkImageCreateInfo* pImageInfo, VkImage* pImage, VkDeviceMemory* pImageMemory)
 {
