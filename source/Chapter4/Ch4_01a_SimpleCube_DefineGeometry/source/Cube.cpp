@@ -247,8 +247,7 @@ void Cube::CreateVertexBuffer(const void * vertexData, uint32_t dataSize, uint32
 
 	const VkPhysicalDeviceMemoryProperties& memProp = m_VulkanApplication->m_physicalDeviceInfo.memProp;
 	const VkDevice& device = m_VulkanApplication->m_hDevice;
-	VulkanHelper::CreateBuffer(device, memProp, VertexBuffer.m_BufObj);
-	VulkanHelper::WriteBuffer(device, vertexData, VertexBuffer.m_BufObj);
+	VulkanHelper::CreateBuffer(device, memProp, VertexBuffer.m_BufObj, NULL, vertexData);
 
 	// Indicates the rate at which the information will be
 	// injected for vertex input.

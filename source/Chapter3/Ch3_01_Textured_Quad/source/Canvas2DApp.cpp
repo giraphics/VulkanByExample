@@ -27,10 +27,10 @@ Canvas2DApp::~Canvas2DApp()
             m_quad[i].m_VertexBufferMemory = nullptr;
         }
 
-        if (m_quad[i].m_textureImageView != nullptr)
+        if (m_quad[i].m_textureImageView.imageView != nullptr)
         {
-            vkDestroyImageView(m_hDevice, m_quad[i].m_textureImageView, nullptr);
-            m_quad[i].m_textureImageView = nullptr;
+            vkDestroyImageView(m_hDevice, m_quad[i].m_textureImageView.imageView, nullptr);
+            m_quad[i].m_textureImageView.imageView = nullptr;
         }
 
         if (m_quad[i].m_TextureImage.image != nullptr)
@@ -162,9 +162,7 @@ void Canvas2DApp::CreateImageTiles()
 				buffObj.m_DataSize = sizeof(vertices);
 				buffObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
-				VulkanHelper::CreateBuffer(m_hDevice, m_physicalDeviceInfo.memProp, buffObj);
-				VulkanHelper::WriteBuffer(m_hDevice, vertices, buffObj);
-
+				VulkanHelper::CreateBuffer(m_hDevice, m_physicalDeviceInfo.memProp, buffObj, NULL, vertices);
                 m_quad[idx].m_VertexBuffer = buffObj.m_Buffer;
                 m_quad[idx].m_VertexBufferMemory = buffObj.m_Memory;
                 
@@ -172,7 +170,7 @@ void Canvas2DApp::CreateImageTiles()
                 CreateTexture(m_imageFiles[idx], m_quad[idx].m_TextureImage, m_quad[idx].m_textureImageView);
 
                 // Create descriptor for QUAD
-                VkDescriptorSet descSet = CreateDescriptorSet(m_quad[idx].m_textureImageView);
+                VkDescriptorSet descSet = CreateDescriptorSet(m_quad[idx].m_textureImageView.imageView);
                 m_quad[idx].m_descriptorSet = descSet;
 
                 idx++;
@@ -204,7 +202,7 @@ void Canvas2DApp::CreateImageTiles()
     m_VertexInputAttribute[2].offset = offsetof(Vertex, m_TexCoord);
 }
 
-void Canvas2DApp::CreateTexture(string textureFilename, VulkanImage& textureImage, VkImageView& textureImageView)
+void Canvas2DApp::CreateTexture(string textureFilename, VulkanImage& textureImage, VulkanImageView& textureImageView)
 {
     // 1: Load the jpg file and retrieve the pixel content.
     int texWidth, texHeight, texChannels;
@@ -239,7 +237,8 @@ void Canvas2DApp::CreateTexture(string textureFilename, VulkanImage& textureImag
         //@todo Revisit transition for linear image once transition image layout is generalized
         TransitionImageLayout(textureImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-        textureImageView = VulkanHelper::CreateImageView(m_hDevice, textureImage.image);
+		textureImageView.pImage = &textureImage.image;
+        VulkanHelper::CreateImageView(m_hDevice, textureImageView);
 #else
         // Copy using staging buffer
         VkBuffer stagingBuffer;
@@ -268,19 +267,16 @@ void Canvas2DApp::CreateTexture(string textureFilename, VulkanImage& textureImag
         imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-        //VulkanHelper::CreateImage(m_hDevice,
-        //                          m_physicalDeviceInfo.memProp,
-        //                          (VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT),
-        //                          &imageInfo,
-        //                          &textureImage.image,
-        //                          &textureImage.deviceMemory);
     	textureImage.memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 		VulkanHelper::CreateImage(m_hDevice, m_physicalDeviceInfo.memProp, textureImage, &imageInfo);
-        TransitionImageLayout(textureImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+		TransitionImageLayout(textureImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
         CopyBufferToImage(stagingBuffer, textureImage.image, texWidth, texHeight);
         TransitionImageLayout(textureImage.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-        textureImageView = VulkanHelper::CreateImageView(m_hDevice, textureImage.image);
+		textureImageView.pImage = &textureImage.image;
+        //textureImageView = VulkanHelper::CreateImageView(m_hDevice, textureImage.image);
+		VulkanHelper::CreateImageView(m_hDevice, textureImageView);
 
         vkDestroyBuffer(m_hDevice, stagingBuffer, nullptr);
         vkFreeMemory(m_hDevice, stagingBufferMemory, nullptr);

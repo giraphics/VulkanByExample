@@ -442,11 +442,6 @@ bool VulkanHelper::SetImageLayoutEx(VkImage image, VkImageLayout oldLayout, VkIm
     return (result);
 }
 
-void * VulkanHelper::map(uint32_t memFlags, const size_t size, const size_t offset)
-{
-	return nullptr;
-}
-
 void VulkanHelper::SetImageLayout(VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout, VkAccessFlagBits srcAccessMask, const VkCommandBuffer& commandBuffer)
 {
 	// Dependency on commandBuffer
@@ -584,7 +579,7 @@ VkResult VulkanHelper::createBuffer(const VkDevice logicalDevice, VkBufferUsageF
 	return result;
 }
 
-void VulkanHelper::CreateBuffer(const VkDevice p_Device, VkPhysicalDeviceMemoryProperties p_DeviceMemProp, VulkanBuffer& p_VulkanBuffer, VkBufferCreateInfo* p_pBufInfo)
+void VulkanHelper::CreateBuffer(const VkDevice p_Device, VkPhysicalDeviceMemoryProperties p_DeviceMemProp, VulkanBuffer& p_VulkanBuffer, VkBufferCreateInfo* p_pBufInfo, const void* p_Data)
 {
 	if (p_VulkanBuffer.m_DataSize <= 0)
 	{
@@ -640,6 +635,11 @@ void VulkanHelper::CreateBuffer(const VkDevice p_Device, VkPhysicalDeviceMemoryP
 	// 4. Bind the allocated buffer resource to the device memory
 	result = vkBindBufferMemory(p_Device, p_VulkanBuffer.m_Buffer, p_VulkanBuffer.m_Memory, 0);
 	assert(result == VK_SUCCESS);
+
+	if (p_Data)
+	{
+		WriteBuffer(p_Device, p_Data, p_VulkanBuffer);
+	}
 }
 
 bool VulkanHelper::WriteBuffer(const VkDevice p_Device, const void* p_VertexData, const VulkanBuffer& p_VulkanBuffer)
@@ -664,6 +664,24 @@ bool VulkanHelper::WriteBuffer(const VkDevice p_Device, const void* p_VertexData
 	vkUnmapMemory(p_Device, p_VulkanBuffer.m_Memory);
 
 	return true;
+}
+
+void VulkanHelper::MapMemory(const VkDevice p_Device, const VkDeviceMemory& p_Memory, VkDeviceSize p_Offset, VkDeviceSize p_Size, VkMemoryMapFlags p_Flags, uint8_t*& p_MappedMemory)
+{
+	VkResult  result = vkMapMemory(p_Device, p_Memory, p_Offset, p_Size, p_Flags, (void **)&p_MappedMemory);
+	assert(result == VK_SUCCESS);
+}
+
+void VulkanHelper::WriteMemory(const VkDevice p_Device, void* p_MappedMemory, const std::vector<VkMappedMemoryRange>& p_MappedRange, VkMemoryMapFlags p_Flags, void const* p_Src, size_t p_Size)
+{
+	VkResult result = vkInvalidateMappedMemoryRanges(p_Device, p_MappedRange.size(), &p_MappedRange[0]);
+	assert(result == VK_SUCCESS);
+
+	// Copy updated data into the mapped memory
+	memcpy(p_MappedMemory, p_Src, p_Size);
+
+	result = vkFlushMappedMemoryRanges(p_Device, 1, &p_MappedRange[0]);
+	assert(result == VK_SUCCESS);
 }
 
 void VulkanHelper::CreateImage(const VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemProp, VulkanImage& p_VulkanImage, VkImageCreateInfo* pImageInfo)
@@ -732,6 +750,10 @@ void VulkanHelper::CreateImage(const VkDevice device, VkPhysicalDeviceMemoryProp
     vkBindImageMemory(device, *pImage, *pImageMemory, 0);
 }
 
+// Parminder: For Selva
+// 1. The function preassumes that the memory is always visible to the host.
+// 2. Also, the name 'Update; is more from the context of an application. At lower level it should only be read and write.
+// 3. This implement is fine for creatinng the buffer and passing the data to it for populating it one time.
 void VulkanHelper::UpdateMemory(const VkDevice device, VkDeviceMemory deviceMem, VkDeviceSize offset, VkDeviceSize size, VkMemoryMapFlags flags, const void* pData)
 {
     assert(pData);
@@ -768,4 +790,29 @@ VkImageView VulkanHelper::CreateImageView(const VkDevice device, VkImage image, 
     assert(result == VK_SUCCESS);
 
     return imageView;
+}
+
+void VulkanHelper::CreateImageView(const VkDevice p_Device, VulkanImageView& p_ImageView, const VkImageViewCreateInfo* p_pImageViewCreateInfo)
+{
+	VkResult result;
+	if (p_pImageViewCreateInfo)
+	{
+		result = vkCreateImageView(p_Device, p_pImageViewCreateInfo, nullptr, &p_ImageView.imageView);
+	}
+	else
+	{
+		VkImageViewCreateInfo viewInfo = {};
+		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		viewInfo.image = *p_ImageView.pImage;
+		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		viewInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+		viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		viewInfo.subresourceRange.baseMipLevel = 0;
+		viewInfo.subresourceRange.levelCount = 1;
+		viewInfo.subresourceRange.baseArrayLayer = 0;
+		viewInfo.subresourceRange.layerCount = 1;
+		result = vkCreateImageView(p_Device, &viewInfo, nullptr, &p_ImageView.imageView);
+	}
+
+	assert(result == VK_SUCCESS);
 }

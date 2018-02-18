@@ -76,7 +76,7 @@ private:
 		VulkanBuffer					m_BufObj;
 		VkDescriptorBufferInfo			m_DescriptorBufInfo;// Descriptor buffer info that need to supplied into write descriptor set (VkWriteDescriptorSet)
 		std::vector<VkMappedMemoryRange>m_MappedRange;		// Metadata of memory mapped objects
-		uint8_t*						m_Data;				// Host pointer containing the mapped device address which is used to write data into.
+		uint8_t*						m_MappedMemory;  	// Host pointer containing the mapped device address which is used to write data into.
 		size_t							m_DataSize;			// Data size.
 	} UniformBuffer;
 

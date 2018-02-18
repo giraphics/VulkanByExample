@@ -74,7 +74,7 @@ private:
 public:
 	struct {
 		VkFormat		m_Format;
-		VkImageView		m_ImageView;
+		VulkanImageView m_ImageView;
 		VulkanImage		m_Image;
 	}DepthImage;
 	VkCommandBuffer		cmdBufferDepthImage;			// Command buffer for depth image layout

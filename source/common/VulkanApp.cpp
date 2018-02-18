@@ -510,8 +510,6 @@ void VulkanApp::CreateSwapChain()
 
 void VulkanApp::CreateDepthImage()
 {
-	VkResult  result;
-
 	DepthImage.m_Format = VK_FORMAT_D16_UNORM;
 	DepthImage.m_Image.extent = { static_cast<uint32_t>(m_pWindow->width()), static_cast<uint32_t>(m_pWindow->height()), 1 };
 
@@ -533,40 +531,34 @@ void VulkanApp::CreateDepthImage()
 
 	VulkanHelper::CreateImage(m_hDevice, m_physicalDeviceInfo.memProp, DepthImage.m_Image, &imageInfo);
 
-	//// User create image info and create the image objects
-	//result = vkCreateImage(m_hDevice, &imageInfo, NULL, &DepthImage.m_Image.image);
-	//assert(result == VK_SUCCESS);
+	VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+	if (DepthImage.m_Format == VK_FORMAT_D16_UNORM_S8_UINT ||
+		DepthImage.m_Format == VK_FORMAT_D24_UNORM_S8_UINT ||
+		DepthImage.m_Format == VK_FORMAT_D32_SFLOAT_S8_UINT) {
+		aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+	}
 
-	//// Get the image memory requirements
-	//VkMemoryRequirements memRqrmnt;
-	//vkGetImageMemoryRequirements(m_hDevice, DepthImage.m_Image.image, &memRqrmnt);
+	// Set image layout for depth stencil image
+	if (!m_hCommandPool) { VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo); }
 
-	//VkMemoryAllocateInfo memAlloc = {};
-	//memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	//memAlloc.pNext = NULL;
-	//memAlloc.allocationSize = 0;
-	//memAlloc.memoryTypeIndex = 0;
-	//memAlloc.allocationSize = memRqrmnt.size;
-	//// Determine the type of memory required with the help of memory properties
-	//pass = VulkanHelper::MemoryTypeFromProperties(m_physicalDeviceInfo.memProp, memRqrmnt.memoryTypeBits, 0, /* No requirements */ &memAlloc.memoryTypeIndex);
-	//assert(pass);
+	VulkanHelper::AllocateCommandBuffer(m_hDevice, m_hCommandPool, &cmdBufferDepthImage);
+	VulkanHelper::BeginCommandBuffer(cmdBufferDepthImage);
 
-	//// Allocate the memory for image objects
-	//result = vkAllocateMemory(m_hDevice, &memAlloc, NULL, &DepthImage.m_Image.deviceMemory);
-	//assert(result == VK_SUCCESS);
+	VulkanHelper::SetImageLayout(DepthImage.m_Image.image, aspectMask,
+		VK_IMAGE_LAYOUT_UNDEFINED,
+		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, (VkAccessFlagBits)0, cmdBufferDepthImage);
 
-	//// Bind the allocated memeory
-	//result = vkBindImageMemory(m_hDevice, DepthImage.m_Image.image, DepthImage.m_Image.deviceMemory, 0);
-	//assert(result == VK_SUCCESS);
+	VulkanHelper::EndCommandBuffer(cmdBufferDepthImage);
+	VulkanHelper::SubmitCommandBuffer(m_hGraphicsQueue, cmdBufferDepthImage);
 
-
+	// Create the image view and allow the application to use the images.
 	VkImageViewCreateInfo imgViewInfo = {};
 	imgViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	imgViewInfo.pNext = NULL;
-	imgViewInfo.image = VK_NULL_HANDLE;
-	imgViewInfo.format = DepthImage.m_Format;
+	imgViewInfo.image = DepthImage.m_Image.image;
+	imgViewInfo.format = VK_FORMAT_D16_UNORM;
 	imgViewInfo.components = { VK_COMPONENT_SWIZZLE_IDENTITY };
-	imgViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+	imgViewInfo.subresourceRange.aspectMask = aspectMask;
 	imgViewInfo.subresourceRange.baseMipLevel = 0;
 	imgViewInfo.subresourceRange.levelCount = 1;
 	imgViewInfo.subresourceRange.baseArrayLayer = 0;
@@ -574,35 +566,7 @@ void VulkanApp::CreateDepthImage()
 	imgViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 	imgViewInfo.flags = 0;
 
-	if (DepthImage.m_Format == VK_FORMAT_D16_UNORM_S8_UINT ||
-		DepthImage.m_Format == VK_FORMAT_D24_UNORM_S8_UINT ||
-		DepthImage.m_Format == VK_FORMAT_D32_SFLOAT_S8_UINT) {
-		imgViewInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
-	}
-
-	if (!m_hCommandPool) { VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo); }
-
-	// Use command buffer to create the depth image. This includes -
-	// Command buffer allocation, recording with begin/end scope and submission.
-	VulkanHelper::AllocateCommandBuffer(m_hDevice, m_hCommandPool, &cmdBufferDepthImage);
-	VulkanHelper::BeginCommandBuffer(cmdBufferDepthImage);
-
-	// Use command buffer to create the depth image. This includes -
-	// Command buffer allocation, recording with begin/end scope and submission.
-	{
-		// Set the image layout to depth stencil optimal
-		VulkanHelper::SetImageLayout(DepthImage.m_Image.image,
-			imgViewInfo.subresourceRange.aspectMask,
-			VK_IMAGE_LAYOUT_UNDEFINED,
-			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, (VkAccessFlagBits)0, cmdBufferDepthImage);
-	}
-	VulkanHelper::EndCommandBuffer(cmdBufferDepthImage);
-	VulkanHelper::SubmitCommandBuffer(m_hGraphicsQueue, cmdBufferDepthImage);
-
-	// Create the image view and allow the application to use the images.
-	imgViewInfo.image = DepthImage.m_Image.image;
-	result = vkCreateImageView(m_hDevice, &imgViewInfo, NULL, &DepthImage.m_ImageView);
-	assert(result == VK_SUCCESS);
+	VulkanHelper::CreateImageView(m_hDevice, DepthImage.m_ImageView, &imgViewInfo);
 }
 
 void VulkanApp::CreateRenderPass()
@@ -684,7 +648,7 @@ void VulkanApp::CreateFramebuffers()
 	VkImageView attachments[2];
 	if (m_DepthEnabled)
 	{
-		attachments[1] = DepthImage.m_ImageView;
+		attachments[1] = DepthImage.m_ImageView.imageView;
 	}
 
 	// Setup VkFramebufferCreateInfo to create frame buffer object

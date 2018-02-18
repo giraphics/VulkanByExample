@@ -62,14 +62,11 @@ void Cube::Update()
 {
 	glm::mat4 MVP = (*m_Projection) * (*m_View) * m_Model;
 
-    VkResult res = vkInvalidateMappedMemoryRanges(m_VulkanApplication->m_hDevice, 1, &UniformBuffer.m_MappedRange[0]);
-	assert(res == VK_SUCCESS);
-
-	// Copy updated data into the mapped memory
-    memcpy(UniformBuffer.m_Data, &MVP, sizeof(MVP));
-
-    res = vkFlushMappedMemoryRanges(m_VulkanApplication->m_hDevice, 1, &UniformBuffer.m_MappedRange[0]);
-	assert(res == VK_SUCCESS);
+	VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice, 
+								UniformBuffer.m_MappedMemory, 
+								UniformBuffer.m_MappedRange,
+								UniformBuffer.m_BufObj.m_MemoryFlags,
+								&MVP, sizeof(MVP));
 }
 
 void Cube::CreateGraphicsPipeline()
@@ -280,8 +277,7 @@ void Cube::CreateVertexBuffer(const void * vertexData, uint32_t dataSize, uint32
 
 	const VkPhysicalDeviceMemoryProperties& memProp = m_VulkanApplication->m_physicalDeviceInfo.memProp;
 	const VkDevice& device = m_VulkanApplication->m_hDevice;
-	VulkanHelper::CreateBuffer(device, memProp, VertexBuffer.m_BufObj);
-	VulkanHelper::WriteBuffer(device, vertexData, VertexBuffer.m_BufObj);
+	VulkanHelper::CreateBuffer(device, memProp, VertexBuffer.m_BufObj, NULL, vertexData);
 
 	// Indicates the rate at which the information will be
 	// injected for vertex input.
@@ -326,8 +322,7 @@ void Cube::CreateUniformBuffer()
 	VulkanHelper::CreateBuffer(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_physicalDeviceInfo.memProp, UniformBuffer.m_BufObj, &bufInfo);
 
 	// Map the GPU memory on to local host
-	result = vkMapMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory, 0, UniformBuffer.m_BufObj.m_MemRqrmnt.size, 0, (void **)&UniformBuffer.m_Data);
-	assert(result == VK_SUCCESS);
+	VulkanHelper::MapMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory, 0, UniformBuffer.m_BufObj.m_MemRqrmnt.size, 0, UniformBuffer.m_MappedMemory);
 
 	// We have only one Uniform buffer object to update
     UniformBuffer.m_MappedRange.resize(1);

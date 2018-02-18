@@ -25,7 +25,7 @@ struct Quad
         m_VertexBuffer = nullptr;
         m_VertexBufferMemory = nullptr;
 		m_TextureImage = {};
-        m_textureImageView = nullptr;
+		m_textureImageView = {};
         m_descriptorSet = nullptr;
     }
 
@@ -34,7 +34,7 @@ struct Quad
     VkDeviceMemory      m_VertexBufferMemory;
     
 	VulkanImage			m_TextureImage;
-	VkImageView         m_textureImageView;
+	VulkanImageView     m_textureImageView;
     VkDescriptorSet     m_descriptorSet;
 };
 
@@ -96,7 +96,7 @@ private:
 
     void TransitionImageLayout(VkImage textureImage, VkImageLayout currentLayout, VkImageLayout newLayout);
     void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-    void CreateTexture(string textureFilename, VulkanImage& textureImage, VkImageView& textureImageView);
+    void CreateTexture(string textureFilename, VulkanImage& textureImage, VulkanImageView& textureView);
     
     VkDescriptorSet CreateDescriptorSet(VkImageView imageView);
 };

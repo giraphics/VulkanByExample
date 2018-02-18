@@ -519,8 +519,9 @@ void Cube::LoadMeshNew()
 		// Vertex buffer
         m_Mesh.vertices.bufObj.m_DataSize = vertexBufferSize;
         m_Mesh.vertices.bufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-        VulkanHelper::CreateBuffer(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_physicalDeviceInfo.memProp, m_Mesh.vertices.bufObj);
-        VulkanHelper::WriteBuffer(m_VulkanApplication->m_hDevice, vertexBuffer.data(), m_Mesh.vertices.bufObj);
+        VulkanHelper::CreateBuffer(m_VulkanApplication->m_hDevice, 
+									m_VulkanApplication->m_physicalDeviceInfo.memProp, 
+									m_Mesh.vertices.bufObj, NULL, vertexBuffer.data());
 
 		// Index buffer
 		VkBufferCreateInfo indexBufCreateInfo = {};
@@ -530,8 +531,9 @@ void Cube::LoadMeshNew()
 
 		m_Mesh.indices.bufObj.m_DataSize = indexBufferSize;
 		m_Mesh.indices.bufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-		VulkanHelper::CreateBuffer(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_physicalDeviceInfo.memProp, m_Mesh.indices.bufObj, &indexBufCreateInfo);
-		VulkanHelper::WriteBuffer(m_VulkanApplication->m_hDevice, indexBuffer.data(), m_Mesh.indices.bufObj);
+		VulkanHelper::CreateBuffer(m_VulkanApplication->m_hDevice, 
+									m_VulkanApplication->m_physicalDeviceInfo.memProp, 
+									m_Mesh.indices.bufObj, &indexBufCreateInfo, indexBuffer.data());
 	}
 
 	// Indicates the rate at which the information will be
