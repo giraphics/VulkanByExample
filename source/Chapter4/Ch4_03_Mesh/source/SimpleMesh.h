@@ -7,11 +7,11 @@
 #include <assimp/postprocess.h>
 #include <assimp/cimport.h>
 
-class Cube : public DrawableInterface
+class SimpleMesh : public DrawableInterface
 {
 public:
-    Cube(VulkanApp * p_VulkanApp);
-    virtual ~Cube();
+    SimpleMesh(VulkanApp* p_VulkanApp);
+    virtual ~SimpleMesh();
 
 	void Setup();
 	void Update();
@@ -70,7 +70,6 @@ private:
         Vertex(const glm::vec3& pos) { m_pos = pos; }
         glm::vec3 m_pos;
     };
-
     struct MeshNode {
         std::vector<Vertex> Vertices;
         std::vector<unsigned int> Indices;

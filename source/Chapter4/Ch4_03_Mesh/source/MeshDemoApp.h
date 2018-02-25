@@ -1,6 +1,6 @@
 #pragma once
 #include "../../../common/VulkanApp.h"
-class Cube;
+class SimpleMesh;
 class MeshDemoApp : public VulkanApp
 {
 public:
@@ -13,5 +13,5 @@ public:
 	void Update();
 
 private:
-	Cube* m_Cube;
+	SimpleMesh* m_Cube;
 };

@@ -8,7 +8,7 @@
 
 using namespace std;
 
-Cube::Cube(VulkanApp* p_VulkanApp)
+SimpleMesh::SimpleMesh(VulkanApp* p_VulkanApp)
 {
 	m_hPipelineLayout = VK_NULL_HANDLE;
     m_hGraphicsPipeline = VK_NULL_HANDLE;
@@ -18,7 +18,7 @@ Cube::Cube(VulkanApp* p_VulkanApp)
     m_VulkanApplication = p_VulkanApp;
 }
 
-Cube::~Cube()
+SimpleMesh::~SimpleMesh()
 {
 	VkDevice device = m_VulkanApplication->m_hDevice;
 	vkDestroyPipeline(device, m_hGraphicsPipeline, nullptr);
@@ -45,7 +45,7 @@ Cube::~Cube()
     vkFreeMemory(device, UniformBuffer.m_BufObj.m_Memory, NULL);
 }
 
-void Cube::Setup()
+void SimpleMesh::Setup()
 {
 	CreateDescriptor();
 
@@ -56,7 +56,7 @@ void Cube::Setup()
 	RecordCommandBuffer();
 }
 
-void Cube::Update()
+void SimpleMesh::Update()
 {
 	glm::mat4 MVP = (*m_Projection) * (*m_View) * m_Model;
 
@@ -67,7 +67,7 @@ void Cube::Update()
 								&MVP, sizeof(MVP));
 }
 
-void Cube::CreateGraphicsPipeline()
+void SimpleMesh::CreateGraphicsPipeline()
 {
     // Compile the vertex shader
 	VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/TriangleVert.spv"); // Relative path to binary output dir
@@ -230,7 +230,7 @@ void Cube::CreateGraphicsPipeline()
     vkDestroyShaderModule(m_VulkanApplication->m_hDevice, vertShader, nullptr);
 }
 
-void Cube::RecordCommandBuffer()
+void SimpleMesh::RecordCommandBuffer()
 {
 	// Specify the clear color value
 	VkClearValue clearColor[2];
@@ -305,12 +305,12 @@ void Cube::RecordCommandBuffer()
 	}
 }
 
-void Cube::CreateCommandBuffers()
+void SimpleMesh::CreateCommandBuffers()
 {
 	m_VulkanApplication->CreateCommandBuffers();
 }
 
-bool Cube::Load(const char* p_Filename)
+bool SimpleMesh::Load(const char* p_Filename)
 {
     m_pMeshScene = m_AssimpImporter.ReadFile(p_Filename, aiProcess_Triangulate | aiProcess_FlipWindingOrder | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals);
 
@@ -334,7 +334,7 @@ bool Cube::Load(const char* p_Filename)
 	return true;
 }
 
-void Cube::LoadNode(MeshNode* p_MeshNode, const aiMesh* p_pAiMesh)
+void SimpleMesh::LoadNode(MeshNode* p_MeshNode, const aiMesh* p_pAiMesh)
 {
 	p_MeshNode->Vertices.reserve(p_pAiMesh->mNumVertices);
     for (unsigned int i = 0; i < p_pAiMesh->mNumVertices; ++i)
@@ -355,7 +355,7 @@ void Cube::LoadNode(MeshNode* p_MeshNode, const aiMesh* p_pAiMesh)
 	}
 }
 
-void Cube::LoadMesh(const char* p_Filename, bool p_UseStaging)
+void SimpleMesh::LoadMesh(const char* p_Filename, bool p_UseStaging)
 {
 	Load(p_Filename);
 
@@ -423,7 +423,7 @@ void Cube::LoadMesh(const char* p_Filename, bool p_UseStaging)
 	m_VertexInputAttribute[0].offset = offsetof(struct Vertex, m_pos);
 }
 
-void Cube::CreateUniformBuffer()
+void SimpleMesh::CreateUniformBuffer()
 {
 	UniformBuffer.m_BufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 	UniformBuffer.m_BufObj.m_DataSize = sizeof(glm::mat4);
@@ -449,14 +449,14 @@ void Cube::CreateUniformBuffer()
     UniformBuffer.m_DescriptorBufInfo.range = UniformBuffer.m_BufObj.m_DataSize;
 }
 
-void Cube::DestroyUniformBuffer()
+void SimpleMesh::DestroyUniformBuffer()
 {
     vkUnmapMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory);
     vkDestroyBuffer(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Buffer, NULL);
     vkFreeMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory, NULL);
 }
 
-void Cube::CreateDescriptorSetLayout()
+void SimpleMesh::CreateDescriptorSetLayout()
 {
 	// Define the layout binding information for the descriptor set(before creating it)
 	// Specify binding point, shader type(like vertex shader below), count etc.
@@ -483,7 +483,7 @@ void Cube::CreateDescriptorSetLayout()
 	assert(result == VK_SUCCESS);
 }
 
-void Cube::DestroyDescriptorLayout()
+void SimpleMesh::DestroyDescriptorLayout()
 {
 	for (int i = 0; i < descLayout.size(); i++) {
         vkDestroyDescriptorSetLayout(m_VulkanApplication->m_hDevice, descLayout[i], NULL);
@@ -491,7 +491,7 @@ void Cube::DestroyDescriptorLayout()
 	descLayout.clear();
 }
 
-void Cube::CreateDescriptor()
+void SimpleMesh::CreateDescriptor()
 {
 	CreateDescriptorSetLayout();
 	CreateUniformBuffer();
@@ -499,7 +499,7 @@ void Cube::CreateDescriptor()
 	CreateDescriptorSet();
 }
 
-void Cube::CreateDescriptorPool()
+void SimpleMesh::CreateDescriptorPool()
 {
 	VkResult  result;
 	// Define the size of descriptor pool based on the
@@ -525,7 +525,7 @@ void Cube::CreateDescriptorPool()
 	assert(result == VK_SUCCESS);
 }
 
-void Cube::CreateDescriptorSet()
+void SimpleMesh::CreateDescriptorSet()
 {
 	VkResult  result;
 
