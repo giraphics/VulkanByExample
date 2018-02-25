@@ -33,16 +33,16 @@ Canvas2DApp::~Canvas2DApp()
             m_quad[i].m_textureImageView.imageView = nullptr;
         }
 
-        if (m_quad[i].m_TextureImage.image != nullptr)
+        if (m_quad[i].m_TextureImage.out.image != nullptr)
         {
-            vkDestroyImage(m_hDevice, m_quad[i].m_TextureImage.image, nullptr);
-            m_quad[i].m_TextureImage.image = nullptr;
+            vkDestroyImage(m_hDevice, m_quad[i].m_TextureImage.out.image, nullptr);
+            m_quad[i].m_TextureImage.out.image = nullptr;
         }
 
-        if (m_quad[i].m_TextureImage.deviceMemory)
+        if (m_quad[i].m_TextureImage.out.deviceMemory)
         {
-            vkFreeMemory(m_hDevice, m_quad[i].m_TextureImage.deviceMemory, nullptr);
-            m_quad[i].m_TextureImage.deviceMemory = nullptr;
+            vkFreeMemory(m_hDevice, m_quad[i].m_TextureImage.out.deviceMemory, nullptr);
+            m_quad[i].m_TextureImage.out.deviceMemory = nullptr;
         }
     }
 
@@ -209,38 +209,74 @@ void Canvas2DApp::CreateTexture(string textureFilename, VulkanImage& textureImag
     stbi_uc* pPixels = stbi_load(textureFilename.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     int imageSize = texWidth * texHeight * 4;
 
-	textureImage.extent = { static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1 };
+	textureImage.in.extent = { static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1 };
 
-    if (pPixels)
-    {
+	if (pPixels)
+	{
 #if 0
-        // Linear copy
-        // @todo: Vulkan expects the buffer stide to be 32byte aligned
-        VkImageCreateInfo imageInfo = {};
-        imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-        imageInfo.imageType = VK_IMAGE_TYPE_2D;
+		// Linear copy
+		// @todo: Vulkan expects the buffer stide to be 32byte aligned
+		VkImageCreateInfo imageInfo = {};
+		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageInfo.imageType = VK_IMAGE_TYPE_2D;
 		imageInfo.extent = textureImage.extent;
-        imageInfo.mipLevels = 1;
-        imageInfo.arrayLayers = 1;
-        imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
-        imageInfo.tiling = VK_IMAGE_TILING_LINEAR;  // Linear tiling
-        imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        imageInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
-        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-        imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		imageInfo.mipLevels = 1;
+		imageInfo.arrayLayers = 1;
+		imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+		imageInfo.tiling = VK_IMAGE_TILING_LINEAR;  // Linear tiling
+		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
+		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
 		textureImage.memoryFlags = (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 		VulkanHelper::CreateImage(m_hDevice, m_physicalDeviceInfo.memProp, textureImage, &imageInfo);
 
-        VulkanHelper::UpdateMemory(m_hDevice, textureImage.deviceMemory, 0, imageSize, 0, pPixels);
+		VulkanHelper::UpdateMemory(m_hDevice, textureImage.deviceMemory, 0, imageSize, 0, pPixels);
 
-        //@todo Revisit transition for linear image once transition image layout is generalized
-        TransitionImageLayout(textureImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		//@todo Revisit transition for linear image once transition image layout is generalized
+		TransitionImageLayout(textureImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		textureImageView.pImage = &textureImage.image;
-        VulkanHelper::CreateImageView(m_hDevice, textureImageView);
+		VulkanHelper::CreateImageView(m_hDevice, textureImageView);
 #else
-        // Copy using staging buffer
+	const bool useVulkanHelperStaging = true; 
+	// For Selva, the helper class is contains staging buffer and image API to directly utilize with.
+	// Kindly remove TransitionImageLayout, and CopyBufferToImage if it make sense or remove
+	// new section introduced in 'if (useVulkanHelperStaging)', I don't want that these introduce 
+	// change in chapter 3 for rework. But for future use the VulkanHelper class.
+
+	if (useVulkanHelperStaging)
+	{
+		VkImageAspectFlagBits imageAspectType = VK_IMAGE_ASPECT_COLOR_BIT;
+		VkBufferImageCopy region = {};
+		region.imageSubresource.aspectMask = imageAspectType;
+		region.imageSubresource.layerCount = 1;
+		region.imageExtent = textureImage.in.extent;
+
+		VkImageCreateInfo imageInfo = {};
+		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageInfo.imageType = VK_IMAGE_TYPE_2D;
+		imageInfo.extent = textureImage.in.extent;
+		imageInfo.mipLevels = 1;
+		imageInfo.arrayLayers = 1;
+		imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL; // Optimal tiling
+		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageInfo.usage = (VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		textureImage.in.dataSize = imageSize;
+		textureImage.in.imageAspectType = VK_IMAGE_ASPECT_COLOR_BIT;
+		VulkanHelper::CreateStagingImage(m_hDevice, m_physicalDeviceInfo.memProp, m_hCommandPool, m_hGraphicsQueue, textureImage, pPixels, &imageInfo, &region);
+
+		textureImageView.pImage = &textureImage.out.image;
+		VulkanHelper::CreateImageView(m_hDevice, textureImageView);
+	}
+	else
+	{
+		// Copy using staging buffer
 		VulkanBuffer stageBuffer;
 		stageBuffer.m_DataSize = imageSize;
 		stageBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
@@ -248,31 +284,32 @@ void Canvas2DApp::CreateTexture(string textureFilename, VulkanImage& textureImag
 		// Create staging buffer
 		VulkanHelper::CreateBuffer(m_hDevice, m_physicalDeviceInfo.memProp, stageBuffer, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, pPixels);
 
-        VkImageCreateInfo imageInfo = {};
-        imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-        imageInfo.imageType = VK_IMAGE_TYPE_2D;
-		imageInfo.extent = textureImage.extent;
+		VkImageCreateInfo imageInfo = {};
+		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageInfo.imageType = VK_IMAGE_TYPE_2D;
+		imageInfo.extent = textureImage.in.extent;
 		imageInfo.mipLevels = 1;
-        imageInfo.arrayLayers = 1;
-        imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
-        imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL; // Optimal tiling
-        imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        imageInfo.usage = (VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
-        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-        imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		imageInfo.arrayLayers = 1;
+		imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL; // Optimal tiling
+		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageInfo.usage = (VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    	textureImage.memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+		textureImage.in.memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 		VulkanHelper::CreateImage(m_hDevice, m_physicalDeviceInfo.memProp, textureImage, &imageInfo);
 
-		TransitionImageLayout(textureImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-        CopyBufferToImage(stageBuffer.m_Buffer, textureImage.image, texWidth, texHeight);
-        TransitionImageLayout(textureImage.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		TransitionImageLayout(textureImage.out.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		CopyBufferToImage(stageBuffer.m_Buffer, textureImage.out.image, texWidth, texHeight);
+		TransitionImageLayout(textureImage.out.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-		textureImageView.pImage = &textureImage.image;
+		textureImageView.pImage = &textureImage.out.image;
 		VulkanHelper::CreateImageView(m_hDevice, textureImageView);
 
-        vkDestroyBuffer(m_hDevice, stageBuffer.m_Buffer, nullptr);
-        vkFreeMemory(m_hDevice, stageBuffer.m_Memory, nullptr);
+		vkDestroyBuffer(m_hDevice, stageBuffer.m_Buffer, nullptr);
+		vkFreeMemory(m_hDevice, stageBuffer.m_Memory, nullptr);
+	}
 #endif
 
         stbi_image_free(pPixels);
