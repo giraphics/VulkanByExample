@@ -440,9 +440,7 @@ void Canvas2DApp::UpdateUniformBuffer()
         m_tmpScrollDelta = -m_tmpScrollDelta;
     }
 
-    //// Update memory
-    //VulkanHelper::UpdateMemory(m_hDevice, m_uniformBufferMemory, 0, sizeof(ubo), 0, &ubo);
-
+    // Update memory
 	VulkanHelper::WriteMemory(m_hDevice, UniformBuffer.m_MappedMemory, UniformBuffer.m_MappedRange,
 		UniformBuffer.m_UniformBufferObj.m_MemoryFlags, &ubo, sizeof(ubo));
 }

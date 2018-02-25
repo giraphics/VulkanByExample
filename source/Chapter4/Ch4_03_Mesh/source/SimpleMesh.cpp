@@ -31,36 +31,36 @@ Cube::Cube(VulkanApp* p_VulkanApp)
 
 Cube::~Cube()
 {
-
-	vkDestroyPipeline(m_VulkanApplication->m_hDevice, m_hGraphicsPipeline, nullptr);
+	VkDevice device = m_VulkanApplication->m_hDevice;
+	vkDestroyPipeline(device, m_hGraphicsPipeline, nullptr);
 
 	// Destroy Vertex Buffer
-	vkDestroyBuffer(m_VulkanApplication->m_hDevice, m_Mesh.vertices.bufObj.m_Buffer, nullptr);
-	vkFreeMemory(m_VulkanApplication->m_hDevice, m_Mesh.vertices.bufObj.m_Memory, nullptr);
-	vkDestroyBuffer(m_VulkanApplication->m_hDevice, m_Mesh.indices.bufObj.m_Buffer, nullptr);
-	vkFreeMemory(m_VulkanApplication->m_hDevice, m_Mesh.indices.bufObj.m_Memory, nullptr);
+	vkDestroyBuffer(device, m_Mesh.vertexBuffer.m_Buffer, nullptr);
+	vkFreeMemory(device, m_Mesh.vertexBuffer.m_Memory, nullptr);
+	vkDestroyBuffer(device, m_Mesh.indexBuffer.m_Buffer, nullptr);
+	vkFreeMemory(device, m_Mesh.indexBuffer.m_Memory, nullptr);
 
 	// Destroy descriptors
 	for (int i = 0; i < descLayout.size(); i++) {
-		vkDestroyDescriptorSetLayout(m_VulkanApplication->m_hDevice, descLayout[i], NULL);
+		vkDestroyDescriptorSetLayout(device, descLayout[i], NULL);
 	}
 	descLayout.clear();
 
-	vkDestroyPipelineLayout(m_VulkanApplication->m_hDevice, m_hPipelineLayout, nullptr);
+	vkDestroyPipelineLayout(device, m_hPipelineLayout, nullptr);
 
-	vkFreeDescriptorSets(m_VulkanApplication->m_hDevice, descriptorPool, (uint32_t)descriptorSet.size(), &descriptorSet[0]);
-	vkDestroyDescriptorPool(m_VulkanApplication->m_hDevice, descriptorPool, NULL);
+	vkFreeDescriptorSets(device, descriptorPool, (uint32_t)descriptorSet.size(), &descriptorSet[0]);
+	vkDestroyDescriptorPool(device, descriptorPool, NULL);
 
-    vkUnmapMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory);
-    vkDestroyBuffer(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Buffer, NULL);
-    vkFreeMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory, NULL);
+    vkUnmapMemory(device, UniformBuffer.m_BufObj.m_Memory);
+    vkDestroyBuffer(device, UniformBuffer.m_BufObj.m_Buffer, NULL);
+    vkFreeMemory(device, UniformBuffer.m_BufObj.m_Memory, NULL);
 }
 
 void Cube::Setup()
 {
 	//CreateVertexBuffer(s_TriangleVertices, sizeof(s_TriangleVertices), sizeof(Vertex));
 //	LoadMesh();
-	LoadMeshNew();
+    LoadMesh();
 	CreateDescriptor(false);
 	CreateGraphicsPipeline();
 
@@ -321,13 +321,13 @@ void Cube::RecordCommandBuffer()
 		
 		/////////////////////////////////////////////////////////////////////
 		// Bind mesh vertex buffer
-        vkCmdBindVertexBuffers(m_VulkanApplication->m_hCommandBufferList[i], 0, 1, &m_Mesh.vertices.bufObj.m_Buffer, offsets);
+        vkCmdBindVertexBuffers(m_VulkanApplication->m_hCommandBufferList[i], 0, 1, &m_Mesh.vertexBuffer.m_Buffer, offsets);
 
 		// Bind mesh index buffer
-        vkCmdBindIndexBuffer(m_VulkanApplication->m_hCommandBufferList[i], m_Mesh.indices.bufObj.m_Buffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindIndexBuffer(m_VulkanApplication->m_hCommandBufferList[i], m_Mesh.indexBuffer.m_Buffer, 0, VK_INDEX_TYPE_UINT32);
 
 		// Render mesh vertex buffer using it's indices
-        vkCmdDrawIndexed(m_VulkanApplication->m_hCommandBufferList[i], m_Mesh.indices.m_IndexCount, 1, 0, 0, 0);
+        vkCmdDrawIndexed(m_VulkanApplication->m_hCommandBufferList[i], m_Mesh.indexCount, 1, 0, 0, 0);
 		////////////////////////////////////////////////////////////////////
 
 		// End the Render pass
@@ -351,63 +351,61 @@ bool Cube::Load(const char* p_Filename)
 {
     m_pScene = m_Importer.ReadFile(p_Filename, aiProcess_Triangulate | aiProcess_FlipWindingOrder | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals);
 
+    uint32_t vertexCount = 0;
     if (m_pScene)
 	{
-		m_Entries.clear();
-        m_Entries.resize(m_pScene->mNumMeshes);
+        m_Nodes.clear();
+        m_Nodes.resize(m_pScene->mNumMeshes);
 		// Read in all meshes in the scene
-		for (auto i = 0; i < m_Entries.size(); i++)
+        for (auto i = 0; i < m_Nodes.size(); i++)
 		{
 			//m_Entries[i].vertexBase = numVertices;
-            numVertices += m_pScene->mMeshes[i]->mNumVertices;
+            vertexCount += m_pScene->mMeshes[i]->mNumVertices;
             const aiMesh* paiMesh = m_pScene->mMeshes[i];
-            MeshInit(&m_Entries[i], paiMesh);
+            MeshInit(&m_Nodes[i], paiMesh);
 		}
 		return true;
 	}
-	else
-	{
-		VulkanHelper::LogError("Error parsing");
-		//VulkanHelper::LogError("Error parsing '%s': '%s'", filename, Importer.GetErrorString());
-		return false;
-	}
 
+	char messageStr[512];
+	sprintf(messageStr, "Error: Unable to read mesh file: %s, %s", p_Filename, m_Importer.GetErrorString());
+	VulkanHelper::LogError(messageStr);
+	return false;
 }
 
-void Cube::MeshInit(MeshEntry *p_MeshEntry, const aiMesh* p_pAiMesh)
+void Cube::MeshInit(MeshNode *p_MeshNode, const aiMesh* p_pAiMesh)
 {
     for (unsigned int i = 0; i < p_pAiMesh->mNumVertices; i++)
 	{
         aiVector3D* position = &(p_pAiMesh->mVertices[i]);
-        p_MeshEntry->Vertices.push_back(Vertex(glm::vec3(position->x, -position->y, position->z)));
+        p_MeshNode->Vertices.push_back(Vertex(glm::vec3(position->x, -position->y, position->z)));
 	}
 
-    uint32_t indexBase = static_cast<uint32_t>(p_MeshEntry->Indices.size());
+    uint32_t indexBase = static_cast<uint32_t>(p_MeshNode->Indices.size());
     for (unsigned int i = 0; i < p_pAiMesh->mNumFaces; i++)
 	{
         const aiFace& Face = p_pAiMesh->mFaces[i];
 		if (Face.mNumIndices != 3)
 			continue;
-        p_MeshEntry->Indices.push_back(indexBase + Face.mIndices[0]);
-        p_MeshEntry->Indices.push_back(indexBase + Face.mIndices[1]);
-        p_MeshEntry->Indices.push_back(indexBase + Face.mIndices[2]);
+        p_MeshNode->Indices.push_back(indexBase + Face.mIndices[0]);
+        p_MeshNode->Indices.push_back(indexBase + Face.mIndices[1]);
+        p_MeshNode->Indices.push_back(indexBase + Face.mIndices[2]);
 	}
 }
 
-void Cube::LoadMeshNew()
+void Cube::LoadMesh(bool p_UseStaging)
 {
-	//////////////////////////////////////////////////////////////////////////////////////
 	Load("../../../resources/models/teapot.dae");
 
 	// Generate vertex buffer
 	std::vector<Vertex> vertexBuffer;
 	// Iterate through all meshes in the file
 	// and extract the vertex information used in this demo
-	for (uint32_t m = 0; m < m_Entries.size(); m++)
+    for (uint32_t m = 0; m < m_Nodes.size(); m++)
 	{
-		for (uint32_t i = 0; i < m_Entries[m].Vertices.size(); i++)
+        for (uint32_t i = 0; i < m_Nodes[m].Vertices.size(); i++)
 		{
-			Vertex vertex(m_Entries[m].Vertices[i].m_pos);
+            Vertex vertex(m_Nodes[m].Vertices[i].m_pos);
 			vertexBuffer.push_back(vertex);
 		}
 	}
@@ -415,135 +413,44 @@ void Cube::LoadMeshNew()
 
 	// Generate index buffer from loaded mesh file
 	std::vector<uint32_t> indexBuffer;
-	for (uint32_t m = 0; m < m_Entries.size(); m++)
+    for (uint32_t m = 0; m < m_Nodes.size(); m++)
 	{
 		size_t indexBase = indexBuffer.size();
-		for (size_t i = 0; i < m_Entries[m].Indices.size(); i++)
+        for (size_t i = 0; i < m_Nodes[m].Indices.size(); i++)
 		{
-			indexBuffer.push_back(static_cast<unsigned int>(m_Entries[m].Indices[i] + indexBase));
+            indexBuffer.push_back(static_cast<unsigned int>(m_Nodes[m].Indices[i] + indexBase));
 		}
 	}
 
 	size_t indexBufferSize = indexBuffer.size() * sizeof(uint32_t);
-    m_Mesh.indices.m_IndexCount = static_cast<uint32_t>(indexBuffer.size());
+    m_Mesh.indexCount = static_cast<uint32_t>(indexBuffer.size());
 
 	const VkDevice device = m_VulkanApplication->m_hDevice;
 	VkPhysicalDeviceMemoryProperties memProp = m_VulkanApplication->m_physicalDeviceInfo.memProp;
 
-	bool useStaging = !true;
-	if (useStaging)
+	m_Mesh.vertexBuffer.m_DataSize = vertexBufferSize;
+	m_Mesh.indexBuffer.m_DataSize = indexBufferSize;
+
+	VkMemoryPropertyFlags memoryProperty = (p_UseStaging ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT : VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+	m_Mesh.vertexBuffer.m_MemoryFlags = memoryProperty;
+	m_Mesh.indexBuffer.m_MemoryFlags = memoryProperty;
+
+	if (p_UseStaging)
 	{
-		struct {
-			VulkanBuffer bufObj;
-		} vertexStaging, indexStaging;
+		VkCommandPool cmdPool = m_VulkanApplication->m_hCommandPool;
+		VkQueue queue = m_VulkanApplication->m_hGraphicsQueue;
 
-		// Create staging buffers
-		// Vertex data
-		//VulkanHelper::createBuffer(
-		//	m_VulkanApplication->m_hDevice,
-		//	VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		//	VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-		//	m_VulkanApplication->m_physicalDeviceInfo.memProp,
-		//	vertexBufferSize,
-		//	vertexBuffer.data(),
-  //          &vertexStaging.m_Buffer,
-  //          &vertexStaging.m_Memory);
-
-		VkBufferCreateInfo bufInfo = {};
-		bufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		bufInfo.size = vertexBufferSize;
-		bufInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-		vertexStaging.bufObj.m_DataSize = vertexBufferSize;
-		vertexStaging.bufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-		VulkanHelper::CreateBuffer(device, memProp,
-			vertexStaging.bufObj, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, vertexBuffer.data(), &bufInfo);
-
-		// Index data
-		//VulkanHelper::createBuffer(
-		//	m_VulkanApplication->m_hDevice,
-		//	VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		//	VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-		//	m_VulkanApplication->m_physicalDeviceInfo.memProp,
-		//	indexBufferSize,
-		//	indexBuffer.data(),
-  //          &indexStaging.m_Buffer,
-  //          &indexStaging.m_Memory);
-
-		indexStaging.bufObj.m_DataSize = indexBufferSize;
-		indexStaging.bufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-		VulkanHelper::CreateBuffer(device, memProp,
-			indexStaging.bufObj, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, indexBuffer.data());
-
-		// Create device local buffers
-		// Vertex buffer
-		//VulkanHelper::createBuffer(
-		//	m_VulkanApplication->m_hDevice,
-		//	VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-		//	VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		//	m_VulkanApplication->m_physicalDeviceInfo.memProp,
-		//	vertexBufferSize,
-		//	nullptr,
-  //          &m_Mesh.vertices.bufObj.m_Buffer,
-  //          &m_Mesh.vertices.bufObj.m_Memory);
-
-		m_Mesh.vertices.bufObj.m_DataSize = vertexBufferSize;
-		m_Mesh.vertices.bufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-		VulkanHelper::CreateBuffer(device, memProp,
-			m_Mesh.vertices.bufObj, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
-
-		// Index buffer
-		//VulkanHelper::createBuffer(device,
-		//	,
-		//	VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, memProp,
-		//	indexBufferSize,
-		//	nullptr,
-  //          &m_Mesh.indices.bufObj.m_Buffer,
-  //          &m_Mesh.indices.bufObj.m_Memory);
-
-		m_Mesh.indices.bufObj.m_DataSize = indexBufferSize;
-		m_Mesh.indices.bufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-		VulkanHelper::CreateBuffer(device, memProp,
-			m_Mesh.indices.bufObj, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
-
-
-		// Copy from staging buffers
-		VkCommandBuffer copyCmd;
-		VulkanHelper::AllocateCommandBuffer(device, m_VulkanApplication->m_hCommandPool, &copyCmd);
-		VulkanHelper::BeginCommandBuffer(copyCmd);
-
-		VkBufferCopy copyRegion = {};
-		copyRegion.size = vertexBufferSize;
-		vkCmdCopyBuffer(copyCmd, vertexStaging.bufObj.m_Buffer, m_Mesh.vertices.bufObj.m_Buffer, 1, &copyRegion);
-
-		copyRegion.size = indexBufferSize;
-		vkCmdCopyBuffer(copyCmd, indexStaging.bufObj.m_Buffer, m_Mesh.indices.bufObj.m_Buffer, 1, &copyRegion);
-
-		VulkanHelper::EndCommandBuffer(copyCmd);
-		VulkanHelper::SubmitCommandBuffer(m_VulkanApplication->m_hGraphicsQueue, copyCmd);
-		vkFreeCommandBuffers(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_hCommandPool, 1, &copyCmd);
-
-        vkDestroyBuffer(m_VulkanApplication->m_hDevice, vertexStaging.bufObj.m_Buffer, nullptr);
-        vkFreeMemory(m_VulkanApplication->m_hDevice, vertexStaging.bufObj.m_Memory, nullptr);
-        vkDestroyBuffer(m_VulkanApplication->m_hDevice, indexStaging.bufObj.m_Buffer, nullptr);
-        vkFreeMemory(m_VulkanApplication->m_hDevice, indexStaging.bufObj.m_Memory, nullptr);
+		// Create vertex buffer using staging
+		VulkanHelper::CreateStagingBuffer(device, memProp, cmdPool, queue, m_Mesh.vertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+		// Create index buffer using staging
+		VulkanHelper::CreateStagingBuffer(device, memProp, cmdPool, queue, m_Mesh.indexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 	}
 	else
 	{
 		// Create vertex buffer
-        m_Mesh.vertices.bufObj.m_DataSize = vertexBufferSize;
-        m_Mesh.vertices.bufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-        VulkanHelper::CreateBuffer(device, 
-									m_VulkanApplication->m_physicalDeviceInfo.memProp, 
-									m_Mesh.vertices.bufObj, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexBuffer.data());
-
+        VulkanHelper::CreateBuffer(device, memProp, m_Mesh.vertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexBuffer.data());
 		// Create index buffer
-		m_Mesh.indices.bufObj.m_DataSize = indexBufferSize;
-		m_Mesh.indices.bufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-		VulkanHelper::CreateBuffer(device, 
-									m_VulkanApplication->m_physicalDeviceInfo.memProp, 
-									m_Mesh.indices.bufObj, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, indexBuffer.data());
+		VulkanHelper::CreateBuffer(device, memProp, m_Mesh.indexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, indexBuffer.data());
 	}
 
 	// Indicates the rate at which the information will be
@@ -557,178 +464,6 @@ void Cube::LoadMeshNew()
 	m_VertexInputAttribute[0].location = 0;
 	m_VertexInputAttribute[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 	m_VertexInputAttribute[0].offset = offsetof(struct Vertex, m_pos);
-	//////////////////////////////////////////////////////////////////////////////////////
-}
-
-void Cube::LoadMesh()
-{
-	////////////////////////////////////////////////////////////////////////////////////////
-	//MeshLoader* meshLoader = new MeshLoader(m_VulkanApplication);
-	//meshLoader->Load("../../../resources/teapot.dae");
-
-	//// Generate vertex buffer
-	//float scale = 1.0f;
-	//std::vector<VertexUI> vertexBuffer;
-	//// Iterate through all meshes in the file
-	//// and extract the vertex information used in this demo
-	//for (uint32_t m = 0; m < meshLoader->m_Entries.size(); m++)
-	//{
-	//	for (uint32_t i = 0; i < meshLoader->m_Entries[m].Vertices.size(); i++)
-	//	{
-	//		VertexUI vertex;
-
-	//		vertex.pos = meshLoader->m_Entries[m].Vertices[i].m_pos * scale;
-	//		//vertex.normal = meshLoader->m_Entries[m].Vertices[i].m_normal;
-	//		//vertex.uv = meshLoader->m_Entries[m].Vertices[i].m_tex;
-	//		//vertex.color = meshLoader->m_Entries[m].Vertices[i].m_color;
-
-	//		vertexBuffer.push_back(vertex);
-	//	}
-	//}
-	//uint32_t vertexBufferSize = vertexBuffer.size() * sizeof(VertexUI);
-
-	//// Generate index buffer from loaded mesh file
-	//std::vector<uint32_t> indexBuffer;
-	//for (uint32_t m = 0; m < meshLoader->m_Entries.size(); m++)
-	//{
-	//	uint32_t indexBase = indexBuffer.size();
-	//	for (uint32_t i = 0; i < meshLoader->m_Entries[m].Indices.size(); i++)
-	//	{
-	//		indexBuffer.push_back(meshLoader->m_Entries[m].Indices[i] + indexBase);
-	//	}
-	//}
-
-	//uint32_t indexBufferSize = indexBuffer.size() * sizeof(uint32_t);
-	//mesh.indices.count = indexBuffer.size();
-
-	//// Static mesh should always be device local
-
-	//bool useStaging = true;
-
-	//if (useStaging)
-	//{
-	//	struct {
-	//		VkBuffer buffer;
-	//		VkDeviceMemory memory;
-	//	} vertexStaging, indexStaging;
-
-	//	// Create staging buffers
-	//	// Vertex data
-	//	VulkanHelper::createBuffer(
-	//		device,
-	//		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-	//		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-	//		m_VulkanApplication->m_physicalDeviceInfo.memProp,
-	//		vertexBufferSize,
-	//		vertexBuffer.data(),
-	//		&vertexStaging.buffer,
-	//		&vertexStaging.memory);
-	//	// Index data
-	//	VulkanHelper::createBuffer(
-	//		device,
-	//		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-	//		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-	//		m_VulkanApplication->m_physicalDeviceInfo.memProp,
-	//		indexBufferSize,
-	//		indexBuffer.data(),
-	//		&indexStaging.buffer,
-	//		&indexStaging.memory);
-
-	//	// Create device local buffers
-	//	// Vertex buffer
-	//	VulkanHelper::createBuffer(
-	//		device,
-	//		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-	//		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-	//		m_VulkanApplication->m_physicalDeviceInfo.memProp,
-	//		vertexBufferSize,
-	//		nullptr,
-	//		&mesh.vertices.buf,
-	//		&mesh.vertices.mem);
-	//	// Index buffer
-	//	VulkanHelper::createBuffer(
-	//		device,
-	//		VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-	//		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-	//		m_VulkanApplication->m_physicalDeviceInfo.memProp,
-	//		indexBufferSize,
-	//		nullptr,
-	//		&mesh.indices.buf,
-	//		&mesh.indices.mem);
-
-
-	//	// Copy from staging buffers
-	//	//VkCommandBuffer copyCmd = VulkanExampleBase::createCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
-	//	VkCommandBuffer copyCmd;
-	//	VulkanHelper::AllocateCommandBuffer(device, m_VulkanApplication->m_hCommandPool, &copyCmd);
-	//	VulkanHelper::BeginCommandBuffer(copyCmd);
-
-	//	VkBufferCopy copyRegion = {};
-
-	//	copyRegion.size = vertexBufferSize;
-	//	vkCmdCopyBuffer(
-	//		copyCmd,
-	//		vertexStaging.buffer,
-	//		mesh.vertices.buf,
-	//		1,
-	//		&copyRegion);
-
-	//	copyRegion.size = indexBufferSize;
-	//	vkCmdCopyBuffer(
-	//		copyCmd,
-	//		indexStaging.buffer,
-	//		mesh.indices.buf,
-	//		1,
-	//		&copyRegion);
-
-	//	//VulkanExampleBase::flushCommandBuffer(copyCmd, queue, true);
-	//	VulkanHelper::EndCommandBuffer(copyCmd);
-	//	VulkanHelper::SubmitCommandBuffer(m_VulkanApplication->m_hGraphicsQueue, copyCmd);
-	//	vkFreeCommandBuffers(device, m_VulkanApplication->m_hCommandPool, 1, &copyCmd);
-
-	//	vkDestroyBuffer(device, vertexStaging.buffer, nullptr);
-	//	vkFreeMemory(device, vertexStaging.memory, nullptr);
-	//	vkDestroyBuffer(device, indexStaging.buffer, nullptr);
-	//	vkFreeMemory(device, indexStaging.memory, nullptr);
-	//}
-	//else
-	//{
-	//	// Vertex buffer
-	//	VulkanHelper::createBuffer(
-	//		device,
-	//		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-	//		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-	//		m_VulkanApplication->m_physicalDeviceInfo.memProp,
-	//		vertexBufferSize,
-	//		vertexBuffer.data(),
-	//		&mesh.vertices.buf,
-	//		&mesh.vertices.mem);
-	//	// Index buffer
-	//	VulkanHelper::createBuffer(
-	//		device,
-	//		VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-	//		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-	//		m_VulkanApplication->m_physicalDeviceInfo.memProp,
-	//		indexBufferSize,
-	//		indexBuffer.data(),
-	//		&mesh.indices.buf,
-	//		&mesh.indices.mem);
-	//}
-
-	//delete(meshLoader);
-
-	//// Indicates the rate at which the information will be
-	//// injected for vertex input.
-	//m_VertexInputBinding.binding = 0;
-	//m_VertexInputBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-	//m_VertexInputBinding.stride = sizeof(VertexUI);
-
-	//// The VkVertexInputAttribute interpreting the data.
-	//m_VertexInputAttribute[0].binding = 0;
-	//m_VertexInputAttribute[0].location = 0;
-	//m_VertexInputAttribute[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-	//m_VertexInputAttribute[0].offset = offsetof(struct VertexUI, pos);
-	////////////////////////////////////////////////////////////////////////////////////////
 }
 
 void Cube::CreateUniformBuffer()

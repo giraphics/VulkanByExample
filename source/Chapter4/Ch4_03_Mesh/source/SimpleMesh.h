@@ -9,10 +9,6 @@
 
 class Cube : public DrawableInterface
 {
-//	struct {
-//		VulkanBuffer m_BufObj;
-//    } VertexBuffer;
-
 	struct {
 		VulkanBuffer					m_BufObj;
 		VkDescriptorBufferInfo			m_BufferInfo;		// Buffer info that need to supplied into write descriptor set (VkWriteDescriptorSet)
@@ -40,7 +36,6 @@ private:
 	void CreateDescriptor(bool useTexture);
 
 	// Creates the descriptor pool, this function depends on - 
-	// createDescriptorSetLayout()
 	void CreateDescriptorPool(bool useTexture);
 	// Creates the descriptor sets using descriptor pool.
 	// This function depend on the createDescriptorPool() and createUniformBuffer().
@@ -55,6 +50,32 @@ private:
 	// List of all created VkDescriptorSet
 	std::vector<VkDescriptorSet> descriptorSet;
 	///////////////////////////////////////////////////////////////////
+    // GPU Data structure for Meshes contain device buffer and memory
+    struct Mesh {
+        VulkanBuffer vertexBuffer;
+        VulkanBuffer indexBuffer;
+        uint32_t indexCount;
+    } m_Mesh;
+
+    // CPU Data structure for Meshes
+    struct Vertex {
+        Vertex(const glm::vec3& pos) { m_pos = pos; }
+        glm::vec3 m_pos;
+    };
+
+    struct MeshNode {
+        std::vector<Vertex> Vertices;
+        std::vector<unsigned int> Indices;
+    };
+    std::vector<MeshNode> m_Nodes;
+
+    void LoadMesh(bool p_UseStaging = true);
+    bool Load(const char* p_Filename);
+    void MeshInit(MeshNode* p_MeshNode, const aiMesh* p_pAiMesh);
+    Assimp::Importer m_Importer;
+    const aiScene* m_pScene;
+
+    ///////////////////////////////////////////////////////////////////
 
 	// Vertex buffer specific objects
 	VkVertexInputBindingDescription		m_VertexInputBinding;
@@ -64,42 +85,4 @@ private:
     VkPipelineLayout m_hPipelineLayout;
     VkPipeline       m_hGraphicsPipeline;
 	VulkanApp*		 m_VulkanApplication;
-	////////////////////////
-	// GPU Data structure for Meshes contain device buffer and memory
-	struct MeshVertices{ 
-        VulkanBuffer bufObj;
-	};
-	struct MeshIndices {
-		uint32_t m_IndexCount;
-        VulkanBuffer bufObj;
-	};
-
-	struct Mesh {
-        struct MeshVertices vertices;
-        struct MeshIndices indices;
-    } m_Mesh;
-
-	// CPU Data structure for Meshes
-	struct Vertex
-	{
-		Vertex(const glm::vec3& pos) { m_pos = pos; }
-		glm::vec3 m_pos;
-	};
-
-	struct MeshEntry {
-		std::vector<Vertex> Vertices;
-		std::vector<unsigned int> Indices;
-	};
-
-	void LoadMesh();
-	void LoadMeshNew();
-    bool Load(const char* p_Filename);
-    void MeshInit(MeshEntry* p_MeshEntry, const aiMesh* p_pAiMesh);
-	uint32_t numVertices = 0;
-    Assimp::Importer m_Importer;
-    const aiScene* m_pScene;
-
-
-	std::vector<MeshEntry> m_Entries;
-	///////////////////////////////////////////////////////////////////
 };
