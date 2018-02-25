@@ -8,25 +8,14 @@
 
 using namespace std;
 
-/*********** GLM HEADER FILES ***********/
-#define GLM_FORCE_RADIANS
-#include "glm/glm.hpp"
-#include <glm/gtc/matrix_transform.hpp>
-
-glm::mat4 Projection;
-glm::mat4 View;
-glm::mat4 Model;
-glm::mat4 MVP;
-
 Cube::Cube(VulkanApp* p_VulkanApp)
 {
 	m_hPipelineLayout = VK_NULL_HANDLE;
     m_hGraphicsPipeline = VK_NULL_HANDLE;
 
-    memset(&UniformBuffer, 0, sizeof(UniformBuffer));
-//    memset(&VertexBuffer.m_BufObj, 0, sizeof(VertexBuffer.m_BufObj)); #### init the mesh vertex buffer
+	memset(&UniformBuffer, 0, sizeof(UniformBuffer));
 
-	m_VulkanApplication = p_VulkanApp;
+    m_VulkanApplication = p_VulkanApp;
 }
 
 Cube::~Cube()
@@ -58,51 +47,24 @@ Cube::~Cube()
 
 void Cube::Setup()
 {
-	//CreateVertexBuffer(s_TriangleVertices, sizeof(s_TriangleVertices), sizeof(Vertex));
-//	LoadMesh();
-    LoadMesh();
-	CreateDescriptor(false);
+	CreateDescriptor();
+
 	CreateGraphicsPipeline();
 
-	CreateCommandBuffers(); // Create command buffers //XXXXXXXXXXXXXXXX
+	CreateCommandBuffers(); // Create command buffers
 
-	////////////////////////////////////////////////////
-	///////////////////////////
 	RecordCommandBuffer();
 }
 
 void Cube::Update()
 {
-	Projection = glm::perspective(glm::radians(45.0f), 800.0f/600.0f, 0.1f, 100.0f);
-	View = glm::lookAt(
-		glm::vec3(0, 0, 100),		// Camera is in World Space
-		glm::vec3(0, 0, 0),		// and looks at the origin
-		glm::vec3(0, 1, 0)		// Head is up
-		);
-	Model = glm::mat4(1.0f);
-	static float rot = 0;
-	rot += .0005f;
-	Model = glm::rotate(Model, rot, glm::vec3(0.0, 1.0, 0.0)) * glm::rotate(Model, rot, glm::vec3(1.0, 1.0, 1.0));
+	glm::mat4 MVP = (*m_Projection) * (*m_View) * m_Model;
 
-	glm::mat4 MVP = Projection * View * Model;
-
-	// Invalidate the range of mapped buffer in order to make it visible to the host.
-	// If the memory property is set with VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-	// then the driver may take care of this, otherwise for non-coherent 
-	// mapped memory vkInvalidateMappedMemoryRanges() needs to be called explicitly.
-    VkResult res = vkInvalidateMappedMemoryRanges(m_VulkanApplication->m_hDevice, 1, &UniformBuffer.m_MappedRange[0]);
-	assert(res == VK_SUCCESS);
-
-	// Copy updated data into the mapped memory
-    memcpy(UniformBuffer.m_Data, &MVP, sizeof(MVP));
-
-	// Flush the range of mapped buffer in order to make it visible to the device
-	// If the memory is coherent (memory property must be beVK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
-	// then the driver may take care of this, otherwise for non-coherent 
-	// mapped memory vkFlushMappedMemoryRanges() needs to be called explicitly to flush out 
-	// the pending writes on the host side.
-    res = vkFlushMappedMemoryRanges(m_VulkanApplication->m_hDevice, 1, &UniformBuffer.m_MappedRange[0]);
-	assert(res == VK_SUCCESS);
+	VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice, 
+								UniformBuffer.m_MappedMemory, 
+								UniformBuffer.m_MappedRange,
+								UniformBuffer.m_BufObj.m_MemoryFlags,
+								&MVP, sizeof(MVP));
 }
 
 void Cube::CreateGraphicsPipeline()
@@ -148,15 +110,15 @@ void Cube::CreateGraphicsPipeline()
 	VkViewport viewport = {};
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
-	viewport.width = (float)m_VulkanApplication->m_swapChainExtent.width;
-	viewport.height = (float)m_VulkanApplication->m_swapChainExtent.height;
+    viewport.width = (float)m_VulkanApplication->m_swapChainExtent.width;
+    viewport.height = (float)m_VulkanApplication->m_swapChainExtent.height;
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 
 	// Setup scissor rect
 	VkRect2D scissor = {};
 	scissor.offset = { 0, 0 };
-	scissor.extent = m_VulkanApplication->m_swapChainExtent;
+    scissor.extent = m_VulkanApplication->m_swapChainExtent;
 
 	// Setup view port state
 	VkPipelineViewportStateCreateInfo viewportState = {};
@@ -231,7 +193,7 @@ void Cube::CreateGraphicsPipeline()
 	pipelineLayoutInfo.setLayoutCount = (uint32_t)descLayout.size();
 	pipelineLayoutInfo.pSetLayouts = descLayout.data();
 
-	VkResult vkResult = vkCreatePipelineLayout(m_VulkanApplication->m_hDevice, &pipelineLayoutInfo, nullptr, &m_hPipelineLayout);
+    VkResult vkResult = vkCreatePipelineLayout(m_VulkanApplication->m_hDevice, &pipelineLayoutInfo, nullptr, &m_hPipelineLayout);
 
 	if (vkResult != VK_SUCCESS)
 	{
@@ -256,7 +218,7 @@ void Cube::CreateGraphicsPipeline()
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 	pipelineInfo.pDepthStencilState = &depthStencilStateInfo;
 
-	vkResult = vkCreateGraphicsPipelines(m_VulkanApplication->m_hDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_hGraphicsPipeline);
+    vkResult = vkCreateGraphicsPipelines(m_VulkanApplication->m_hDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_hGraphicsPipeline);
 	if (vkResult != VK_SUCCESS)
 	{
 		VulkanHelper::LogError("vkCreateGraphicsPipelines() failed!");
@@ -264,8 +226,8 @@ void Cube::CreateGraphicsPipeline()
 	}
 
 	// Cleanup
-	vkDestroyShaderModule(m_VulkanApplication->m_hDevice, fragShader, nullptr);
-	vkDestroyShaderModule(m_VulkanApplication->m_hDevice, vertShader, nullptr);
+    vkDestroyShaderModule(m_VulkanApplication->m_hDevice, fragShader, nullptr);
+    vkDestroyShaderModule(m_VulkanApplication->m_hDevice, vertShader, nullptr);
 }
 
 void Cube::RecordCommandBuffer()
@@ -284,10 +246,10 @@ void Cube::RecordCommandBuffer()
 	// Offset to render in the frame buffer
 	VkOffset2D   renderOffset = { 0, 0 };
 	// Width & Height to render in the frame buffer
-	VkExtent2D   renderExtent = m_VulkanApplication->m_swapChainExtent;
+    VkExtent2D   renderExtent = m_VulkanApplication->m_swapChainExtent;
 
 	// For each command buffers in the command buffer list
-	for (size_t i = 0; i < m_VulkanApplication->m_hCommandBufferList.size(); i++)
+    for (size_t i = 0; i < m_VulkanApplication->m_hCommandBufferList.size(); i++)
 	{
 		VkCommandBufferBeginInfo beginInfo = {};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -295,24 +257,24 @@ void Cube::RecordCommandBuffer()
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 
 		// Begin command buffer
-		vkBeginCommandBuffer(m_VulkanApplication->m_hCommandBufferList[i], &beginInfo);
+        vkBeginCommandBuffer(m_VulkanApplication->m_hCommandBufferList[i], &beginInfo);
 
 		VkRenderPassBeginInfo renderPassInfo = {};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = m_VulkanApplication->m_hRenderPass;
-		renderPassInfo.framebuffer = m_VulkanApplication->m_hFramebuffers[i];
+        renderPassInfo.renderPass = m_VulkanApplication->m_hRenderPass;
+        renderPassInfo.framebuffer = m_VulkanApplication->m_hFramebuffers[i];
 		renderPassInfo.renderArea.offset = renderOffset;
 		renderPassInfo.renderArea.extent = renderExtent;
 		renderPassInfo.clearValueCount = 2;
 		renderPassInfo.pClearValues = clearColor;
 
 		// Begin render pass
-		vkCmdBeginRenderPass(m_VulkanApplication->m_hCommandBufferList[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(m_VulkanApplication->m_hCommandBufferList[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 		// Bind graphics pipeline
-		vkCmdBindPipeline(m_VulkanApplication->m_hCommandBufferList[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_hGraphicsPipeline);
+        vkCmdBindPipeline(m_VulkanApplication->m_hCommandBufferList[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_hGraphicsPipeline);
 
-		vkCmdBindDescriptorSets(m_VulkanApplication->m_hCommandBufferList[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_hPipelineLayout,
+        vkCmdBindDescriptorSets(m_VulkanApplication->m_hCommandBufferList[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_hPipelineLayout,
 			0, 1, descriptorSet.data(), 0, NULL);
 
 		// Specify vertex buffer information
@@ -331,9 +293,10 @@ void Cube::RecordCommandBuffer()
 		////////////////////////////////////////////////////////////////////
 
 		// End the Render pass
-		vkCmdEndRenderPass(m_VulkanApplication->m_hCommandBufferList[i]);
+        vkCmdEndRenderPass(m_VulkanApplication->m_hCommandBufferList[i]);
 
-		VkResult vkResult = vkEndCommandBuffer(m_VulkanApplication->m_hCommandBufferList[i]);
+		// End the Command buffer
+        VkResult vkResult = vkEndCommandBuffer(m_VulkanApplication->m_hCommandBufferList[i]);
 		if (vkResult != VK_SUCCESS)
 		{
 			VulkanHelper::LogError("vkEndCommandBuffer() failed!");
@@ -349,92 +312,82 @@ void Cube::CreateCommandBuffers()
 
 bool Cube::Load(const char* p_Filename)
 {
-    m_pScene = m_Importer.ReadFile(p_Filename, aiProcess_Triangulate | aiProcess_FlipWindingOrder | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals);
+    m_pMeshScene = m_AssimpImporter.ReadFile(p_Filename, aiProcess_Triangulate | aiProcess_FlipWindingOrder | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals);
 
-    uint32_t vertexCount = 0;
-    if (m_pScene)
+	uint32_t vertexCount = 0;
+    if (!m_pMeshScene)
 	{
-        m_Nodes.clear();
-        m_Nodes.resize(m_pScene->mNumMeshes);
-		// Read in all meshes in the scene
-        for (auto i = 0; i < m_Nodes.size(); i++)
-		{
-			//m_Entries[i].vertexBase = numVertices;
-            vertexCount += m_pScene->mMeshes[i]->mNumVertices;
-            const aiMesh* paiMesh = m_pScene->mMeshes[i];
-            MeshInit(&m_Nodes[i], paiMesh);
-		}
-		return true;
+		char messageStr[512];
+        sprintf(messageStr, "Error: Unable to read mesh file: %s, %s", p_Filename, m_AssimpImporter.GetErrorString());
+		VulkanHelper::LogError(messageStr);
+		return false;
 	}
 
-	char messageStr[512];
-	sprintf(messageStr, "Error: Unable to read mesh file: %s, %s", p_Filename, m_Importer.GetErrorString());
-	VulkanHelper::LogError(messageStr);
-	return false;
+    m_Nodes.clear();
+    m_Nodes.resize(m_pMeshScene->mNumMeshes);
+    for (size_t i = 0; i < m_Nodes.size(); i++)
+	{
+        vertexCount += m_pMeshScene->mMeshes[i]->mNumVertices;
+        LoadNode(&m_Nodes[i], m_pMeshScene->mMeshes[i]);
+	}
+
+	return true;
 }
 
-void Cube::MeshInit(MeshNode *p_MeshNode, const aiMesh* p_pAiMesh)
+void Cube::LoadNode(MeshNode* p_MeshNode, const aiMesh* p_pAiMesh)
 {
-    for (unsigned int i = 0; i < p_pAiMesh->mNumVertices; i++)
+	p_MeshNode->Vertices.reserve(p_pAiMesh->mNumVertices);
+    for (unsigned int i = 0; i < p_pAiMesh->mNumVertices; ++i)
 	{
-        aiVector3D* position = &(p_pAiMesh->mVertices[i]);
-        p_MeshNode->Vertices.push_back(Vertex(glm::vec3(position->x, -position->y, position->z)));
+        const aiVector3D& position = p_pAiMesh->mVertices[i];
+        p_MeshNode->Vertices.push_back(Vertex(glm::vec3(position.x, -position.y, position.z)));
 	}
 
-    uint32_t indexBase = static_cast<uint32_t>(p_MeshNode->Indices.size());
-    for (unsigned int i = 0; i < p_pAiMesh->mNumFaces; i++)
+	p_MeshNode->Indices.resize(p_pAiMesh->mNumFaces * 3);
+	for (unsigned int i = 0; i < p_pAiMesh->mNumFaces; ++i)
 	{
         const aiFace& Face = p_pAiMesh->mFaces[i];
-		if (Face.mNumIndices != 3)
-			continue;
-        p_MeshNode->Indices.push_back(indexBase + Face.mIndices[0]);
-        p_MeshNode->Indices.push_back(indexBase + Face.mIndices[1]);
-        p_MeshNode->Indices.push_back(indexBase + Face.mIndices[2]);
+		if (Face.mNumIndices != 3) continue;
+		
+		p_MeshNode->Indices[i * 3 + 0] = Face.mIndices[0];
+		p_MeshNode->Indices[i * 3 + 1] = Face.mIndices[1];
+		p_MeshNode->Indices[i * 3 + 2] = Face.mIndices[2];
 	}
 }
 
-void Cube::LoadMesh(bool p_UseStaging)
+void Cube::LoadMesh(const char* p_Filename, bool p_UseStaging)
 {
-	Load("../../../resources/models/teapot.dae");
+	Load(p_Filename);
 
-	// Generate vertex buffer
+	// Populate vertex buffer
 	std::vector<Vertex> vertexBuffer;
-	// Iterate through all meshes in the file
-	// and extract the vertex information used in this demo
-    for (uint32_t m = 0; m < m_Nodes.size(); m++)
-	{
-        for (uint32_t i = 0; i < m_Nodes[m].Vertices.size(); i++)
-		{
+    for (uint32_t m = 0; m < m_Nodes.size(); m++){
+        for (uint32_t i = 0; i < m_Nodes[m].Vertices.size(); i++){
             Vertex vertex(m_Nodes[m].Vertices[i].m_pos);
 			vertexBuffer.push_back(vertex);
 		}
 	}
-	size_t vertexBufferSize = vertexBuffer.size() * sizeof(Vertex);
 
-	// Generate index buffer from loaded mesh file
+	// Populate index buffer
 	std::vector<uint32_t> indexBuffer;
-    for (uint32_t m = 0; m < m_Nodes.size(); m++)
-	{
-		size_t indexBase = indexBuffer.size();
-        for (size_t i = 0; i < m_Nodes[m].Indices.size(); i++)
-		{
-            indexBuffer.push_back(static_cast<unsigned int>(m_Nodes[m].Indices[i] + indexBase));
+    for (uint32_t m = 0; m < m_Nodes.size(); m++) {
+        for (size_t i = 0; i < m_Nodes[m].Indices.size(); i++) {
+            indexBuffer.push_back(static_cast<unsigned int>(m_Nodes[m].Indices[i]));
 		}
 	}
-
-	size_t indexBufferSize = indexBuffer.size() * sizeof(uint32_t);
     m_Mesh.indexCount = static_cast<uint32_t>(indexBuffer.size());
 
 	const VkDevice device = m_VulkanApplication->m_hDevice;
 	VkPhysicalDeviceMemoryProperties memProp = m_VulkanApplication->m_physicalDeviceInfo.memProp;
 
-	m_Mesh.vertexBuffer.m_DataSize = vertexBufferSize;
-	m_Mesh.indexBuffer.m_DataSize = indexBufferSize;
+	m_Mesh.vertexBuffer.m_DataSize = vertexBuffer.size() * sizeof(Vertex); // Vertex buffer size
+	m_Mesh.indexBuffer.m_DataSize = indexBuffer.size() * sizeof(uint32_t); // Index buffer size
 
 	VkMemoryPropertyFlags memoryProperty = (p_UseStaging ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT : VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 	m_Mesh.vertexBuffer.m_MemoryFlags = memoryProperty;
 	m_Mesh.indexBuffer.m_MemoryFlags = memoryProperty;
 
+	// Create vertex and index buffer
 	if (p_UseStaging)
 	{
 		if (!m_VulkanApplication->m_hCommandPool) { VulkanHelper::CreateCommandPool(device, m_VulkanApplication->m_hCommandPool, m_VulkanApplication->m_physicalDeviceInfo); }
@@ -444,6 +397,7 @@ void Cube::LoadMesh(bool p_UseStaging)
 
 		// Create vertex buffer using staging
 		VulkanHelper::CreateStagingBuffer(device, memProp, cmdPool, queue, m_Mesh.vertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, vertexBuffer.data());
+
 		// Create index buffer using staging
 		VulkanHelper::CreateStagingBuffer(device, memProp, cmdPool, queue, m_Mesh.indexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, indexBuffer.data());
 	}
@@ -451,6 +405,7 @@ void Cube::LoadMesh(bool p_UseStaging)
 	{
 		// Create vertex buffer
         VulkanHelper::CreateBuffer(device, memProp, m_Mesh.vertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexBuffer.data());
+
 		// Create index buffer
 		VulkanHelper::CreateBuffer(device, memProp, m_Mesh.indexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, indexBuffer.data());
 	}
@@ -470,61 +425,14 @@ void Cube::LoadMesh(bool p_UseStaging)
 
 void Cube::CreateUniformBuffer()
 {
-	VkResult  result;
-	bool  pass;
-	Projection = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
-	View = glm::lookAt(
-		glm::vec3(10, 3, 10),	// Camera in World Space
-		glm::vec3(0, 0, 0),		// and looks at the origin
-		glm::vec3(0, -1, 0)		// Head is up
-		);
-	Model = glm::mat4(1.0f);
-	MVP = Projection * View * Model;
+	UniformBuffer.m_BufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	UniformBuffer.m_BufObj.m_DataSize = sizeof(glm::mat4);
 
 	// Create buffer resource states using VkBufferCreateInfo
-	VkBufferCreateInfo bufInfo = {};
-	bufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	bufInfo.pNext = NULL;
-	bufInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-	bufInfo.size = sizeof(MVP);
-	bufInfo.queueFamilyIndexCount = 0;
-	bufInfo.pQueueFamilyIndices = NULL;
-	bufInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	bufInfo.flags = 0;
-
-	VkDevice device = m_VulkanApplication->m_hDevice;
-	// Use create buffer info and create the buffer objects
-    result = vkCreateBuffer(device, &bufInfo, NULL, &UniformBuffer.m_BufObj.m_Buffer);
-	assert(result == VK_SUCCESS);
-
-	// Get the buffer memory requirements
-	VkMemoryRequirements memRqrmnt;
-    vkGetBufferMemoryRequirements(device, UniformBuffer.m_BufObj.m_Buffer, &memRqrmnt);
-
-	VkMemoryAllocateInfo memAllocInfo = {}; // ############# rename this
-	memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	memAllocInfo.pNext = NULL;
-	memAllocInfo.memoryTypeIndex = 0;
-	memAllocInfo.allocationSize = memRqrmnt.size;
-
-	// Determine the type of memory required 
-	// with the help of memory properties
-	//pass = VulkanHelper::MemoryTypeFromProperties(memRqrmnt.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &memAllocInfo.memoryTypeIndex);
-	pass = VulkanHelper::MemoryTypeFromProperties(m_VulkanApplication->m_physicalDeviceInfo.memProp, memRqrmnt.memoryTypeBits,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &memAllocInfo.memoryTypeIndex);
-
-	assert(pass);
-
-	// Allocate the memory for buffer objects
-    result = vkAllocateMemory(device, &memAllocInfo, NULL, &(UniformBuffer.m_BufObj.m_Memory));
-	assert(result == VK_SUCCESS);
+	VulkanHelper::CreateBuffer(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_physicalDeviceInfo.memProp, UniformBuffer.m_BufObj, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
 	// Map the GPU memory on to local host
-    result = vkMapMemory(device, UniformBuffer.m_BufObj.m_Memory, 0, memRqrmnt.size, 0, (void **)&UniformBuffer.m_Data);
-	assert(result == VK_SUCCESS);
-
-	// Copy computed data in the mapped buffer
-    memcpy(UniformBuffer.m_Data, &MVP, sizeof(MVP));
+	VulkanHelper::MapMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory, 0, UniformBuffer.m_BufObj.m_MemRqrmnt.size, 0, UniformBuffer.m_MappedMemory);
 
 	// We have only one Uniform buffer object to update
     UniformBuffer.m_MappedRange.resize(1);
@@ -533,23 +441,12 @@ void Cube::CreateUniformBuffer()
     UniformBuffer.m_MappedRange[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
     UniformBuffer.m_MappedRange[0].memory = UniformBuffer.m_BufObj.m_Memory;
     UniformBuffer.m_MappedRange[0].offset = 0;
-    UniformBuffer.m_MappedRange[0].size = sizeof(MVP);
+    UniformBuffer.m_MappedRange[0].size = UniformBuffer.m_BufObj.m_DataSize;
 
-	// Invalidate the range of mapped buffer in order to make it visible to the host.
-	// If the memory property is set with VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-	// then the driver may take care of this, otherwise for non-coherent 
-	// mapped memory vkInvalidateMappedMemoryRanges() needs to be called explicitly.
-    vkInvalidateMappedMemoryRanges(device, 1, &UniformBuffer.m_MappedRange[0]);
-
-	// Bind the buffer device memory 
-    result = vkBindBufferMemory(device, UniformBuffer.m_BufObj.m_Buffer, UniformBuffer.m_BufObj.m_Memory, 0);
-	assert(result == VK_SUCCESS);
-
-	// Update the local data structure with uniform buffer for house keeping
-    UniformBuffer.m_BufferInfo.buffer = UniformBuffer.m_BufObj.m_Buffer;
-    UniformBuffer.m_BufferInfo.offset = 0;
-    UniformBuffer.m_BufferInfo.range = sizeof(MVP);
-    UniformBuffer.m_BufObj.m_MemRqrmnt = memRqrmnt;
+	// Update descriptor buffer info in order to write the descriptors
+    UniformBuffer.m_DescriptorBufInfo.buffer = UniformBuffer.m_BufObj.m_Buffer;
+    UniformBuffer.m_DescriptorBufInfo.offset = 0;
+    UniformBuffer.m_DescriptorBufInfo.range = UniformBuffer.m_BufObj.m_DataSize;
 }
 
 void Cube::DestroyUniformBuffer()
@@ -559,67 +456,50 @@ void Cube::DestroyUniformBuffer()
     vkFreeMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory, NULL);
 }
 
-void Cube::CreateDescriptorSetLayout(bool useTexture)
+void Cube::CreateDescriptorSetLayout()
 {
 	// Define the layout binding information for the descriptor set(before creating it)
 	// Specify binding point, shader type(like vertex shader below), count etc.
-	VkDescriptorSetLayoutBinding layoutBindings[2];
+	VkDescriptorSetLayoutBinding layoutBindings[1];
 	layoutBindings[0].binding = 0; // DESCRIPTOR_SET_BINDING_INDEX
 	layoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	layoutBindings[0].descriptorCount = 1;
 	layoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	layoutBindings[0].pImmutableSamplers = NULL;
 
-	// If texture is being used then there existing second binding in the fragment shader
-	if (useTexture) // ############## remove this flag and related stuff with textures
-	{
-		layoutBindings[1].binding = 1; // DESCRIPTOR_SET_BINDING_INDEX
-		layoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		layoutBindings[1].descriptorCount = 1;
-		layoutBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-		layoutBindings[1].pImmutableSamplers = NULL;
-	}
-
 	// Specify the layout bind into the VkDescriptorSetLayoutCreateInfo
 	// and use it to create a descriptor set layout
 	VkDescriptorSetLayoutCreateInfo descriptorLayout = {};
 	descriptorLayout.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	descriptorLayout.pNext = NULL;
-	descriptorLayout.bindingCount = useTexture ? 2 : 1;
+	descriptorLayout.bindingCount = 1;
 	descriptorLayout.pBindings = layoutBindings;
 
 	VkResult  result;
 	// Allocate required number of descriptor layout objects and  
 	// create them using vkCreateDescriptorSetLayout()
 	descLayout.resize(1);
-	result = vkCreateDescriptorSetLayout(m_VulkanApplication->m_hDevice, &descriptorLayout, NULL, descLayout.data());
+    result = vkCreateDescriptorSetLayout(m_VulkanApplication->m_hDevice, &descriptorLayout, NULL, descLayout.data());
 	assert(result == VK_SUCCESS);
 }
 
 void Cube::DestroyDescriptorLayout()
 {
 	for (int i = 0; i < descLayout.size(); i++) {
-		vkDestroyDescriptorSetLayout(m_VulkanApplication->m_hDevice, descLayout[i], NULL);
+        vkDestroyDescriptorSetLayout(m_VulkanApplication->m_hDevice, descLayout[i], NULL);
 	}
 	descLayout.clear();
 }
 
-void Cube::CreateDescriptor(bool useTexture)
+void Cube::CreateDescriptor()
 {
-	CreateDescriptorSetLayout(useTexture);
-
-	// Create the uniform bufunifer resource 
+	CreateDescriptorSetLayout();
 	CreateUniformBuffer();
-
-	// Create the descriptor pool and 
-	// use it for descriptor set allocation
-	CreateDescriptorPool(useTexture);
-
-	// Create descriptor set with uniform buffer data in it
-	CreateDescriptorSet(useTexture);
+	CreateDescriptorPool();
+	CreateDescriptorSet();
 }
 
-void Cube::CreateDescriptorPool(bool useTexture)
+void Cube::CreateDescriptorPool()
 {
 	VkResult  result;
 	// Define the size of descriptor pool based on the
@@ -628,12 +508,6 @@ void Cube::CreateDescriptorPool(bool useTexture)
 
 	// The first descriptor pool object is of type Uniform buffer
 	descriptorTypePool.push_back(VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 });
-
-	// If texture is supported then define second object with 
-	// descriptor type to be Image sampler
-	if (useTexture) {
-		descriptorTypePool.push_back(VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1 });
-	}
 
 	// Populate the descriptor pool state information
 	// in the create info structure.
@@ -647,11 +521,11 @@ void Cube::CreateDescriptorPool(bool useTexture)
 
 	// Create the descriptor pool using the descriptor 
 	// pool create info structure
-	result = vkCreateDescriptorPool(m_VulkanApplication->m_hDevice, &descriptorPoolCreateInfo, NULL, &descriptorPool);
+    result = vkCreateDescriptorPool(m_VulkanApplication->m_hDevice, &descriptorPoolCreateInfo, NULL, &descriptorPool);
 	assert(result == VK_SUCCESS);
 }
 
-void Cube::CreateDescriptorSet(bool useTexture)
+void Cube::CreateDescriptorSet()
 {
 	VkResult  result;
 
@@ -668,11 +542,11 @@ void Cube::CreateDescriptorSet(bool useTexture)
 	descriptorSet.resize(1);
 
 	// Allocate descriptor sets
-	result = vkAllocateDescriptorSets(m_VulkanApplication->m_hDevice, dsAllocInfo, descriptorSet.data());
+    result = vkAllocateDescriptorSets(m_VulkanApplication->m_hDevice, dsAllocInfo, descriptorSet.data());
 	assert(result == VK_SUCCESS);
 
-	// Allocate two write descriptors for - 1. MVP and 2. Texture
-	VkWriteDescriptorSet writes[2];
+	// Allocate one write descriptors for transformation (MVP)
+	VkWriteDescriptorSet writes[1];
 	memset(&writes, 0, sizeof(writes));
 
 	// Specify the uniform buffer related 
@@ -683,24 +557,10 @@ void Cube::CreateDescriptorSet(bool useTexture)
 	writes[0].dstSet = descriptorSet[0];
 	writes[0].descriptorCount = 1;
 	writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    writes[0].pBufferInfo = &UniformBuffer.m_BufferInfo;
+    writes[0].pBufferInfo = &UniformBuffer.m_DescriptorBufInfo;
 	writes[0].dstArrayElement = 0;
 	writes[0].dstBinding = 0; // DESCRIPTOR_SET_BINDING_INDEX
 
-							  // If texture is used then update the second write descriptor structure
-	if (useTexture)
-	{
-		// In this sample textures are not used
-		writes[1] = {};
-		writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		writes[1].dstSet = descriptorSet[0];
-		writes[1].dstBinding = 1; // DESCRIPTOR_SET_BINDING_INDEX
-		writes[1].descriptorCount = 1;
-		writes[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		writes[1].pImageInfo = NULL;
-		writes[1].dstArrayElement = 0;
-	}
-
 	// Update the uniform buffer into the allocated descriptor set
-	vkUpdateDescriptorSets(m_VulkanApplication->m_hDevice, useTexture ? 2 : 1, writes, 0, NULL);
+    vkUpdateDescriptorSets(m_VulkanApplication->m_hDevice, 1, writes, 0, NULL);
 }

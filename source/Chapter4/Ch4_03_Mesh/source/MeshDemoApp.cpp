@@ -39,14 +39,21 @@ void MeshDemoApp::Configure()
 
 void MeshDemoApp::Setup()
 {
+	m_Cube->LoadMesh("../../../resources/models/teapot.dae");
+
+	static glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+	m_Cube->SetProjection(&Projection);
+
+	static glm::mat4 View = glm::lookAt(glm::vec3(0, -40, 65), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	m_Cube->SetView(&View);
+
 	m_Cube->Setup();
 }
 
 void MeshDemoApp::Update()
 {
 	static float rot = 0;
-	rot += .005f;
-	m_Cube->Rotate(rot, 1.0f, 1.0f, 1.0f);
+	m_Cube->Rotate(rot += .003f, 0.0f, 1.0f, 0.0f);
 	m_Cube->Update();
 }
 

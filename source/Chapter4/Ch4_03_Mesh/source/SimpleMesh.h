@@ -9,37 +9,44 @@
 
 class Cube : public DrawableInterface
 {
-	struct {
-		VulkanBuffer					m_BufObj;
-		VkDescriptorBufferInfo			m_BufferInfo;		// Buffer info that need to supplied into write descriptor set (VkWriteDescriptorSet)
-        std::vector<VkMappedMemoryRange>m_MappedRange;	// Metadata of memory mapped objects
-        uint8_t*						m_Data;			// Host pointer containing the mapped device address which is used to write data into.
-    } UniformBuffer;
-
 public:
     Cube(VulkanApp * p_VulkanApp);
     virtual ~Cube();
 
 	void Setup();
 	void Update();
+	void LoadMesh(const char* p_Filename, bool p_UseStaging = true);
 
 private:
 	void CreateGraphicsPipeline();
 	void RecordCommandBuffer();
 	void CreateCommandBuffers();
+
 	void CreateUniformBuffer();
 	void DestroyUniformBuffer();
 	
-	void CreateDescriptorSetLayout(bool useTexture);
+	void CreateDescriptorSetLayout();
 	void DestroyDescriptorLayout();
 
-	void CreateDescriptor(bool useTexture);
+	void CreateDescriptor();
 
 	// Creates the descriptor pool, this function depends on - 
-	void CreateDescriptorPool(bool useTexture);
+	void CreateDescriptorPool();
 	// Creates the descriptor sets using descriptor pool.
 	// This function depend on the createDescriptorPool() and createUniformBuffer().
-	void CreateDescriptorSet(bool useTexture);
+	void CreateDescriptorSet();
+
+	class MeshNode;
+	void LoadNode(MeshNode* p_MeshNode, const aiMesh* p_pAiMesh);
+	bool Load(const char* p_Filename);
+
+	struct {
+		VulkanBuffer					m_BufObj;
+		VkDescriptorBufferInfo			m_DescriptorBufInfo;// Descriptor buffer info that need to supplied into write descriptor set (VkWriteDescriptorSet)
+		std::vector<VkMappedMemoryRange>m_MappedRange;		// Metadata of memory mapped objects
+		uint8_t*						m_MappedMemory;  	// Host pointer containing the mapped device address which is used to write data into.
+		size_t							m_DataSize;			// Data size.
+	} UniformBuffer;
 
 	// List of all the VkDescriptorSetLayouts 
 	std::vector<VkDescriptorSetLayout> descLayout;
@@ -49,7 +56,8 @@ private:
 
 	// List of all created VkDescriptorSet
 	std::vector<VkDescriptorSet> descriptorSet;
-	///////////////////////////////////////////////////////////////////
+
+	// Mesh data structures
     // GPU Data structure for Meshes contain device buffer and memory
     struct Mesh {
         VulkanBuffer vertexBuffer;
@@ -67,15 +75,10 @@ private:
         std::vector<Vertex> Vertices;
         std::vector<unsigned int> Indices;
     };
-    std::vector<MeshNode> m_Nodes;
 
-    void LoadMesh(bool p_UseStaging = true);
-    bool Load(const char* p_Filename);
-    void MeshInit(MeshNode* p_MeshNode, const aiMesh* p_pAiMesh);
-    Assimp::Importer m_Importer;
-    const aiScene* m_pScene;
-
-    ///////////////////////////////////////////////////////////////////
+	std::vector<MeshNode> m_Nodes;
+    Assimp::Importer m_AssimpImporter;
+    const aiScene* m_pMeshScene;
 
 	// Vertex buffer specific objects
 	VkVertexInputBindingDescription		m_VertexInputBinding;
@@ -84,5 +87,5 @@ private:
     // Store app specific objects
     VkPipelineLayout m_hPipelineLayout;
     VkPipeline       m_hGraphicsPipeline;
-	VulkanApp*		 m_VulkanApplication;
+    VulkanApp*		 m_VulkanApplication;
 };
