@@ -437,13 +437,15 @@ void Cube::LoadMesh(bool p_UseStaging)
 
 	if (p_UseStaging)
 	{
+		if (!m_VulkanApplication->m_hCommandPool) { VulkanHelper::CreateCommandPool(device, m_VulkanApplication->m_hCommandPool, m_VulkanApplication->m_physicalDeviceInfo); }
+
 		VkCommandPool cmdPool = m_VulkanApplication->m_hCommandPool;
 		VkQueue queue = m_VulkanApplication->m_hGraphicsQueue;
 
 		// Create vertex buffer using staging
-		VulkanHelper::CreateStagingBuffer(device, memProp, cmdPool, queue, m_Mesh.vertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+		VulkanHelper::CreateStagingBuffer(device, memProp, cmdPool, queue, m_Mesh.vertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, vertexBuffer.data());
 		// Create index buffer using staging
-		VulkanHelper::CreateStagingBuffer(device, memProp, cmdPool, queue, m_Mesh.indexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+		VulkanHelper::CreateStagingBuffer(device, memProp, cmdPool, queue, m_Mesh.indexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, indexBuffer.data());
 	}
 	else
 	{
