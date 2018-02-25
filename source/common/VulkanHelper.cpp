@@ -567,7 +567,7 @@ void VulkanHelper::CreateStagingBuffer(const VkDevice p_Device, VkPhysicalDevice
 	// Create staging buffer
     stageBuffer.m_DataSize = p_VulkanBuffer.m_DataSize;
     stageBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-	VulkanHelper::CreateBuffer(p_Device, p_DeviceMemProp, stageBuffer, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, p_Data);
+	VulkanHelper::CreateBuffer(p_Device, p_DeviceMemProp, stageBuffer, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, p_Data, p_pBufInfo);
 
 	// Create Device Local Buffers
 	p_VulkanBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT; // Ensure, it must be device local
@@ -601,19 +601,23 @@ bool VulkanHelper::WriteBuffer(const VkDevice p_Device, const void* p_VertexData
 
 	// 1. Copy data into buffer
 	/**************************/
+	if (p_VulkanBuffer.m_MemoryFlags == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+	{
+		// 1a. Map the physical device memory region to the host 
+		uint8_t *pData;
+		VkResult  result = vkMapMemory(p_Device, p_VulkanBuffer.m_Memory, 0, p_VulkanBuffer.m_MemRqrmnt.size, 0, (void **)&pData);
+		assert(result == VK_SUCCESS);
 
-	// 1a. Map the physical device memory region to the host 
-	uint8_t *pData;
-	VkResult  result = vkMapMemory(p_Device, p_VulkanBuffer.m_Memory, 0, p_VulkanBuffer.m_MemRqrmnt.size, 0, (void **)&pData);
-	assert(result == VK_SUCCESS);
+		// 1b. Copy the data in the mapped memory
+		memcpy(pData, p_VertexData, p_VulkanBuffer.m_DataSize);
 
-	// 1b. Copy the data in the mapped memory
-	memcpy(pData, p_VertexData, p_VulkanBuffer.m_DataSize);
+		// 1c. Unmap the device memory
+		vkUnmapMemory(p_Device, p_VulkanBuffer.m_Memory);
 
-	// 1c. Unmap the device memory
-	vkUnmapMemory(p_Device, p_VulkanBuffer.m_Memory);
+		return true;
+	}
 
-	return true;
+	return false;
 }
 
 void VulkanHelper::MapMemory(const VkDevice p_Device, const VkDeviceMemory& p_Memory, VkDeviceSize p_Offset, VkDeviceSize p_Size, VkMemoryMapFlags p_Flags, uint8_t*& p_MappedMemory)
