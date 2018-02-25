@@ -53,11 +53,19 @@ struct VulkanBuffer
 
 struct VulkanImage
 {
-	VkImage					image;			// Image resource object
-	VkExtent3D				extent;			// Image extent
-	VkDeviceMemory			deviceMemory;	// Image resource object's allocated device memory
-	VkMemoryRequirements	memRqrmnt;		// Retrived Memory requirement for the image allocation
-	VkMemoryPropertyFlags   memoryFlags;	// Memory properties flags
+    struct
+    {
+        uint64_t				dataSize;		// Data size for linear buffer, to be used for staging or copying data between buffer and images.
+        VkExtent3D				extent;         // Image extent
+        VkMemoryPropertyFlags   memoryFlags;	// Memory properties flags
+        VkImageAspectFlagBits   imageAspectType;// Color, Depth, Stencil
+    } in;
+    struct
+    {
+        VkImage					image;          // Image resource object
+        VkDeviceMemory			deviceMemory;   // Image resource object's allocated device memory
+        VkMemoryRequirements	memRqrmnt;      // Retrived Memory requirement for the image allocation
+    } out;
 };
 
 struct VulkanImageView
@@ -105,10 +113,11 @@ public:
     // Chapter 3 => For Selva: Adding chapter name may be not very useful, now onwards almost every change uses image nad buffer so I dont think this would be helpful.
 	static void CreateImage(const VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemProp, VkMemoryPropertyFlags imageMemProp, VkImageCreateInfo* pImageInfo, VkImage* pTextureImage, VkDeviceMemory* pTextureImageMemory);// Parminder: This function marked as obsolete
 	static VkImageView CreateImageView(const VkDevice device, VkImage image, VkImageViewType type = VK_IMAGE_VIEW_TYPE_2D, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
-    static bool SetImageLayoutEx(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout, const VkCommandBuffer& commandBuffer);
+	static bool SetImageLayoutEx(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout, const VkCommandBuffer& commandBuffer);
 
 	static void CreateImage(const VkDevice p_Device, VkPhysicalDeviceMemoryProperties p_DeviceMemProp, VulkanImage& p_VulkanImage, VkImageCreateInfo* p_pImageInfo = NULL);
 	static void CreateImageView(const VkDevice p_Device, VulkanImageView& p_ImageView, const VkImageViewCreateInfo* p_pImageViewCreateInfo = NULL);
+	static void CreateStagingImage(const VkDevice p_Device, VkPhysicalDeviceMemoryProperties p_DeviceMemProp, VkCommandPool& p_CmdPool, const VkQueue& p_Queue, VulkanImage& p_VulkanImage, const void* p_Data, VkImageCreateInfo* p_ImageInfo, VkBufferImageCopy* p_Region);
 
 private:
 	static bool WriteBuffer(const VkDevice p_Device, const void* p_VertexData, const VulkanBuffer& p_VulkanBuffer);

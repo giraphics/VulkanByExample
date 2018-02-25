@@ -82,9 +82,9 @@ VulkanApp::~VulkanApp()
 	if (m_DepthEnabled)
 	{
 		// Release Depth attachment resources - image, image view and allocated device memory
-		vkDestroyImage(m_hDevice, DepthImage.m_Image.image, nullptr);
+		vkDestroyImage(m_hDevice, DepthImage.m_Image.out.image, nullptr);
 		vkDestroyImageView(m_hDevice, DepthImage.m_ImageView.imageView, nullptr);
-		vkFreeMemory(m_hDevice, DepthImage.m_Image.deviceMemory, nullptr);
+		vkFreeMemory(m_hDevice, DepthImage.m_Image.out.deviceMemory, nullptr);
 	}
 
 	vkDestroySwapchainKHR(m_hDevice, m_hSwapChain, nullptr);
@@ -520,14 +520,14 @@ void VulkanApp::CreateSwapChain()
 void VulkanApp::CreateDepthImage()
 {
 	DepthImage.m_Format = VK_FORMAT_D16_UNORM;
-	DepthImage.m_Image.extent = { static_cast<uint32_t>(m_pWindow->width()), static_cast<uint32_t>(m_pWindow->height()), 1 };
+	DepthImage.m_Image.in.extent = { static_cast<uint32_t>(m_pWindow->width()), static_cast<uint32_t>(m_pWindow->height()), 1 };
 
 	VkImageCreateInfo imageInfo = {};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	imageInfo.pNext = NULL;
 	imageInfo.imageType = VK_IMAGE_TYPE_2D;
 	imageInfo.format = DepthImage.m_Format;
-	imageInfo.extent = DepthImage.m_Image.extent;
+	imageInfo.extent = DepthImage.m_Image.in.extent;
 	imageInfo.mipLevels = 1;
 	imageInfo.arrayLayers = 1;
 	imageInfo.samples = NUM_SAMPLES;
@@ -553,7 +553,7 @@ void VulkanApp::CreateDepthImage()
 	VulkanHelper::AllocateCommandBuffer(m_hDevice, m_hCommandPool, &cmdBufferDepthImage);
 	VulkanHelper::BeginCommandBuffer(cmdBufferDepthImage);
 
-	VulkanHelper::SetImageLayout(DepthImage.m_Image.image, aspectMask,
+	VulkanHelper::SetImageLayout(DepthImage.m_Image.out.image, aspectMask,
 		VK_IMAGE_LAYOUT_UNDEFINED,
 		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, (VkAccessFlagBits)0, cmdBufferDepthImage);
 
@@ -564,7 +564,7 @@ void VulkanApp::CreateDepthImage()
 	VkImageViewCreateInfo imgViewInfo = {};
 	imgViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	imgViewInfo.pNext = NULL;
-	imgViewInfo.image = DepthImage.m_Image.image;
+	imgViewInfo.image = DepthImage.m_Image.out.image;
 	imgViewInfo.format = VK_FORMAT_D16_UNORM;
 	imgViewInfo.components = { VK_COMPONENT_SWIZZLE_IDENTITY };
 	imgViewInfo.subresourceRange.aspectMask = aspectMask;

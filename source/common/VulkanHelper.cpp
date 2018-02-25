@@ -567,12 +567,11 @@ void VulkanHelper::CreateStagingBuffer(const VkDevice p_Device, VkPhysicalDevice
 	// Create staging buffer
     stageBuffer.m_DataSize = p_VulkanBuffer.m_DataSize;
     stageBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-	VulkanHelper::CreateBuffer(p_Device, p_DeviceMemProp,
-        stageBuffer, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, p_Data);
+	VulkanHelper::CreateBuffer(p_Device, p_DeviceMemProp, stageBuffer, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, p_Data);
 
 	// Create Device Local Buffers
 	p_VulkanBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT; // Ensure, it must be device local
-	VulkanHelper::CreateBuffer(p_Device, p_DeviceMemProp, p_VulkanBuffer, p_UsageFlags);
+	VulkanHelper::CreateBuffer(p_Device, p_DeviceMemProp, p_VulkanBuffer, p_UsageFlags, p_Data, p_pBufInfo);
 
 	// Copy staging buffers in device local buffer
 	{
@@ -640,7 +639,7 @@ void VulkanHelper::CreateImage(const VkDevice device, VkPhysicalDeviceMemoryProp
 	VkResult result;
 	if (pImageInfo)
 	{
-		result = vkCreateImage(device, pImageInfo, nullptr, &p_VulkanImage.image);
+		result = vkCreateImage(device, pImageInfo, nullptr, &p_VulkanImage.out.image);
 	}
 	else
 	{
@@ -649,7 +648,7 @@ void VulkanHelper::CreateImage(const VkDevice device, VkPhysicalDeviceMemoryProp
 		imageInfo.pNext = NULL;
 		imageInfo.imageType = VK_IMAGE_TYPE_2D;
 		imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
-		imageInfo.extent = p_VulkanImage.extent;
+		imageInfo.extent = p_VulkanImage.in.extent;
 		imageInfo.mipLevels = 1;
 		imageInfo.arrayLayers = 1;
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -659,24 +658,24 @@ void VulkanHelper::CreateImage(const VkDevice device, VkPhysicalDeviceMemoryProp
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.usage = (VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
-		result = vkCreateImage(device, &imageInfo, nullptr, &p_VulkanImage.image);
+		result = vkCreateImage(device, &imageInfo, nullptr, &p_VulkanImage.out.image);
 	}
 	
 	assert(result == VK_SUCCESS);
 
-	vkGetImageMemoryRequirements(device, p_VulkanImage.image, &p_VulkanImage.memRqrmnt);
+	vkGetImageMemoryRequirements(device, p_VulkanImage.out.image, &p_VulkanImage.out.memRqrmnt);
 
 	VkMemoryAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	allocInfo.allocationSize = p_VulkanImage.memRqrmnt.size;
+	allocInfo.allocationSize = p_VulkanImage.out.memRqrmnt.size;
 
-	VulkanHelper::MemoryTypeFromProperties(deviceMemProp, p_VulkanImage.memRqrmnt.memoryTypeBits,
-										   p_VulkanImage.memoryFlags, &allocInfo.memoryTypeIndex);
+	VulkanHelper::MemoryTypeFromProperties(deviceMemProp, p_VulkanImage.out.memRqrmnt.memoryTypeBits,
+										   p_VulkanImage.in.memoryFlags, &allocInfo.memoryTypeIndex);
 
-	result = vkAllocateMemory(device, &allocInfo, nullptr, &p_VulkanImage.deviceMemory);
+	result = vkAllocateMemory(device, &allocInfo, nullptr, &p_VulkanImage.out.deviceMemory);
 	assert(result == VK_SUCCESS);
 
-	vkBindImageMemory(device, p_VulkanImage.image, p_VulkanImage.deviceMemory, 0);
+	vkBindImageMemory(device, p_VulkanImage.out.image, p_VulkanImage.out.deviceMemory, 0);
 }
 
 void VulkanHelper::CreateImage(const VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemProp,
@@ -746,4 +745,41 @@ void VulkanHelper::CreateImageView(const VkDevice p_Device, VulkanImageView& p_I
 	}
 
 	assert(result == VK_SUCCESS);
+}
+
+void VulkanHelper::CreateStagingImage(const VkDevice p_Device, VkPhysicalDeviceMemoryProperties p_DeviceMemProp, VkCommandPool& p_CmdPool, const VkQueue& p_Queue, VulkanImage& p_VulkanImage, const void* p_Data, VkImageCreateInfo* p_ImageInfo, VkBufferImageCopy* p_Region)
+{
+	VulkanBuffer stageBuffer;
+
+	// Create staging buffer
+	stageBuffer.m_DataSize = p_VulkanImage.in.dataSize;
+	stageBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+	VulkanHelper::CreateBuffer(p_Device, p_DeviceMemProp, stageBuffer, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, p_Data);
+
+	// Create Device Local Buffers
+	p_VulkanImage.in.memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT; // Ensure, it must be device local
+	VulkanHelper::CreateImage(p_Device, p_DeviceMemProp, p_VulkanImage, p_ImageInfo);
+
+	// Copy staging buffers in device local buffer
+	{
+		VkCommandBuffer copyCmd;
+		VulkanHelper::AllocateCommandBuffer(p_Device, p_CmdPool, &copyCmd);
+		VulkanHelper::BeginCommandBuffer(copyCmd);
+
+		VulkanHelper::SetImageLayout(p_VulkanImage.out.image, p_VulkanImage.in.imageAspectType,
+			VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (VkAccessFlagBits)0, copyCmd);
+
+		// Copy buffer to image
+		vkCmdCopyBufferToImage(copyCmd, stageBuffer.m_Buffer, p_VulkanImage.out.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, p_Region);
+
+		VulkanHelper::SetImageLayout(p_VulkanImage.out.image, p_VulkanImage.in.imageAspectType,
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, (VkAccessFlagBits)0, copyCmd);
+
+		VulkanHelper::EndCommandBuffer(copyCmd);
+		VulkanHelper::SubmitCommandBuffer(p_Queue, copyCmd);
+		vkFreeCommandBuffers(p_Device, p_CmdPool, 1, &copyCmd);
+	}
+
+	vkDestroyBuffer(p_Device, stageBuffer.m_Buffer, nullptr);
+	vkFreeMemory(p_Device, stageBuffer.m_Memory, nullptr);
 }
