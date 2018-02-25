@@ -79,10 +79,13 @@ VulkanApp::~VulkanApp()
 		vkDestroyImageView(m_hDevice, m_hSwapChainImageViewList[i], nullptr);
 	}
 	
-	// Release Depth attachment resources - image, image view and allocated device memory
-	vkDestroyImage(m_hDevice, DepthImage.m_Image.image, nullptr);
-	vkDestroyImageView(m_hDevice, DepthImage.m_ImageView.imageView, nullptr);
-	vkFreeMemory(m_hDevice, DepthImage.m_Image.deviceMemory, nullptr);
+	if (m_DepthEnabled)
+	{
+		// Release Depth attachment resources - image, image view and allocated device memory
+		vkDestroyImage(m_hDevice, DepthImage.m_Image.image, nullptr);
+		vkDestroyImageView(m_hDevice, DepthImage.m_ImageView.imageView, nullptr);
+		vkFreeMemory(m_hDevice, DepthImage.m_Image.deviceMemory, nullptr);
+	}
 
 	vkDestroySwapchainKHR(m_hDevice, m_hSwapChain, nullptr);
 	vkDestroyDevice(m_hDevice, nullptr);
