@@ -73,10 +73,16 @@ VulkanApp::~VulkanApp()
 
 	vkDestroyRenderPass(m_hDevice, m_hRenderPass, nullptr);
 
+	// Release Color attachment resources
 	for (size_t i = 0; i < m_hSwapChainImageViewList.size(); i++)
 	{
 		vkDestroyImageView(m_hDevice, m_hSwapChainImageViewList[i], nullptr);
 	}
+	
+	// Release Depth attachment resources - image, image view and allocated device memory
+	vkDestroyImage(m_hDevice, DepthImage.m_Image.image, nullptr);
+	vkDestroyImageView(m_hDevice, DepthImage.m_ImageView.imageView, nullptr);
+	vkFreeMemory(m_hDevice, DepthImage.m_Image.deviceMemory, nullptr);
 
 	vkDestroySwapchainKHR(m_hDevice, m_hSwapChain, nullptr);
 	vkDestroyDevice(m_hDevice, nullptr);

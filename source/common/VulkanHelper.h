@@ -97,19 +97,13 @@ public:
 	static void SubmitCommandBuffer(const VkQueue& queue, const VkCommandBuffer cmdBufList, const VkSubmitInfo* submitInfo = NULL, const VkFence& fence = VK_NULL_HANDLE);
 	static void SetImageLayout(VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout, VkAccessFlagBits srcAccessMask, const VkCommandBuffer& commandBuffer);
 
-    
-	static VkResult createBuffer(const VkDevice logicalDevice, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkPhysicalDeviceMemoryProperties deviceMemProp, VkDeviceSize size, void * data, VkBuffer * buffer, VkDeviceMemory * memory); // Parminder: This function marked as obsolete
-	static VkResult createBuffer(const VkDevice device, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkPhysicalDeviceMemoryProperties deviceMemProp, VkDeviceSize size, VkBuffer *buffer, VkDeviceMemory *memory, void *data = nullptr); // Parminder: This function marked as obsolete
-	static void CreateBuffer(const VkDevice p_Device, VkPhysicalDeviceMemoryProperties p_DeviceMemProp, VulkanBuffer& p_VulkanBuffer, VkBufferCreateInfo* p_pBufInfo = NULL, const void* p_Data = NULL); // Please use this Create Buffer currently begin used
-	//static bool MapMemory(const VkDevice p_Device, const void* p_VertexData, const VulkanBuffer& p_VulkanBuffer);
+	static void CreateBuffer(const VkDevice p_Device, VkPhysicalDeviceMemoryProperties p_DeviceMemProp, VulkanBuffer& p_VulkanBuffer, VkBufferUsageFlags p_UsageFlags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, const void* p_Data = NULL, VkBufferCreateInfo* p_pBufInfo = NULL); // Please use this Create Buffer currently begin used
 	static void MapMemory(const VkDevice p_Device, const VkDeviceMemory& p_Memory, VkDeviceSize p_Offset, VkDeviceSize p_Size, VkMemoryMapFlags flags, uint8_t*& p_MappedMemory);
 	static void WriteMemory(const VkDevice p_Device, void* p_MappedMemory, const std::vector<VkMappedMemoryRange>& p_MappedRange, VkMemoryMapFlags p_Flags, void const* p_Src, size_t p_Size);
 
     // Chapter 3 => For Selva: Adding chapter name may be not very useful, now onwards almost every change uses image nad buffer so I dont think this would be helpful.
 	static void CreateImage(const VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemProp, VkMemoryPropertyFlags imageMemProp, VkImageCreateInfo* pImageInfo, VkImage* pTextureImage, VkDeviceMemory* pTextureImageMemory);// Parminder: This function marked as obsolete
 	static VkImageView CreateImageView(const VkDevice device, VkImage image, VkImageViewType type = VK_IMAGE_VIEW_TYPE_2D, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
-    static void UpdateMemory(const VkDevice device, VkDeviceMemory deviceMem, VkDeviceSize offset, VkDeviceSize size, VkMemoryMapFlags flags, const void* pData); // Todo:
-    //@todo Remove this method once SetImageLayout is generalzied to handle all layout transition
     static bool SetImageLayoutEx(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout, const VkCommandBuffer& commandBuffer);
 
 	static void CreateImage(const VkDevice p_Device, VkPhysicalDeviceMemoryProperties p_DeviceMemProp, VulkanImage& p_VulkanImage, VkImageCreateInfo* p_pImageInfo = NULL);

@@ -70,9 +70,10 @@ private:
         VulkanBuffer bufObj;
 	};
 	struct MeshIndices {
-		int m_IndexCount;
+		uint32_t m_IndexCount;
         VulkanBuffer bufObj;
 	};
+
 	struct Mesh {
         struct MeshVertices vertices;
         struct MeshIndices indices;

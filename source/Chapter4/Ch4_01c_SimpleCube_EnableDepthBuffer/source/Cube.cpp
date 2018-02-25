@@ -307,7 +307,7 @@ void Cube::CreateVertexBuffer(const void * vertexData, uint32_t dataSize, uint32
 
 	const VkPhysicalDeviceMemoryProperties& memProp = m_VulkanApplication->m_physicalDeviceInfo.memProp;
 	const VkDevice& device = m_VulkanApplication->m_hDevice;
-	VulkanHelper::CreateBuffer(device, memProp, VertexBuffer.m_BufObj, NULL, vertexData);
+	VulkanHelper::CreateBuffer(device, memProp, VertexBuffer.m_BufObj, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexData);
 
 	// Indicates the rate at which the information will be
 	// injected for vertex input.
@@ -337,19 +337,8 @@ void Cube::CreateUniformBuffer()
 	UniformBuffer.m_BufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 	UniformBuffer.m_BufObj.m_DataSize = sizeof(glm::mat4);
 
-	VkResult  result;
 	// Create buffer resource states using VkBufferCreateInfo
-	VkBufferCreateInfo bufInfo = {};
-	bufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	bufInfo.pNext = NULL;
-	bufInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-	bufInfo.size = UniformBuffer.m_BufObj.m_DataSize;
-	bufInfo.queueFamilyIndexCount = 0;
-	bufInfo.pQueueFamilyIndices = NULL;
-	bufInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	bufInfo.flags = 0;
-
-	VulkanHelper::CreateBuffer(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_physicalDeviceInfo.memProp, UniformBuffer.m_BufObj, &bufInfo);
+	VulkanHelper::CreateBuffer(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_physicalDeviceInfo.memProp, UniformBuffer.m_BufObj, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
 	// Map the GPU memory on to local host
 	VulkanHelper::MapMemory(m_VulkanApplication->m_hDevice, UniformBuffer.m_BufObj.m_Memory, 0, UniformBuffer.m_BufObj.m_MemRqrmnt.size, 0, UniformBuffer.m_MappedMemory);

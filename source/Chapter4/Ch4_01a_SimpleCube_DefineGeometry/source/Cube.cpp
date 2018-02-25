@@ -77,7 +77,6 @@ void Cube::CreateGraphicsPipeline()
 	vertexInputInfo.vertexAttributeDescriptionCount = sizeof(m_VertexInputAttribute) / sizeof(VkVertexInputAttributeDescription);
 	vertexInputInfo.pVertexAttributeDescriptions = m_VertexInputAttribute;
 
-
     // Setup input assembly
     // We will be rendering 1 triangle using triangle strip topology
     VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
@@ -247,7 +246,7 @@ void Cube::CreateVertexBuffer(const void * vertexData, uint32_t dataSize, uint32
 
 	const VkPhysicalDeviceMemoryProperties& memProp = m_VulkanApplication->m_physicalDeviceInfo.memProp;
 	const VkDevice& device = m_VulkanApplication->m_hDevice;
-	VulkanHelper::CreateBuffer(device, memProp, VertexBuffer.m_BufObj, NULL, vertexData);
+	VulkanHelper::CreateBuffer(device, memProp, VertexBuffer.m_BufObj, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexData);
 
 	// Indicates the rate at which the information will be
 	// injected for vertex input.

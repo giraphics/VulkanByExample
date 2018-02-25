@@ -7,7 +7,7 @@
 Canvas2DApp::Canvas2DApp():
     m_scrollDelta(0), m_tmpScrollDelta(1), m_numTotalCols(0),m_numVisibleCols(0),
     m_numVisibleRows(0), m_canvas2DPipelineLayout(VK_NULL_HANDLE), m_canvas2DGraphicsPipeline(VK_NULL_HANDLE), 
-    m_textureSampler(VK_NULL_HANDLE), m_uniformBuffer(VK_NULL_HANDLE), m_uniformBufferMemory(VK_NULL_HANDLE)
+    m_textureSampler(VK_NULL_HANDLE)
 {
 }
 
@@ -54,8 +54,8 @@ Canvas2DApp::~Canvas2DApp()
     vkDestroyPipeline(m_hDevice, m_canvas2DGraphicsPipeline, nullptr);
     vkDestroyPipelineLayout(m_hDevice, m_canvas2DPipelineLayout, nullptr);
 
-    vkDestroyBuffer(m_hDevice, m_uniformBuffer, nullptr);
-    vkFreeMemory(m_hDevice, m_uniformBufferMemory, nullptr);
+    vkDestroyBuffer(m_hDevice, UniformBuffer.m_UniformBufferObj.m_Buffer, nullptr);
+    vkFreeMemory(m_hDevice, UniformBuffer.m_UniformBufferObj.m_Memory, nullptr);
 }
 
 // Get the list of jpg image files in the current folder and 
@@ -162,7 +162,7 @@ void Canvas2DApp::CreateImageTiles()
 				buffObj.m_DataSize = sizeof(vertices);
 				buffObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
-				VulkanHelper::CreateBuffer(m_hDevice, m_physicalDeviceInfo.memProp, buffObj, NULL, vertices);
+				VulkanHelper::CreateBuffer(m_hDevice, m_physicalDeviceInfo.memProp, buffObj, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertices);
                 m_quad[idx].m_VertexBuffer = buffObj.m_Buffer;
                 m_quad[idx].m_VertexBufferMemory = buffObj.m_Memory;
                 
@@ -241,18 +241,12 @@ void Canvas2DApp::CreateTexture(string textureFilename, VulkanImage& textureImag
         VulkanHelper::CreateImageView(m_hDevice, textureImageView);
 #else
         // Copy using staging buffer
-        VkBuffer stagingBuffer;
-        VkDeviceMemory stagingBufferMemory;
+		VulkanBuffer stageBuffer;
+		stageBuffer.m_DataSize = imageSize;
+		stageBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
-        VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-        VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-
-        // Create staging buffer
-        VulkanHelper::createBuffer(m_hDevice,usageFlags, propertyFlags, m_physicalDeviceInfo.memProp, imageSize,
-            &stagingBuffer,
-            &stagingBufferMemory);
-
-        VulkanHelper::UpdateMemory(m_hDevice, stagingBufferMemory, 0, imageSize, 0, pPixels);
+		// Create staging buffer
+		VulkanHelper::CreateBuffer(m_hDevice, m_physicalDeviceInfo.memProp, stageBuffer, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, pPixels);
 
         VkImageCreateInfo imageInfo = {};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -271,15 +265,14 @@ void Canvas2DApp::CreateTexture(string textureFilename, VulkanImage& textureImag
 		VulkanHelper::CreateImage(m_hDevice, m_physicalDeviceInfo.memProp, textureImage, &imageInfo);
 
 		TransitionImageLayout(textureImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-        CopyBufferToImage(stagingBuffer, textureImage.image, texWidth, texHeight);
+        CopyBufferToImage(stageBuffer.m_Buffer, textureImage.image, texWidth, texHeight);
         TransitionImageLayout(textureImage.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		textureImageView.pImage = &textureImage.image;
-        //textureImageView = VulkanHelper::CreateImageView(m_hDevice, textureImage.image);
 		VulkanHelper::CreateImageView(m_hDevice, textureImageView);
 
-        vkDestroyBuffer(m_hDevice, stagingBuffer, nullptr);
-        vkFreeMemory(m_hDevice, stagingBufferMemory, nullptr);
+        vkDestroyBuffer(m_hDevice, stageBuffer.m_Buffer, nullptr);
+        vkFreeMemory(m_hDevice, stageBuffer.m_Memory, nullptr);
 #endif
 
         stbi_image_free(pPixels);
@@ -371,12 +364,6 @@ VkDescriptorSet Canvas2DApp::CreateDescriptorSet(VkImageView imageView)
     VkResult result = vkAllocateDescriptorSets(m_hDevice, &allocInfo, &descSet);
     assert(result == VK_SUCCESS);
     
-    // Setup buffer info for uniform buffer object
-    VkDescriptorBufferInfo bufferInfo = {};
-    bufferInfo.buffer = m_uniformBuffer;
-    bufferInfo.offset = 0;
-    bufferInfo.range = sizeof(UniformBufferObject);
-
     // Setup image info for the texture
     VkDescriptorImageInfo imageInfo = {};
     imageInfo.imageLayout =  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -392,7 +379,7 @@ VkDescriptorSet Canvas2DApp::CreateDescriptorSet(VkImageView imageView)
     descriptorWrites[0].dstArrayElement = 0;
     descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     descriptorWrites[0].descriptorCount = 1;
-    descriptorWrites[0].pBufferInfo = &bufferInfo;
+    descriptorWrites[0].pBufferInfo = &UniformBuffer.m_DescriptorBufInfo;
 
     // Setup descriptor write for image info
     descriptorWrites[1].sType =  VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -412,22 +399,28 @@ VkDescriptorSet Canvas2DApp::CreateDescriptorSet(VkImageView imageView)
 
 void Canvas2DApp::CreateUniformBuffer()
 {
-    // memory size to allocate
-    VkDeviceSize size = sizeof(UniformBufferObject);
+	const uint64_t uniformBufferSize = sizeof(UniformBufferObject);
+	UniformBuffer.m_UniformBufferObj.m_DataSize = uniformBufferSize;
+	UniformBuffer.m_UniformBufferObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	VulkanHelper::CreateBuffer(m_hDevice, m_physicalDeviceInfo.memProp, UniformBuffer.m_UniformBufferObj, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
-    UniformBufferObject ubo = {};
+	// Map the GPU memory on to local host
+	VulkanHelper::MapMemory(m_hDevice, UniformBuffer.m_UniformBufferObj.m_Memory, 0, UniformBuffer.m_UniformBufferObj.m_MemRqrmnt.size, 0, UniformBuffer.m_MappedMemory);
 
-    // Usage flag set to Uniform buffer
-    VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+	// We have only one Uniform buffer object to update
+	UniformBuffer.m_MappedRange.resize(1);
 
-    // Set the property flag to indicate the memory is visible on host side
-    // and the content is coherent between CPU & GPU
-    VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	// Populate the VkMappedMemoryRange data structure
+	UniformBuffer.m_MappedRange[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+	UniformBuffer.m_MappedRange[0].memory = UniformBuffer.m_UniformBufferObj.m_Memory;
+	UniformBuffer.m_MappedRange[0].offset = 0;
+	UniformBuffer.m_MappedRange[0].size = UniformBuffer.m_UniformBufferObj.m_MemRqrmnt.size;
 
-    //@todo Revisit this once CreateBuffer is generalized
-    VulkanHelper::createBuffer(m_hDevice, usageFlags, propertyFlags, m_physicalDeviceInfo.memProp, size, &m_uniformBuffer, &m_uniformBufferMemory);
+	// Update descriptor buffer info in order to write the descriptors
+	UniformBuffer.m_DescriptorBufInfo.buffer = UniformBuffer.m_UniformBufferObj.m_Buffer;
+	UniformBuffer.m_DescriptorBufInfo.offset = 0;
+	UniformBuffer.m_DescriptorBufInfo.range = uniformBufferSize;
 }
-
 
 void Canvas2DApp::UpdateUniformBuffer()
 {
@@ -447,8 +440,11 @@ void Canvas2DApp::UpdateUniformBuffer()
         m_tmpScrollDelta = -m_tmpScrollDelta;
     }
 
-    // Update memory
-    VulkanHelper::UpdateMemory(m_hDevice, m_uniformBufferMemory, 0, sizeof(ubo), 0, &ubo);
+    //// Update memory
+    //VulkanHelper::UpdateMemory(m_hDevice, m_uniformBufferMemory, 0, sizeof(ubo), 0, &ubo);
+
+	VulkanHelper::WriteMemory(m_hDevice, UniformBuffer.m_MappedMemory, UniformBuffer.m_MappedRange,
+		UniformBuffer.m_UniformBufferObj.m_MemoryFlags, &ubo, sizeof(ubo));
 }
 
 void Canvas2DApp::BuildCommandBuffers()
