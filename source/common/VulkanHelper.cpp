@@ -601,7 +601,7 @@ bool VulkanHelper::WriteBuffer(const VkDevice p_Device, const void* p_VertexData
 
 	// 1. Copy data into buffer
 	/**************************/
-	if (p_VulkanBuffer.m_MemoryFlags == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+	if (p_VulkanBuffer.m_MemoryFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
 	{
 		// 1a. Map the physical device memory region to the host 
 		uint8_t *pData;
