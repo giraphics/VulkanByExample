@@ -57,12 +57,20 @@ void MeshDemoApp::Update()
 	m_Cube->Update();
 }
 
+void MeshDemoApp::ResizeWindow(int width, int height)
+{
+    VulkanApp::ResizeWindow(width, height);
+
+    m_Cube->ResizeWindow(width, height);
+}
+
 int main(int argc, char **argv)
 {
 	QApplication qtApp(argc, argv);
 
 	MeshDemoApp* meshApp = new MeshDemoApp(); // Create Vulkan app instance
 	meshApp->EnableDepthBuffer(true);
+    meshApp->EnableWindowResize(true);
 	meshApp->Initialize();
 	qtApp.exec();
 	

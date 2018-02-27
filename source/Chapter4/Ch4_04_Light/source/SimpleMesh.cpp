@@ -71,6 +71,22 @@ void SimpleMesh::Update()
 								&TransformationUniforms, sizeof(TransformationUniforms));
 }
 
+void SimpleMesh::ResizeWindow(int width, int height)
+{
+    // @Parminder: Should we show destroying and recreating pipeline or update 
+    // the viewport and scissor dynamically (please check #if 0 code
+    // in RecordCommandBuffers)
+    // Pipeline creation could be an expensive call when multiple objects are in the scene
+    VkDevice device = m_VulkanApplication->m_hDevice;
+    vkDestroyPipeline(device, m_hGraphicsPipeline, nullptr);
+    vkDestroyPipelineLayout(device, m_hPipelineLayout, nullptr);
+    CreateGraphicsPipeline();
+
+    // Create command buffers and record commands
+    CreateCommandBuffers();
+    RecordCommandBuffer();
+}
+
 void SimpleMesh::CreateGraphicsPipeline()
 {
     // Compile the vertex shader
@@ -278,6 +294,28 @@ void SimpleMesh::RecordCommandBuffer()
 
 		// Bind graphics pipeline
         vkCmdBindPipeline(m_VulkanApplication->m_hCommandBufferList[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_hGraphicsPipeline);
+
+#if 0
+        //@Parminder: We can use the following method to update view port 
+        // & scissor dynamically when the window resized. This avoids 
+        // recreating the pipeline
+
+        // Update dynamic viewport state
+        VkViewport viewport = {};
+        viewport.width = (float)renderExtent.width;
+        viewport.height = (float)renderExtent.height;
+        viewport.minDepth = (float) 0.0f;
+        viewport.maxDepth = (float) 1.0f;
+        vkCmdSetViewport(m_VulkanApplication->m_hCommandBufferList[i], 0, 1, &viewport);
+
+        // Update dynamic scissor state
+        VkRect2D scissor = {};
+        scissor.extent.width = renderExtent.width;
+        scissor.extent.height = renderExtent.height;
+        scissor.offset.x = 0;
+        scissor.offset.y = 0;
+        vkCmdSetScissor(m_VulkanApplication->m_hCommandBufferList[i], 0, 1, &scissor);
+#endif
 
         vkCmdBindDescriptorSets(m_VulkanApplication->m_hCommandBufferList[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_hPipelineLayout,
 			0, 1, descriptorSet.data(), 0, NULL);

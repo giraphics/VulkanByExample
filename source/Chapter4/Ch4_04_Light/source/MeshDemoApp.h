@@ -11,6 +11,7 @@ public:
 	void Configure();
 	void Setup();
 	void Update();
+    void ResizeWindow(int width, int height);
 
 private:
 	SimpleMesh* m_Cube;

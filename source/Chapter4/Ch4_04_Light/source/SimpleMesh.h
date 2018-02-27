@@ -17,6 +17,8 @@ public:
 	void Update();
 	void LoadMesh(const char* p_Filename, bool p_UseStaging = true);
 
+    void ResizeWindow(int width, int height);
+
 private:
 	void CreateGraphicsPipeline();
 	void RecordCommandBuffer();

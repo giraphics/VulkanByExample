@@ -34,11 +34,14 @@ public:
 	void SetWindowDimension(int width, int height);
     VkExtent2D GetWindowDimension() { return (m_windowDim); }
 	void EnableDepthBuffer(bool depthEnabled) { m_DepthEnabled = depthEnabled; }
+    void EnableWindowResize(bool resizeEnabled) { m_ReSizeEnabled = resizeEnabled; }
     
     void AddValidationLayer(char* pName) { m_validationLayers.push_back(pName);  }
     void AddInstanceExtension(char* pName) { m_instanceExtensionNames.push_back(pName); }
 
 	virtual void CreateCommandBuffers(); // Overide the default implementation as per application requirement
+
+    virtual void ResizeWindow(int width, int height);
 	
 protected:
 	// Core virtual methods used by derived classes
@@ -84,6 +87,7 @@ public:
 	VkExtent2D		m_windowDim;	// Display window dimension
 	string          m_appName;		// Display name
 	bool			m_DepthEnabled; // Is depth buffer supported
+    bool            m_ReSizeEnabled;// Is Window resize support enabled
 
     std::vector<const char *> m_instanceExtensionNames;
     std::vector<const char *> m_validationLayers;
@@ -133,6 +137,7 @@ public:
 
 	public slots:
 	void Run();
+    void resizeEvent(QResizeEvent* pEvent);
 
 private:
 	QTimer* renderTimer;	// Refresh timer
@@ -163,4 +168,7 @@ public:
 
 	// Key interaction: Dummy interface for now.
 	virtual void keyPressEvent() UNIMPLEMENTED_INTEFACE
+
+    // Application Window resizing
+    virtual void ResizeWindow(int width, int height) {}
 };

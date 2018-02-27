@@ -22,6 +22,20 @@ void Window::Run()
 	m_VulkanApp->Run();
 }
 
+void Window::resizeEvent(QResizeEvent* pEvent)
+{
+    QWindow::resizeEvent(pEvent);
+
+    if (m_VulkanApp->m_ReSizeEnabled == true &&
+        isVisible() == true)
+    {
+        int newWidth = width();
+        int newHeight = height();
+
+        m_VulkanApp->ResizeWindow(newWidth, newHeight);
+    }
+}
+
 VulkanApp::VulkanApp()
 {
     m_pWindow = nullptr;
@@ -58,6 +72,7 @@ VulkanApp::VulkanApp()
 
 	memset(&DepthImage, 0, sizeof(DepthImage));
 	m_DepthEnabled = false;
+    m_ReSizeEnabled = false;
 }
 
 VulkanApp::~VulkanApp()
@@ -429,6 +444,8 @@ void VulkanApp::CreateDeviceAndQueueObjects()
 
 void VulkanApp::CreateSwapChain()
 {
+    VkSwapchainKHR oldSwapChain = m_hSwapChain;
+
     VkSurfaceFormatKHR surfaceFormat = VulkanHelper::SelectBestSurfaceFormat(m_physicalDeviceInfo.formatList);
     VkPresentModeKHR presentMode = VulkanHelper::SelectBestPresentMode(m_physicalDeviceInfo.presentModeList);
     VkExtent2D extent = VulkanHelper::SelectBestExtent(m_physicalDeviceInfo.capabilities, m_windowDim);
@@ -469,7 +486,7 @@ void VulkanApp::CreateSwapChain()
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     createInfo.presentMode = presentMode;
     createInfo.clipped = VK_TRUE;
-    createInfo.oldSwapchain = VK_NULL_HANDLE;
+    createInfo.oldSwapchain = oldSwapChain;
 
     // Create the Swap chain
     if (vkCreateSwapchainKHR(m_hDevice, &createInfo, nullptr, &m_hSwapChain) != VK_SUCCESS)
@@ -479,6 +496,16 @@ void VulkanApp::CreateSwapChain()
     }
     else
     {
+        if (oldSwapChain != VK_NULL_HANDLE)
+        {
+            for (uint32_t i = 0; i < imageCount; i++)
+            {
+                vkDestroyImageView(m_hDevice, m_hSwapChainImageViewList[i], nullptr);
+            }
+            m_hSwapChainImageViewList.clear();
+            vkDestroySwapchainKHR(m_hDevice, oldSwapChain, nullptr);
+        }
+
         // Get the count of swap chain images
         vkGetSwapchainImagesKHR(m_hDevice, m_hSwapChain, &imageCount, nullptr);
 		std::vector<VkImage> swapChainImageList;
@@ -733,6 +760,44 @@ void VulkanApp::CreateSemaphores()
 		VulkanHelper::LogError("vkCreateSemaphore() failed");
 		assert(false);
 	}
+}
+
+void VulkanApp::ResizeWindow(int width, int height)
+{
+    SetWindowDimension(width, height);
+
+    vkDeviceWaitIdle(m_hDevice);
+
+    // Destroy and create new swap chain
+    CreateSwapChain();
+
+    // Destroy and create new depth buffer
+    if (m_DepthEnabled)
+    {
+        // Release Depth attachment resources - image, image view and allocated device memory
+        vkDestroyImage(m_hDevice, DepthImage.m_Image.out.image, nullptr);
+        vkDestroyImageView(m_hDevice, DepthImage.m_ImageView.imageView, nullptr);
+        vkFreeMemory(m_hDevice, DepthImage.m_Image.out.deviceMemory, nullptr);
+
+        CreateDepthImage();
+    }
+
+    // Destroy and create new frame buffers
+    for (size_t i = 0; i < m_hFramebuffers.size(); i++)
+    {
+        vkDestroyFramebuffer(m_hDevice, m_hFramebuffers[i], nullptr);
+        m_hFramebuffers[i] = nullptr;
+    }
+    m_hFramebuffers.clear();
+    CreateFramebuffers();
+
+    // Destroy and create new command buffers
+    vkFreeCommandBuffers(m_hDevice, m_hCommandPool, m_hCommandBufferList.size(), m_hCommandBufferList.data());
+    m_hCommandBufferList.clear();
+
+    m_activeSwapChainImageIndex = 0;
+
+    vkDeviceWaitIdle(m_hDevice);
 }
 
 bool VulkanApp::Render()

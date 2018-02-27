@@ -205,11 +205,17 @@ VkExtent2D VulkanHelper::SelectBestExtent(const VkSurfaceCapabilitiesKHR& capabi
 	// If either the width or height is -1 then set to swap chain extent to window dimension
 	// otherwise choose the current extent from device capabilities
 	if (capabilities.currentExtent.width == (uint32_t)-1 ||
-	capabilities.currentExtent.height == (uint32_t)-1)
+	   capabilities.currentExtent.height == (uint32_t)-1)
 	{
 		swapChainExtent.width = windowDim.width;
 		swapChainExtent.height = windowDim.height;
 	}
+    else if (swapChainExtent.width != windowDim.width ||
+             swapChainExtent.height != windowDim.height)
+    {
+        swapChainExtent.width = windowDim.width;
+        swapChainExtent.height = windowDim.height;
+    }
 
 	return (swapChainExtent);
 }
