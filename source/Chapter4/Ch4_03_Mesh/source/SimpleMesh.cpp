@@ -279,9 +279,6 @@ void SimpleMesh::RecordCommandBuffer()
 
 		// Specify vertex buffer information
 		const VkDeviceSize offsets[1] = { 0 };
-		//vkCmdBindVertexBuffers(m_VulkanApplication->m_hCommandBufferList[i], 0, 1, &VertexBuffer.m_Buffer, offsets);
-		
-		/////////////////////////////////////////////////////////////////////
 		// Bind mesh vertex buffer
         vkCmdBindVertexBuffers(m_VulkanApplication->m_hCommandBufferList[i], 0, 1, &m_Mesh.vertexBuffer.m_Buffer, offsets);
 
@@ -290,7 +287,6 @@ void SimpleMesh::RecordCommandBuffer()
 
 		// Render mesh vertex buffer using it's indices
         vkCmdDrawIndexed(m_VulkanApplication->m_hCommandBufferList[i], m_Mesh.indexCount, 1, 0, 0, 0);
-		////////////////////////////////////////////////////////////////////
 
 		// End the Render pass
         vkCmdEndRenderPass(m_VulkanApplication->m_hCommandBufferList[i]);
@@ -312,7 +308,7 @@ void SimpleMesh::CreateCommandBuffers()
 
 bool SimpleMesh::Load(const char* p_Filename)
 {
-    m_pMeshScene = m_AssimpImporter.ReadFile(p_Filename, aiProcess_Triangulate | aiProcess_FlipWindingOrder | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals);
+    m_pMeshScene = m_AssimpImporter.ReadFile(p_Filename, aiProcess_Triangulate | aiProcess_PreTransformVertices );
 
 	uint32_t vertexCount = 0;
     if (!m_pMeshScene)

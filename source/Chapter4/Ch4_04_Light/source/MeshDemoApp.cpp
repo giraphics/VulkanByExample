@@ -52,8 +52,6 @@ void MeshDemoApp::Setup()
 
 void MeshDemoApp::Update()
 {
-	static float rot = 0;
-	m_Cube->Rotate(rot += .003f, 0.0f, 1.0f, 0.0f);
 	m_Cube->Update();
 }
 

@@ -1,4 +1,4 @@
-// Filename: Triangle.frag
+// Filename: Light.frag
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -9,6 +9,4 @@ void main()
 {
     // Pass through fragment color input as output
     outColor = fragColor;
-//	    outColor = vec4(1.0, 1.0, 0.0, 0.3);
-
 }

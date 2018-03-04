@@ -43,10 +43,11 @@ private:
 	bool Load(const char* p_Filename);
 
 	struct {
-		glm::mat4 MVP;
+		glm::mat4 NormalMatrix;
 		glm::mat4 Projection;
 		glm::mat4 View;
 		glm::mat4 Model;
+		glm::vec4 LightPosition;
 	} TransformationUniforms;
 
 	struct {

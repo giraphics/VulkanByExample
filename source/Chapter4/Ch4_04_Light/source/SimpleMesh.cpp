@@ -59,10 +59,18 @@ void SimpleMesh::Setup()
 void SimpleMesh::Update()
 {
 	glm::mat4 normalMatrix = m_Model * (*m_View);
-	TransformationUniforms.MVP = glm::mat3x3(glm::vec3(TransformationUniforms.MVP[0]), glm::vec3(TransformationUniforms.MVP[1]), glm::vec3(TransformationUniforms.MVP[2]));
+	TransformationUniforms.NormalMatrix = glm::mat3x3(glm::vec3(normalMatrix[0]), glm::vec3(normalMatrix[1]), glm::vec3(normalMatrix[2]));
 	TransformationUniforms.Projection = (*m_Projection);
 	TransformationUniforms.View = (*m_View);
 	TransformationUniforms.Model = m_Model;
+
+	static int radius = 100;
+	static int numSegments = 500;
+	static float i = 0;
+
+	float theta = 2.0f * 3.14 * ((i > numSegments) ? i = 0 : i+=0.4) / numSegments;	// Get the current angle
+	TransformationUniforms.LightPosition.x = radius * cosf(theta);			// Calculate the X component
+	TransformationUniforms.LightPosition.z = radius * sinf(theta);			// Calculate the Z component
 
 	VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice, 
 								UniformBuffer.m_MappedMemory, 
@@ -355,7 +363,7 @@ void SimpleMesh::CreateCommandBuffers()
 
 bool SimpleMesh::Load(const char* p_Filename)
 {
-    m_pMeshScene = m_AssimpImporter.ReadFile(p_Filename, aiProcess_Triangulate | aiProcess_FlipWindingOrder | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals);
+    m_pMeshScene = m_AssimpImporter.ReadFile(p_Filename, aiProcess_Triangulate | aiProcess_GenSmoothNormals);
 
 	uint32_t vertexCount = 0;
     if (!m_pMeshScene)
@@ -492,7 +500,7 @@ void SimpleMesh::CreateUniformBuffer()
     UniformBuffer.m_MappedRange[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
     UniformBuffer.m_MappedRange[0].memory = UniformBuffer.m_BufObj.m_Memory;
     UniformBuffer.m_MappedRange[0].offset = 0;
-    UniformBuffer.m_MappedRange[0].size = UniformBuffer.m_BufObj.m_DataSize;
+    UniformBuffer.m_MappedRange[0].size = UniformBuffer.m_BufObj.m_MemRqrmnt.size;
 
 	// Update descriptor buffer info in order to write the descriptors
     UniformBuffer.m_DescriptorBufInfo.buffer = UniformBuffer.m_BufObj.m_Buffer;
