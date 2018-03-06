@@ -20,7 +20,7 @@ MeshDemoApp::~MeshDemoApp()
 
 void MeshDemoApp::Configure()
 {
-    SetApplicationName("Simple Mesh Application");
+    SetApplicationName("Light shading - Diffuse");
     SetWindowDimension(800, 600);
 
     // Add Validation Layers
