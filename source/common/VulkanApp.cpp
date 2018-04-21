@@ -24,8 +24,6 @@ void Window::Run()
 
 void Window::resizeEvent(QResizeEvent* pEvent)
 {
-    QWindow::resizeEvent(pEvent);
-
     if (m_VulkanApp->m_ReSizeEnabled == true &&
         isVisible() == true)
     {
@@ -34,6 +32,7 @@ void Window::resizeEvent(QResizeEvent* pEvent)
 
         m_VulkanApp->ResizeWindow(newWidth, newHeight);
     }
+	QWindow::resizeEvent(pEvent);
 }
 
 VulkanApp::VulkanApp()
