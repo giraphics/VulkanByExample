@@ -59,7 +59,11 @@ void MeshDemoApp::ResizeWindow(int width, int height)
 {
     VulkanApp::ResizeWindow(width, height);
 
-    m_Cube->ResizeWindow(width, height);
+	static glm::mat4 Projection;
+	Projection  = glm::perspective(glm::radians(45.0f), float(width) / float(height), 0.1f, 100.0f);
+	m_Cube->SetProjection(&Projection);
+	
+	m_Cube->ResizeWindow(width, height);
 }
 
 int main(int argc, char **argv)
