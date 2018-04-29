@@ -22,7 +22,8 @@ Cube::Cube(VulkanApp* p_VulkanApp)
 
 	memset(&UniformBuffer, 0, sizeof(UniformBuffer));
 	memset(&VertexBuffer, 0, sizeof(VertexBuffer));
-
+	memset(&InstanceBuffer, 0, sizeof(InstanceBuffer));
+	
     m_VulkanApplication = p_VulkanApp;
 }
 
@@ -306,13 +307,12 @@ void Cube::RecordCommandBuffer()
 		// Specify vertex buffer information
 		const VkDeviceSize offsets[1] = { 0 };
         vkCmdBindVertexBuffers(m_VulkanApplication->m_hCommandBufferList[i], VERTEX_BUFFER_BIND_IDX, 1, &VertexBuffer.m_BufObj.m_Buffer, offsets);
-//		const VkDeviceSize offsets[1] = { 0 };
 		vkCmdBindVertexBuffers(m_VulkanApplication->m_hCommandBufferList[i], INSTANCE_BUFFER_BIND_IDX, 1, &InstanceBuffer.m_BufObj.m_Buffer, offsets);
 
 		// Draw the Cube 
 		const int vertexCount = sizeof(cubeVertices) / sizeof(Vertex);
 		vkCmdDraw(m_VulkanApplication->m_hCommandBufferList[i], vertexCount, INSTANCE_COUNT, 0, 0);
-//		vkCmdDraw(*cmdDraw, 3 * 2 * 6, INSTANCE_COUNT, 0, 0);
+
 		// End the Render pass
         vkCmdEndRenderPass(m_VulkanApplication->m_hCommandBufferList[i]);
 
@@ -532,202 +532,6 @@ void Cube::CreateDescriptorSet()
 	// Update the uniform buffer into the allocated descriptor set
     vkUpdateDescriptorSets(m_VulkanApplication->m_hDevice, 1, writes, 0, NULL);
 }
-
-//void Cube::prepareInstanceData()
-//{
-//	std::vector<InstanceData> instanceData;
-//	instanceData.resize(INSTANCE_COUNT);
-//
-//	std::mt19937 rndGenerator(time(NULL));
-//	std::uniform_real_distribution<double> uniformDist(0.0, 1.0);
-//
-//	//for (auto i = 0; i < INSTANCE_COUNT; i++)
-//	//{
-//	//	instanceData[i].rot = glm::vec3(M_PI * 10 * uniformDist(rndGenerator), M_PI * 10 * uniformDist(rndGenerator), M_PI *10* uniformDist(rndGenerator));
-//	//	float theta = 2 * M_PI * uniformDist(rndGenerator);
-//	//	float phi = acos(1 - 2 * uniformDist(rndGenerator));
-//	//	glm::vec3 pos;
-//	//	//instanceData[i].pos = glm::vec3(sin(phi) * cos(theta), sin(theta) * uniformDist(rndGenerator) / 1500.0f, cos(phi)) * 7.5f;
-//	//	//instanceData[i].scale = 1.0f + uniformDist(rndGenerator) * 2.0f;
-//	//	//instanceData[i].texIndex = 0;// rnd(textures.colorMap.layerCount);
-//	//}
-//
-//	for (auto i = 0; i < INSTANCE_COUNT; i++)
-//	{
-//		Model = glm::mat4(1.0f);
-//		static float rot = 0;
-//		rot += .0005f;
-//		//Model = glm::rotate(Model, rot, glm::vec3(0.0, 1.0, 0.0))
-//		//	* glm::rotate(Model, rot, glm::vec3(1.0, 1.0, 1.0));
-//		float theta = 2 * M_PI * uniformDist(rndGenerator);
-//		float phi = acos(1 - 2 * uniformDist(rndGenerator));
-//		glm::vec3 pos = glm::vec3(sin(phi) * cos(theta), 10 * sin(theta) * uniformDist(rndGenerator) / 1500.0f, cos(phi)) * 10.5f;
-//		Model = glm::translate(Model, pos);
-//
-//		instanceData[i].MVP = Model;
-//		instanceData[i].rot = glm::vec3(M_PI * 10 * uniformDist(rndGenerator), M_PI * 10 * uniformDist(rndGenerator), M_PI * 10 * uniformDist(rndGenerator));
-//	}
-//	instanceBuffer.size = instanceData.size() * sizeof(InstanceData);
-//
-//	// Staging
-//	// Instanced data is static, copy to device local memory 
-//	// This results in better performance
-//
-//	struct {
-//		VkDeviceMemory memory;
-//		VkBuffer buffer;
-//	} stagingBuffer;
-//
-//	//////////////////////////////////////// 1.
-//	{
-//		VkMemoryRequirements memReqs;
-//		VkMemoryAllocateInfo memAllocInfo = {};
-//		memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-//		memAllocInfo.pNext = NULL;
-//		memAllocInfo.allocationSize = 0;
-//		memAllocInfo.memoryTypeIndex = 0;
-//
-//		VkMemoryAllocateInfo memAlloc = memAllocInfo;
-//
-//		VkBufferCreateInfo bufCreateInfo = {};
-//		bufCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-//		bufCreateInfo.pNext = NULL;
-//		bufCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-//		bufCreateInfo.size = instanceBuffer.size;
-//		bufCreateInfo.flags = 0;
-//		VkBufferCreateInfo bufferCreateInfo = bufCreateInfo;
-//		VkResult result = vkCreateBuffer(m_VulkanApplication->m_hDevice, &bufferCreateInfo, nullptr, &stagingBuffer.buffer);
-//
-//		vkGetBufferMemoryRequirements(m_VulkanApplication->m_hDevice, stagingBuffer.buffer, &memReqs);
-//		memAlloc.allocationSize = memReqs.size;
-//
-//		const VkPhysicalDeviceMemoryProperties& memProp = m_VulkanApplication->m_physicalDeviceInfo.memProp;
-//		// Get the compatible type of memory
-//		//m_VulkanApplication->m_hDevice->memoryTypeFromProperties(memReqs.memoryTypeBits,
-//		//	VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &memAlloc.memoryTypeIndex);
-//		if (!VulkanHelper::MemoryTypeFromProperties(memProp, memReqs.memoryTypeBits,
-//			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &memAlloc.memoryTypeIndex))
-//		{
-//			assert(0);
-//		}
-//
-//		//memAlloc.memoryTypeIndex = vulkanDevice->getMemoryType(memReqs.memoryTypeBits, memoryPropertyFlags);
-//		result = vkAllocateMemory(m_VulkanApplication->m_hDevice, &memAlloc, nullptr, &stagingBuffer.memory);
-//		if (instanceData.data() != nullptr)
-//		{
-//			void *mapped;
-//			vkMapMemory(m_VulkanApplication->m_hDevice, stagingBuffer.memory, 0, instanceBuffer.size, 0, &mapped);
-//			memcpy(mapped, instanceData.data(), instanceBuffer.size);
-//			vkUnmapMemory(m_VulkanApplication->m_hDevice, stagingBuffer.memory);
-//		}
-//		result = vkBindBufferMemory(m_VulkanApplication->m_hDevice, stagingBuffer.buffer, stagingBuffer.memory, 0);
-//	}
-//	////////////////////////////////////////////// 1.
-//
-//	//
-//	//	VulkanExampleBase::createBuffer(
-//	//		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-//	//		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-//	//		instanceBuffer.size,
-//	//		nullptr,
-//	//		&instanceBuffer.buffer,
-//	//		&instanceBuffer.memory);
-//	//
-//	//////////////////////////////////////// 2.
-//	if (instanceBuffer.buffer == VK_NULL_HANDLE)
-//	{
-//		VkMemoryRequirements memReqs;
-//		VkMemoryAllocateInfo memAllocInfo = {};
-//		memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-//		memAllocInfo.pNext = NULL;
-//		memAllocInfo.allocationSize = 0;
-//		memAllocInfo.memoryTypeIndex = 0;
-//
-//		VkMemoryAllocateInfo memAlloc = memAllocInfo;
-//
-//		VkBufferCreateInfo bufCreateInfo = {};
-//		bufCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-//		bufCreateInfo.pNext = NULL;
-//		bufCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-//		bufCreateInfo.size = instanceBuffer.size;
-//		bufCreateInfo.flags = 0;
-//		VkBufferCreateInfo bufferCreateInfo = bufCreateInfo;
-//
-//		vkCreateBuffer(m_VulkanApplication->m_hDevice, &bufferCreateInfo, nullptr, &instanceBuffer.buffer);
-//
-//		vkGetBufferMemoryRequirements(m_VulkanApplication->m_hDevice, instanceBuffer.buffer, &memReqs);
-//		memAlloc.allocationSize = memReqs.size;
-//		// Get the compatible type of memory
-//		//deviceObj->memoryTypeFromProperties(memReqs.memoryTypeBits,
-//		//	VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &memAlloc.memoryTypeIndex);
-//		const VkPhysicalDeviceMemoryProperties& memProp = m_VulkanApplication->m_physicalDeviceInfo.memProp;
-//		if (!VulkanHelper::MemoryTypeFromProperties(memProp, memReqs.memoryTypeBits,
-//			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &memAlloc.memoryTypeIndex))
-//		{
-//			assert(0);
-//		}
-//
-//		//memAlloc.memoryTypeIndex = vulkanDevice->getMemoryType(memReqs.memoryTypeBits, memoryPropertyFlags);
-//		vkAllocateMemory(m_VulkanApplication->m_hDevice, &memAlloc, nullptr, &instanceBuffer.memory);
-//		// no unmapping 
-//		//if (instanceData.data() != nullptr)
-//		//{
-//		//	void *mapped;
-//		//	vkMapMemory(deviceObj->device, instanceBuffer.memory, 0, instanceBuffer.size, 0, &mapped);
-//		//	memcpy(mapped, instanceData.data(), instanceBuffer.size);
-//		//	vkUnmapMemory(deviceObj->device, instanceBuffer.memory);
-//		//}
-//		vkBindBufferMemory(m_VulkanApplication->m_hDevice, instanceBuffer.buffer, instanceBuffer.memory, 0);
-//	}
-//	////////////////////////////////////////////// 2.
-//
-//	//// Copy to staging buffer
-//	//VkCommandBuffer copyCmd;
-//
-//	//VulkanHelper::AllocateCommandBuffer(&m_VulkanApplication->m_hDevice, *rendererObj->getCommandPool(), &copyCmd);
-//	//CommandBufferMgr::beginCommandBuffer(copyCmd);
-//
-//	//VkBufferCopy copyRegion = {};
-//	//copyRegion.size = instanceBuffer.size;
-//	//vkCmdCopyBuffer(
-//	//	copyCmd,
-//	//	stagingBuffer.buffer,
-//	//	instanceBuffer.buffer,
-//	//	1,
-//	//	&copyRegion);
-//
-//	//// Finish the command buffer recording
-//	//CommandBufferMgr::endCommandBuffer(copyCmd);
-//
-//	//CommandBufferMgr::submitCommandBuffer(deviceObj->queue, &copyCmd);
-//
-//	//vkFreeCommandBuffers(deviceObj->device, rendererObj->cmdPool, 1, &copyCmd);
-//	//
-//	//	VulkanExampleBase::flushCommandBuffer(copyCmd, queue, true);
-//	//
-//	// Copy staging buffers in device local buffer
-//	{
-//		VkCommandBuffer copyCmd;
-//		VulkanHelper::AllocateCommandBuffer(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_hCommandPool, &copyCmd);
-//		VulkanHelper::BeginCommandBuffer(copyCmd);
-//
-//		VkBufferCopy copyRegion = {};
-//		copyRegion.size = instanceBuffer.size;
-//		vkCmdCopyBuffer(copyCmd, stagingBuffer.buffer, instanceBuffer.buffer, 1, &copyRegion);
-//
-//		VulkanHelper::EndCommandBuffer(copyCmd);
-//		VulkanHelper::SubmitCommandBuffer(m_VulkanApplication->m_hGraphicsQueue, copyCmd);
-//		vkFreeCommandBuffers(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_hCommandPool, 1, &copyCmd);
-//	}
-//
-//	instanceBuffer.descriptor.range = instanceBuffer.size;
-//	instanceBuffer.descriptor.buffer = instanceBuffer.buffer;
-//	instanceBuffer.descriptor.offset = 0;
-//
-//	// Destroy staging resources
-//	vkDestroyBuffer(m_VulkanApplication->m_hDevice, stagingBuffer.buffer, nullptr);
-//	vkFreeMemory(m_VulkanApplication->m_hDevice, stagingBuffer.memory, nullptr);
-//}
 
 void Cube::prepareInstanceData()
 {
