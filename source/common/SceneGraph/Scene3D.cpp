@@ -32,16 +32,6 @@ void Scene3D::Update()
     }
 }
 
-void Scene3D::Sort()
-{
-	//if (m_MatrixVector.empty()) m_MatrixVector.resize(m_ModelList.size());
-
-	//for (int i = 0; i < m_ModelList.size(); i++)
-	//{
-	//	m_MatrixVector[i] = *m_ModelList[i]->GetModel();
-	//}
-}
-
 void Scene3D::AddModel(Model3D* p_Model)
 {
     if (p_Model && !p_Model->GetParent())
@@ -66,11 +56,12 @@ void Scene3D::SetUpProjection()
     m_Transform.SetMatrixMode(Transformation3D::PROJECTION_MATRIX);
     m_Transform.LoadIdentity();
 
-    m_Transform.PerspectiveView(60.0f,/* float(m_ScreenWidth)/m_ScreenHeight*/800.0f / 600.0f, 0.10f, 100.0f);
+    m_Transform.SetPerspective(60.0f,/* float(m_ScreenWidth)/m_ScreenHeight*/800.0f / 600.0f, 0.10f, 100.0f);
 
     m_Transform.SetMatrixMode(Transformation3D::VIEW_MATRIX);
     m_Transform.LoadIdentity();
-	m_Transform.LookAt(QVector3D(1, -2, 3), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
+	glm::vec3 eye(1, -2, 3); glm::vec3 center(0, 0, 0); glm::vec3 up(0, 1, 0);
+	m_Transform.LookAt(&eye, &center, &up);
 
     m_Transform.SetMatrixMode(Transformation3D::MODEL_MATRIX);
     m_Transform.LoadIdentity();

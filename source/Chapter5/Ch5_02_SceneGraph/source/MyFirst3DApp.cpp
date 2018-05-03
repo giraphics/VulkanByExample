@@ -28,10 +28,7 @@ MyFirst3DApp::MyFirst3DApp()
 	m_Scene = new Scene3D();
     
 	m_Cube1 = new Model3D(m_Scene, NULL, "Node 1", SHAPE_CUBE);
-	m_Cube1->SetModel(m_CubeFactory->GetNewInstance(0)/*.m_Model*/);
-
 	m_Cube2 = new Model3D(m_Scene, NULL, "Node 2", SHAPE_CUBE);
-	m_Cube2->SetModel(m_CubeFactory->GetNewInstance(1)/*.m_Model*/);
 }
 
 MyFirst3DApp::~MyFirst3DApp()
@@ -65,14 +62,14 @@ void MyFirst3DApp::Setup()
 	m_Scene->SetView(&View);
 
 	VkMemoryPropertyFlags memoryProperty = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    m_CubeFactory->instanceBufferNew.m_BufObj.m_MemoryFlags = memoryProperty;
-    m_CubeFactory->instanceBufferNew.m_BufObj.m_DataSize = 2/*m_Scene->m_MatrixVector.size()*/ * sizeof(QMatrix4x4);
+    m_CubeFactory->m_InstanceBuffer.m_MemoryFlags = memoryProperty;
+    m_CubeFactory->m_InstanceBuffer.m_DataSize = 2/*m_Scene->m_MatrixVector.size()*/ * sizeof(QMatrix4x4);
 
 	VulkanHelper::CreateStagingBuffer(m_hDevice,
 		m_physicalDeviceInfo.memProp,
 		m_hCommandPool,
 		m_hGraphicsQueue,
-        m_CubeFactory->instanceBufferNew.m_BufObj,
+        m_CubeFactory->m_InstanceBuffer,
 		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 		m_Scene->m_MatrixVector.data()); // Please use this Create Buffer currently begin used
 
@@ -89,7 +86,6 @@ void MyFirst3DApp::Update()
     m_Cube2->Reset();
 
 	m_Scene->Update();
-	m_Scene->Sort();
 	m_CubeFactory->Update();
 	m_CubeFactory->prepareInstanceData(m_Scene);
 }

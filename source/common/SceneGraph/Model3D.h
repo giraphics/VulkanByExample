@@ -60,33 +60,12 @@ public:
 		}
 	}
 
-	//void RotateXXXX(float p_Angle, float p_X, float p_Y, float p_Z) { m_ModelXXXX->rotate(p_Angle, p_X, p_Y, p_Z); }
-	//void TranslateXXXX(float p_X, float p_Y, float p_Z) { m_ModelXXXX->translate(p_X, p_Y, p_Z); }
-	//void ScaleXXXX(float p_X, float p_Y, float p_Z) { m_ModelXXXX->scale(p_X, p_Y, p_Z); }
-	//void ResetXXXX() { m_ModelXXXX->setToIdentity(); }
-	//void SetMdl(QMatrix4x4* mdl) 
-	//{ 
-	//	m_ModelXXXX = mdl; 
-	//}
-	//GETSET(QMatrix4x4*, ModelXXXX)		// Owned by drawable item
-	void Rotate(float p_Angle, float p_X, float p_Y, float p_Z) 
-	{ 
-		*m_Model = glm::rotate(*m_Model, p_Angle, glm::vec3(p_X, p_Y, p_Z));
-	}
-	void Translate(float p_X, float p_Y, float p_Z) { *m_Model = glm::translate(*m_Model, glm::vec3(p_X, p_Y, p_Z)); }
-    void Scale(float p_X, float p_Y, float p_Z) { *m_Model = glm::translate(*m_Model, glm::vec3(p_X, p_Y, p_Z)); }
-	void Reset() { 
-		*m_Model = glm::mat4(); 
-	}
-	GETSET(glm::mat4*, Model)		// Owned by drawable item
+	void Rotate(float p_Angle, float p_X, float p_Y, float p_Z) { m_Model = glm::rotate(m_Model, p_Angle, glm::vec3(p_X, p_Y, p_Z)); }
+	void Translate(float p_X, float p_Y, float p_Z) { m_Model = glm::translate(m_Model, glm::vec3(p_X, p_Y, p_Z)); }
+    void Scale(float p_X, float p_Y, float p_Z) { m_Model = glm::translate(m_Model, glm::vec3(p_X, p_Y, p_Z)); }
+	void Reset() { m_Model = glm::mat4(); }
 
-	//// Transformation
-	//void Rotate(float p_Angle, float p_X, float p_Y, float p_Z) { m_Model.rotate(p_Angle, p_X, p_Y, p_Z); }
-	//void Translate(float p_X, float p_Y, float p_Z) { m_Model.translate(p_X, p_Y, p_Z); }
-	//void Scale(float p_X, float p_Y, float p_Z) { m_Model.scale(p_X, p_Y, p_Z); }
-	//void Reset() { m_Model.setToIdentity(); }
-
-	//GETSET(QMatrix4x4, Model)		// Owned by drawable item
+	GETSET(glm::mat4, Model)		// Owned by drawable item
 	GETSET(Scene3D*, Scene)
 	GETSET(Model3D*, Parent)
 
@@ -104,7 +83,7 @@ public:
 
 	void ApplyTransformation()
 	{
-	    //m_Scene->Transform().GetModelMatrix() *= *m_Model;
+	    *m_Scene->Transform().GetModelMatrix() *= m_Model;
 	}
 
 
