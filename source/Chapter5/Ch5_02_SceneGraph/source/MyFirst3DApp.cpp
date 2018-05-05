@@ -28,7 +28,11 @@ MyFirst3DApp::MyFirst3DApp()
 	m_Scene = new Scene3D();
     
 	m_Cube1 = new Model3D(m_Scene, NULL, "Node 1", SHAPE_CUBE);
-	m_Cube2 = new Model3D(m_Scene, NULL, "Node 2", SHAPE_CUBE);
+	m_Cube2 = new Model3D(m_Scene, m_Cube1, "Node 2", SHAPE_CUBE);
+
+	m_Cube2->Translate(4.0f, 0.0f, 0.0f);
+
+//	m_Cube2->Translate(3.0f, 0.0f, 0.0f);
 }
 
 MyFirst3DApp::~MyFirst3DApp()
@@ -52,14 +56,7 @@ void MyFirst3DApp::Configure()
 
 void MyFirst3DApp::Setup()
 {
-	static glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-//	m_CubeFactory->SetProjection(&Projection);
-	m_Scene->SetProjection(&Projection);
-
-//	static glm::mat4 View = glm::lookAt(glm::vec3(0, 0, 5), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-	static glm::mat4 View = glm::translate(glm::mat4(1), glm::vec3(0, 0, -15));
-	//m_CubeFactory->SetView(&View);
-	m_Scene->SetView(&View);
+	m_Scene->SetUpProjection();
 
 	VkMemoryPropertyFlags memoryProperty = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
     m_CubeFactory->m_InstanceBuffer.m_MemoryFlags = memoryProperty;
@@ -79,13 +76,10 @@ void MyFirst3DApp::Setup()
 void MyFirst3DApp::Update()
 {
 	static float rot = 0;
-    m_Cube1->Reset();
-    m_Cube1->Rotate(rot += .1f, 0.0f, 0.0f, 1.0f);
-    m_Cube1->Translate(5.0f, 0.0f, 0.0f);
-
-    m_Cube2->Reset();
-
-	m_Scene->Update();
-	m_CubeFactory->Update();
+	m_Cube1->Rotate(rot = .01f, 0.0f, 1.0f, 0.0f);
+	//	m_Scene->Update();
+//	m_Cube1->Reset();
+	m_Scene->UpdateNew();
+//	m_CubeFactory->Update();
 	m_CubeFactory->prepareInstanceData(m_Scene);
 }

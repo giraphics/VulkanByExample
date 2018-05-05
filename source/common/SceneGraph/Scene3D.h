@@ -5,10 +5,8 @@
 #include <QMatrix4x4>
 
 #include "Transformation3D.h"
-#include "glm/glm.hpp"
-#include <glm/gtc/matrix_transform.hpp>
 #include "../VulkanHelper.h"
-
+//#include "Model3D.h"
 class Model3D;
 class UiFL3DRenderableItem;
 class QWindow;
@@ -22,7 +20,7 @@ public:
 
     void Setup();
 	void Update();
-	void Sort();
+    void UpdateNew();
 
     void AddModel(Model3D* p_Model);
     void RemoveModel(Model3D *p_Model);
@@ -30,10 +28,17 @@ public:
     void Resize(int p_Width, int p_Height);
     void SetUpProjection();
     inline Transformation3D& Transform() { return m_Transform; }
-    GETSET(glm::mat4*, Projection)	// Not owned by Scene, double check this can be owned. TODO: PS
-    GETSET(glm::mat4*, View)		// Not owned by Scene
+    //GETSET(glm::mat4*, Projection)	// Not owned by Scene, double check this can be owned. TODO: PS
+    //GETSET(glm::mat4*, View)		// Not owned by Scene
+	
+	void PushMatrix() { m_Transform.PushMatrix(); }
+	void PopMatrix() { m_Transform.PopMatrix(); }
+	void ApplyTransformation(const glm::mat4& m_TransformationMatrix)
+	{
+		*m_Transform.GetModelMatrix() *= m_TransformationMatrix;
+	}
 
-private:
+public:
     int m_ScreenHeight;
     int m_ScreenWidth;
 
@@ -42,5 +47,6 @@ private:
     int m_Frame;
 public:
 	std::vector<QMatrix4x4> m_MatrixVector;
+	std::vector<Model3D*> m_FlatList;
 };
 #endif // SCENE_H

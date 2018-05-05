@@ -1,423 +1,804 @@
 #include "Transformation3D.h"
 
-#define MAX_CHAR_STR 64
-
-Transformation3D::Transformation3D()
+/*!
+ Constructor for Transformation3D class
+ \param[in]  void.
+ \return     None.
+ */
+Transformation3D::Transformation3D(void)
 {
-    Initialize();
+	TransformMemData.modelMatrixIndex       = 0;
+	TransformMemData.viewMatrixIndex        = 0;
+	TransformMemData.projectionMatrixIndex	= 0;
+	TransformMemData.textureMatrixIndex		= 0;
 }
 
-void Transformation3D::Initialize()
-{
-    memset(&m_TransformMemData, 0, sizeof(TransformData));
-
-    SetMatrixMode(PROJECTION_MATRIX);
-    LoadIdentity();
-
-    SetMatrixMode(MODEL_MATRIX);
-    LoadIdentity();
-
-    SetMatrixMode(VIEW_MATRIX);
-    LoadIdentity();
-}
-
-void Transformation3D::Error()
+/*!
+    Destructor for Transformation3D class
+    \param[in]  void.
+    \return     None.
+*/
+Transformation3D::~Transformation3D(void)
 {
 }
 
-void Transformation3D::SetMatrixMode(MatrixType p_MatrixMode)
+/*!
+	Initialize the global  structure and set all the default OpenGLES machine
+	states to their default values as expected by the engine. In addition the matrix
+	stacks are created and the first index of the model view, projection and texture
+	matrix are set to identity.
+    \param[in]  None.
+    \return void.
+ 
+*/
+void Transformation3D::Init( void )
 {
-    m_TransformMemData.m_MatrixMode = p_MatrixMode;
+	memset( &TransformMemData, 0, sizeof( TransformData ) );
+
+	SetMatrixMode( TEXTURE_MATRIX );
+	LoadIdentity();
+
+	SetMatrixMode( PROJECTION_MATRIX );
+	LoadIdentity();
+
+	SetMatrixMode( MODEL_MATRIX );
+	LoadIdentity();
+
+	SetMatrixMode( VIEW_MATRIX );
+	LoadIdentity();
 }
 
-void Transformation3D::LoadIdentity()
+/*!
+	Set the current matrix mode that you want to work with. Only the MODELVIEW_MATRIX,
+	PROJECTION_MATRIX and TEXTURE_MATRIX are supported. Take note that contrairly to the default OpenGL behavior
+	the TEXTURE_MATRIX is not implemented on a per channel basis, but on a global basis) contain in .h.
+
+	If you wish to tweak the default matrix stack depth you can modify the following values: MAX_MODELVIEW_MATRIX,
+	MAX_PROJECTION_MATRIX, MAX_TEXTURE_MATRIX.
+
+	\param[in] mode The matrix mode that will be use as target.
+*/
+void Transformation3D::SetMatrixMode( unsigned int mode )
 {
-    switch (m_TransformMemData.m_MatrixMode)
-    {
-        case MODEL_MATRIX:		{ GetModelMatrix().setToIdentity();			break; }
-        case VIEW_MATRIX:		{ GetViewMatrix().setToIdentity();			break; }
-        case PROJECTION_MATRIX: { GetProjectionMatrix().setToIdentity();	break; }
-    }
+    TransformMemData.matrix_mode = mode;
 }
 
-void Transformation3D::PushMatrix()
+/*!
+	Set the current matrix set as target by the _set_matrix_mode to the
+	identity matrix.
+ \param[in]  None.
+ \return None.
+ 
+*/
+void Transformation3D::LoadIdentity( void )
 {
-    switch (m_TransformMemData.m_MatrixMode)
-    {
+	switch( TransformMemData.matrix_mode )
+	{
+		case MODEL_MATRIX:
+		{
+			memset(GetModelMatrix(), 0, sizeof(glm::mat4));
+			glm::mat4* mv = GetModelMatrix();
+			(*mv)[0][0] = (*mv)[1][1] = (*mv)[2][2] = (*mv)[3][3] = 1.0;
+			break;
+		}
+            
+		case VIEW_MATRIX:
+		{
+			memset(GetViewMatrix(), 0, sizeof(glm::mat4));
+			glm::mat4* mv = GetViewMatrix();
+			(*mv)[0][0] = (*mv)[1][1] = (*mv)[2][2] = (*mv)[3][3] = 1.0;
+			break;
+		}
+            
+		case PROJECTION_MATRIX:
+		{
+			memset(GetProjectionMatrix(), 0, sizeof(glm::mat4));
+			glm::mat4* pm = GetProjectionMatrix();
+			(*pm)[0][0] = (*pm)[1][1] = (*pm)[2][2] = (*pm)[3][3] = 1.0;
+			break;
+		}
+
+		case TEXTURE_MATRIX:
+		{
+			memset(GetTextureMatrix(), 0, sizeof(glm::mat4));
+			glm::mat4* tm = GetTextureMatrix();
+			(*tm)[0][0] = (*tm)[1][1] = (*tm)[2][2] = (*tm)[3][3] = 1.0;
+			break;
+		}
+	}
+}
+
+/*!
+ Return the modelview matrix pointer on the top of the modelview matrix stack.
+ \param[in]  None.
+ \return Return a 4x4 matrix pointer of the top most modelview matrix.
+ */
+glm::mat4* Transformation3D::GetModelMatrix( void )
+{
+	return &TransformMemData.model_matrix[ TransformMemData.modelMatrixIndex ];
+}
+
+
+/*!
+ Return the modelview matrix pointer on the top of the modelview matrix stack.
+ \param[in]  None.
+ \return Return a 4x4 matrix pointer of the top most modelview matrix.
+ */
+glm::mat4* Transformation3D::GetViewMatrix( void )
+{
+	return &TransformMemData.view_matrix[ TransformMemData.viewMatrixIndex ];
+}
+
+/*!
+	Return the projection matrix pointer on the top of the projection matrix stack.
+    \param[in]  None.
+	\return  Return a 4x4 matrix pointer of the top most projection matrix index.
+*/
+glm::mat4* Transformation3D::GetProjectionMatrix( void )
+{
+	return &TransformMemData.projection_matrix[ TransformMemData.projectionMatrixIndex ];
+}
+
+/*!
+	Return the texture matrix pointer on the top of the texture matrix stack.
+    \param[in]  None.
+	\return  Return a 4x4 matrix pointer of the top most texture matrix index.
+*/
+glm::mat4* Transformation3D::GetTextureMatrix( void )
+{
+	return &TransformMemData.texture_matrix[ TransformMemData.textureMatrixIndex ];
+}
+
+/*!
+ Return the ModelViewProjection matrix. 
+ \param[in]  None.
+ \return matrix- Model View Projection matrix multiplication result.
+
+ */
+glm::mat4* Transformation3D::GetModelViewProjectionMatrix( void )
+{
+	TransformMemData.modelview_projection_matrix = *GetProjectionMatrix() *
+    *GetViewMatrix() * *GetModelMatrix();
+	return &TransformMemData.modelview_projection_matrix;
+}
+
+/*!
+ Return the ModelView matrix.
+ \param[in]  None.
+ \return matrix- Model View matrix multiplication result.
+ 
+*/
+glm::mat4* Transformation3D::GetModelViewMatrix( void )
+{
+	TransformMemData.modelview_matrix =
+    *GetViewMatrix() * *GetModelMatrix();
+	return &TransformMemData.modelview_matrix;
+}
+
+/*!
+ Pushes the current matrix on the Matrix stack as per current active matrix.
+
+ \param[in]  None.
+ \return None.
+ */
+void Transformation3D::PushMatrix( void )
+{
+	switch( TransformMemData.matrix_mode )
+	{
         case MODEL_MATRIX:
-        {
-            if (m_TransformMemData.m_ModelMatrixIndex >= MAX_MODEL_MATRIX) return;
+		{
+			if (TransformMemData.modelMatrixIndex >= MAX_MODEL_MATRIX){
+				return;
+			}
+            
+			memcpy( &TransformMemData.model_matrix[ TransformMemData.modelMatrixIndex + 1 ],
+                   &TransformMemData.model_matrix[ TransformMemData.modelMatrixIndex     ],
+                   sizeof( glm::mat4 ) );
+            
+			++TransformMemData.modelMatrixIndex;
+            
+			break;
+		}
 
-            // Copy by memory is preffered over assignment
-            memcpy(&m_TransformMemData.m_ModelMatrix[ m_TransformMemData.m_ModelMatrixIndex + 1],
-                   &m_TransformMemData.m_ModelMatrix[ m_TransformMemData.m_ModelMatrixIndex],
-                   sizeof(QMatrix4x4));
+		case VIEW_MATRIX:
+		{
+			if (TransformMemData.viewMatrixIndex >= MAX_VIEW_MATRIX){
+				return;
+			}
+            
+			memcpy( &TransformMemData.view_matrix[ TransformMemData.viewMatrixIndex + 1 ],
+                   &TransformMemData.view_matrix[ TransformMemData.viewMatrixIndex     ],
+                   sizeof( glm::mat4 ) );
+            
+			++TransformMemData.modelMatrixIndex;
+            
+			break;
+		}
 
-            ++m_TransformMemData.m_ModelMatrixIndex;
+		case PROJECTION_MATRIX:
+		{
+			if (TransformMemData.projectionMatrixIndex >= MAX_PROJECTION_MATRIX){
+				return;
+			}
 
-            break;
-        }
+			memcpy( &TransformMemData.projection_matrix[ TransformMemData.projectionMatrixIndex + 1 ],
+                    &TransformMemData.projection_matrix[ TransformMemData.projectionMatrixIndex     ],
+					sizeof( glm::mat4 ) );
 
+			++TransformMemData.projectionMatrixIndex;
+
+			break;
+		}
+
+		case TEXTURE_MATRIX:
+		{
+			if (TransformMemData.textureMatrixIndex >= MAX_TEXTURE_MATRIX){
+				return;
+			}
+
+			memcpy( &TransformMemData.texture_matrix[ TransformMemData.textureMatrixIndex + 1 ],
+                    &TransformMemData.texture_matrix[ TransformMemData.textureMatrixIndex     ],
+					sizeof( glm::mat4 ) );
+
+			++TransformMemData.textureMatrixIndex;
+			break;
+		}
+	}
+}
+
+/*!
+ Pop's the current matrix on the Matrix stack as per current active matrix.
+
+ \param[in]  None.
+ \return None.
+
+ */
+void Transformation3D::PopMatrix( void )
+{
+	switch( TransformMemData.matrix_mode )
+	{
+		case MODEL_MATRIX:
+		{
+			if (TransformMemData.modelMatrixIndex == 0){
+				return;
+			}
+			--TransformMemData.modelMatrixIndex;
+            
+			break;
+		}
+
+		case VIEW_MATRIX:
+		{
+			if (TransformMemData.viewMatrixIndex == 0){
+				return;
+			}
+			--TransformMemData.viewMatrixIndex;
+            
+			break;
+		}
+
+		case PROJECTION_MATRIX:
+		{
+			if (TransformMemData.projectionMatrixIndex == 0){
+				return;
+			}
+			--TransformMemData.projectionMatrixIndex;
+
+			break;
+		}
+
+		case TEXTURE_MATRIX:
+		{
+			if (TransformMemData.textureMatrixIndex == 0){
+				return;
+			}
+			--TransformMemData.textureMatrixIndex;
+
+			break;
+		}
+	}
+}
+
+/*!
+ Set the matrix sent as the current matrix.
+ 
+ \param[in] m Specify matrix which needs to set current.
+ 
+ */
+void Transformation3D::LoadMatrix( glm::mat4 *m )
+{
+	switch( TransformMemData.matrix_mode )
+	{
+		case MODEL_MATRIX:
+		{
+			memcpy(GetModelMatrix(), m, sizeof(glm::mat4));
+            
+			break;
+		}
+            
+		case VIEW_MATRIX:
+		{
+			memcpy(GetViewMatrix(), m, sizeof(glm::mat4));
+            
+			break;
+		}
+            
+		case PROJECTION_MATRIX:
+		{
+			memcpy(GetProjectionMatrix(), m, sizeof(glm::mat4));
+
+			break;
+		}
+
+		case TEXTURE_MATRIX:
+		{
+			memcpy(GetTextureMatrix(), m, sizeof(glm::mat4));
+
+			break;
+		}
+	}
+}
+
+/*!
+ Multiple the matrix with the current matrix.
+ 
+ \param[in] m Specify matrix which needs to multiply.
+ 
+ */
+void Transformation3D::MultiplyMatrix( glm::mat4 *m )
+{
+	switch( TransformMemData.matrix_mode )
+	{
+		case MODEL_MATRIX:
+		{
+			*GetModelMatrix() *=  (*m);
+            
+			break;
+		}
+            
+		case VIEW_MATRIX:
+		{
+			*GetViewMatrix() *=  (*m);
+            
+			break;
+		}
+            
+		case PROJECTION_MATRIX:
+		{
+			*GetProjectionMatrix() *=  (*m);
+
+			break;
+		}
+
+		case TEXTURE_MATRIX:
+		{
+			*GetTextureMatrix() *=  (*m);
+
+			break;
+		}
+	}
+}
+
+/*!
+	Translate the current matrix pointed for the current mode set
+	as target by the _set_matrix_mode function.
+
+	\param[in] x Specify the x coordinate of a translation vector.
+	\param[in] y Specify the y coordinate of a translation vector.
+	\param[in] z Specify the z coordinate of a translation vector.
+
+*/
+void Transformation3D::Translate( float x, float y, float z )
+{
+	glm::vec3 v( x, y, z );
+
+	switch( TransformMemData.matrix_mode )
+	{            
+		case MODEL_MATRIX:
+		{
+			*GetModelMatrix() = glm::translate( *GetModelMatrix(), v);
+            
+			break;
+		}
+            
+		case VIEW_MATRIX:
+		{
+			*GetViewMatrix() = glm::translate( *GetViewMatrix(), v);
+			break;
+		}
+            
+		case PROJECTION_MATRIX:
+		{
+			*GetProjectionMatrix() = glm::translate( *GetProjectionMatrix(), v);
+
+			break;
+		}
+
+		case TEXTURE_MATRIX:
+		{
+			*GetTextureMatrix() = glm::translate( *GetTextureMatrix(), v);
+
+			break;
+		}
+	}
+}
+
+/*!
+	Rotate the current matrix pointed for the current mode.
+
+	\param[in] angle Specifies the angle of rotation, in degrees.
+	\param[in] x Specify the x coordinate of a vector.
+	\param[in] y Specify the y coordinate of a vector.
+	\param[in] z Specify the z coordinate of a vector.
+
+*/
+void Transformation3D::Rotate( float angle, float x, float y, float z )
+{
+	if( !angle ) return;
+
+	glm::vec3 v( x, y, z);
+
+	switch( TransformMemData.matrix_mode )
+	{
+		case MODEL_MATRIX:
+		{
+			*GetModelMatrix() = glm::rotate( *GetModelMatrix(), angle, v );
+            
+			break;
+		}
+            
+		case VIEW_MATRIX:
+		{
+			*GetViewMatrix() = glm::rotate( *GetViewMatrix(), angle, v );
+            
+			break;
+		}
+            
+		case PROJECTION_MATRIX:
+		{
+			*GetProjectionMatrix() = glm::rotate( *GetProjectionMatrix(), angle, v );
+
+			break;
+		}
+
+		case TEXTURE_MATRIX:
+		{
+			*GetTextureMatrix() = glm::rotate( *GetTextureMatrix(), angle, v );
+
+			break;
+		}
+	}
+}
+
+/*!
+	Scale the current matrix pointed for the current mode.
+
+	\param[in] x Specify scale factor along the x axis.
+	\param[in] y Specify scale factor along the y axis.
+	\param[in] z Specify scale factor along the z axis.
+
+*/
+void Transformation3D::Scale( float x, float y, float z )
+{
+	static glm::vec3 scale( 1.0f, 1.0f, 1.0f );
+
+	glm::vec3 v( x, y, z );
+
+	if( !memcmp( &v, &scale, sizeof( glm::vec3 ) ) ) return;
+
+
+	switch( TransformMemData.matrix_mode )
+	{
+		case MODEL_MATRIX:
+		{
+			*GetModelMatrix() = glm::scale(*GetModelMatrix(), v);
+            
+			break;
+		}
+            
+		case VIEW_MATRIX:
+		{
+			*GetViewMatrix() = glm::scale(*GetViewMatrix(), v);
+            
+			break;
+		}
+            
+		case PROJECTION_MATRIX:
+		{
+			*GetProjectionMatrix() = glm::scale(*GetProjectionMatrix(), v);
+
+			break;
+		}
+
+		case TEXTURE_MATRIX:
+		{
+			*GetTextureMatrix() = glm::scale(*GetTextureMatrix(), v);
+
+			break;
+		}
+	}
+}
+
+/*!
+	Return the result of the inverse and transposed operation of the top most modelview matrix applied
+	on the rotation part of the matrix.
+
+	\return Return the 3x3 matrix pointer that represent the invert and transpose
+	result of the top most model view matrix.
+*/
+void Transformation3D::GetNormalMatrix( glm::mat3* mat3Obj )
+{
+	glm::mat4 mat4Obj;
+
+	mat4Obj = glm::inverse(*GetModelViewMatrix());
+	mat4Obj = glm::transpose(*GetModelViewMatrix());
+
+	memcpy(&(*mat3Obj)[0], &mat4Obj[0], sizeof(glm::mat3));
+	memcpy(&(*mat3Obj)[1], &mat4Obj[0], sizeof(glm::mat3));
+	memcpy(&(*mat3Obj)[2], &mat4Obj[0], sizeof(glm::mat3));
+}
+
+
+/*!
+	Multiply the current matrix with an orthographic matrix.
+
+	\param[in] left Specify the coordinates for the left vertical clipping planes.
+	\param[in] right Specify the coordinates for the right vertical clipping planes.
+	\param[in] bottom Specify the coordinates for the bottom horizontal clipping planes.
+	\param[in] top Specify the coordinates for the top horizontal clipping planes.
+	\param[in] clip_start Specify the distance to the nearer depth clipping planes. This value is negative if the plane is to be behind the viewer.
+	\param[in] clip_end Specify the distance to the farther depth clipping planes. This value is negative if the plane is to be behind the viewer.
+
+*/
+void Transformation3D::Ortho( float left, float right, float bottom, float top, float clip_start, float clip_end )
+{
+	switch( TransformMemData.matrix_mode )
+	{
+		case MODEL_MATRIX:
+		{
+			*GetModelMatrix() = glm::ortho(left, right, bottom, top, clip_start, clip_end);
+			break;
+		}
+		
         case VIEW_MATRIX:
-        {
-            if (m_TransformMemData.m_ViewMatrixIndex >= MAX_VIEW_MATRIX) return;
+		{
+			*GetViewMatrix() = glm::ortho(left, right, bottom, top, clip_start, clip_end);
+			break;
+		}
 
-            memcpy(&m_TransformMemData.m_ViewMatrix[m_TransformMemData.m_ViewMatrixIndex + 1],
-                   &m_TransformMemData.m_ViewMatrix[m_TransformMemData.m_ViewMatrixIndex],
-                   sizeof(QMatrix4x4));
+		case PROJECTION_MATRIX:
+		{
+			glm::mat4	*matProjection = GetProjectionMatrix();
+			*GetProjectionMatrix() = glm::ortho(left, right, bottom, top, clip_start, clip_end);
+			*matProjection = glm::ortho(left, right, bottom, top, clip_start, clip_end);
 
-            ++m_TransformMemData.m_ModelMatrixIndex;
+			break;
+		}
 
-            break;
-        }
+		case TEXTURE_MATRIX:
+		{
+			*GetTextureMatrix() = glm::ortho(left, right, bottom, top, clip_start, clip_end);
 
-        case PROJECTION_MATRIX:
-        {
-            if (m_TransformMemData.m_ProjectionMatrixIndex >= MAX_PROJECTION_MATRIX) return;
+			break;
+		}
+	}
+}
 
-            memcpy(&m_TransformMemData.m_ProjectionMatrix[ m_TransformMemData.m_ProjectionMatrixIndex + 1],
-                   &m_TransformMemData.m_ProjectionMatrix[ m_TransformMemData.m_ProjectionMatrixIndex],
-                   sizeof(QMatrix4x4));
+/*!
+	Multiply the current matrix with a scaled orthographic matrix that respect the current
+	screen and and aspect ratio.
 
-            ++m_TransformMemData.m_ProjectionMatrixIndex;
+	\param[in] screen_ratio Specifies the screen ratio that determines the field of view in the Y direction. The screen ratio is the ratio of y (height) to y (width).
+	\param[in] scale Determine that scale value that should be applied to the matrix.
+	\param[in] aspect_ratio Specifies the aspect ratio that determines the field of view in the X direction. The screen ratio is the ratio of x (width) to y (height).
+	\param[in] clip_start Specify the distance to the nearer depth clipping planes. This value is negative if the plane is to be behind the viewer.
+	\param[in] clip_end Specify the distance to the farther depth clipping planes. This value is negative if the plane is to be behind the viewer.
+	\param[in] screen_orientation A value in degree that rotate the matrix. Should be synchronized with your device orientation.
+*/
+void Transformation3D::OrthoGrahpic( float screen_ratio, float scale, float aspect_ratio, float clip_start, float clip_end, float orientation )
+{
+	scale = ( scale * 0.5f ) * aspect_ratio;
 
-            break;
-        }
+	Ortho( -1.0f, 1.0f, -screen_ratio, screen_ratio, clip_start, clip_end );
+	Scale( 1.0f / scale, 1.0f / scale, 1.0f );
+
+	if ( orientation ) {
+        Rotate( orientation, 0.0f, 0.0f, 1.0f );
     }
 }
 
-void Transformation3D::PopMatrix()
+/*!
+	Set up a perspective projection matrix.
+
+	\param[in] fovy Specifies the field of view angle, in degrees, in the y direction.
+	\param[in] aspect_ratio Specifies the aspect ratio that determines the field of view in the x direction. The aspect ratio is the ratio of x (width) to y (height).
+	\param[in] clip_start Specifies the distance from the viewer to the near clipping plane (always positive).
+	\param[in] clip_end Specifies the distance from the viewer to the far clipping plane (always positive).
+
+*/
+void Transformation3D::SetPerspective( float fovy, float aspect_ratio, float clip_start, float clip_end )
 {
-    switch (m_TransformMemData.m_MatrixMode)
-    {
-        case MODEL_MATRIX:
-        {
-            if (m_TransformMemData.m_ModelMatrixIndex == 0) return;
+	glm::mat4 mat;
 
-            --m_TransformMemData.m_ModelMatrixIndex;
+	switch( TransformMemData.matrix_mode )
+	{            
+		case MODEL_MATRIX:
+		{
+			*GetModelMatrix() = glm::perspective(fovy, aspect_ratio, clip_start, clip_end);
+			break;
+		}
+            
+		case VIEW_MATRIX:
+		{
+			*GetViewMatrix() = glm::perspective(fovy, aspect_ratio, clip_start, clip_end);
+			break;
+		}
+            
+		case PROJECTION_MATRIX:
+		{
+			glm::mat4	*matProjection = GetProjectionMatrix();
+			*GetProjectionMatrix() = glm::perspective(fovy, aspect_ratio, clip_start, clip_end);
+			*matProjection = glm::perspective(fovy, aspect_ratio, clip_start, clip_end);
 
-            break;
-        }
+			break;
+		}
 
-        case VIEW_MATRIX:
-        {
-            if (m_TransformMemData.m_ViewMatrixIndex == 0) return;
+		case TEXTURE_MATRIX:
+		{
+			*GetTextureMatrix() = glm::perspective(fovy, aspect_ratio, clip_start, clip_end);
 
-            --m_TransformMemData.m_ViewMatrixIndex;
+			break;
+		}
+	}
 
-            break;
-        }
-
-        case PROJECTION_MATRIX:
-        {
-            if (m_TransformMemData.m_ProjectionMatrixIndex == 0) return;
-
-            --m_TransformMemData.m_ProjectionMatrixIndex;
-
-            break;
-        }
-    }
 }
 
-void Transformation3D::LoadMatrix(QMatrix4x4& p_Matrix)
+void Transformation3D::SetView(glm::mat4 mat)
 {
-    switch (m_TransformMemData.m_MatrixMode)
-    {
-        case MODEL_MATRIX:
-        {
-            memcpy(&GetModelMatrix(), &p_Matrix, sizeof(QMatrix4x4));
-
-            break;
-        }
-
-        case VIEW_MATRIX:
-        {
-            memcpy(&GetViewMatrix(), &p_Matrix, sizeof(QMatrix4x4));
-
-            break;
-        }
-
-        case PROJECTION_MATRIX:
-        {
-            memcpy(&GetProjectionMatrix(), &p_Matrix, sizeof(QMatrix4x4));
-
-            break;
-        }
-    }
+	//TransformMemData.view_matrix = mat;
 }
 
-void Transformation3D::MultiplyMatrix(QMatrix4x4* p_Matrix)
+/*!
+	Define a viewing transformation.
+
+	\param[in] eye Specifies the position of the eye point.
+	\param[in] center Specifies the position of the reference point.
+	\param[in] up Specifies the direction of the up vector.
+
+*/
+void Transformation3D::LookAt( glm::vec3 *eye, glm::vec3 *center, glm::vec3 *up )
 {
-    switch (m_TransformMemData.m_MatrixMode)
-    {
-        case MODEL_MATRIX:
-        {
-            GetModelMatrix() *=  (*p_Matrix);
-
-            break;
-        }
-
-        case VIEW_MATRIX:
-        {
-            GetViewMatrix() *=  (*p_Matrix);
-
-            break;
-        }
-
-        case PROJECTION_MATRIX:
-        {
-            GetProjectionMatrix() *=  (*p_Matrix);
-
-            break;
-        }
-    }
+	glm::vec3 f, s, u;
+	glm::mat4 mat = glm::lookAt(*eye, *center, *up);
+	//TransformSetView(mat);
+	MultiplyMatrix( &mat );
 }
 
-void Transformation3D::Translate(float p_TranslateX, float p_TranslateY, float p_TranslateZ)
-{
-    QVector3D translationVector(p_TranslateX, p_TranslateY, p_TranslateZ);
+/*!
+	Map object coordinates to window coordinates.
 
-    if (translationVector == QVector3D(0.0f, 0.0f, 0.0f)) return;
+	\param[in] objextx Specify the object X coordinate.
+	\param[in] objecty Specify the object Y coordinate.
+	\param[in] objectz Specify the object Z coordinate.
+	\param[in] modelview_matrix Specifies the current modelview matrix.
+	\param[in] projection_matrix Specifies the current projection matrix.
+	\param[in] viewport_matrix Specifies the current viewport matrix.
+	\param[in] windowx Return the computed X window coordinate.
+	\param[in] windowy Return the computed Y window coordinate.
+	\param[in] windowz Return the computed Z window coordinate.
 
-    switch (m_TransformMemData.m_MatrixMode)
-    {
-        case MODEL_MATRIX:
-        {
-            GetModelMatrix().translate(translationVector);
+*/
+int Transformation3D::TransformProject( float objextx, float objecty, float objectz, glm::mat4 *modelview_matrix, glm::mat4 *projection_matrix, int *viewport_matrix, float *windowx, float *windowy, float *windowz )
+{    
+	glm::vec4 vin,
+		 vout;
 
-            break;
-        }
+	vin.x = objextx;
+	vin.y = objecty;
+	vin.z = objectz;
+	vin.w = 1.0f;
 
-        case VIEW_MATRIX:
-        {
-            GetViewMatrix().translate(translationVector);
+	Vec4MultiplyMat4( &vout, &vin, modelview_matrix );
 
-            break;
-        }
+	Vec4MultiplyMat4( &vin, &vout, projection_matrix );
 
-        case PROJECTION_MATRIX:
-        {
-            GetProjectionMatrix().translate(translationVector);
+	if( !vin.w ) return 0;
 
-            break;
-        }
-    }
+	vin.x /= vin.w;
+	vin.y /= vin.w;
+	vin.z /= vin.w;
+
+	vin.x = vin.x * 0.5f + 0.5f;
+	vin.y = vin.y * 0.5f + 0.5f;
+	vin.z = vin.z * 0.5f + 0.5f;
+
+	vin.x = vin.x * viewport_matrix[ 2 ] + viewport_matrix[ 0 ];
+	vin.y = vin.y * viewport_matrix[ 3 ] + viewport_matrix[ 1 ];
+
+	*windowx = vin.x;
+	*windowy = vin.y;
+	*windowz = vin.z;
+
+	return 1;
 }
 
-void Transformation3D::Rotate(float p_Angle, float p_RotateX, float p_RotateY, float p_RotateZ)
+/*!
+	Multiply a glm::vec4 by a glm::4x4 matrix.
+
+	\param[in,out] dst A valid glm::vec4 pointer that will be used as the destination variable where the result of the operation will be stored.
+	\param[in] v A valid glm::vec4 pointer.
+	\param[in] m A valid glm::4x4 matrix pointer.
+*/
+void Transformation3D::Vec4MultiplyMat4( glm::vec4 *dst, glm::vec4 *v, glm::mat4 *m )
 {
-    if (p_Angle == 0) return;
+	dst->x = ( v->x * (*m)[ 0 ].x ) +
+			 ( v->y * (*m)[ 1 ].x ) +
+			 ( v->z * (*m)[ 2 ].x ) +
+			 ( v->w * (*m)[ 3 ].x );
 
-    QVector3D rotationVector(p_RotateX, p_RotateY, p_RotateZ);
+	dst->y = ( v->x * (*m)[ 0 ].y ) +
+			 ( v->y * (*m)[ 1 ].y ) +
+			 ( v->z * (*m)[ 2 ].y ) +
+			 ( v->w * (*m)[ 3 ].y );
 
-    switch (m_TransformMemData.m_MatrixMode)
-    {
-        case MODEL_MATRIX:
-        {
-            GetModelMatrix().rotate(p_Angle, rotationVector);
+	dst->z = ( v->x * (*m)[ 0 ].z ) +
+			 ( v->y * (*m)[ 1 ].z ) +
+			 ( v->z * (*m)[ 2 ].z ) +
+			 ( v->w * (*m)[ 3 ].z );
 
-            break;
-        }
-
-        case VIEW_MATRIX:
-        {
-            GetViewMatrix().rotate(p_Angle, rotationVector);
-
-            break;
-        }
-
-        case PROJECTION_MATRIX:
-        {
-            GetProjectionMatrix().rotate(p_Angle, rotationVector);
-
-            break;
-        }
-    }
+	dst->w = ( v->x * (*m)[ 0 ].w ) +
+			 ( v->y * (*m)[ 1 ].w ) +
+			 ( v->z * (*m)[ 2 ].w ) +
+			 ( v->w * (*m)[ 3 ].w );
 }
 
-void Transformation3D::Scale(float p_ScaleX, float p_ScaleY, float p_ScaleZ)
+/*!
+	Map window coordinates to object coordinates.
+
+	\param[in] windowx Specify the window X coordinate.
+	\param[in] windowy Specify the window Y coordinate.
+	\param[in] windowz Specify the window Z coordinate.
+	\param[in] modelview_matrix Specifies the current modelview matrix.
+	\param[in] projection_matrix Specifies the current projection matrix.
+	\param[in] viewport_matrix Specifies the current viewport matrix.
+	\param[in] objextx Return the computed X object coordinate.
+	\param[in] objecty Return the computed Y object coordinate.
+	\param[in] objectz Return the computed Z object coordinate.
+
+*/
+int Transformation3D::TransformUnproject( float windowx, float windowy, float windowz, glm::mat4 *modelview_matrix, glm::mat4 *projection_matrix, int *viewport_matrix, float *objextx, float *objecty, float *objectz )
 {
-    QVector3D scaleVector(p_ScaleX, p_ScaleY, p_ScaleZ);
+	glm::mat4 final;
 
-    if (scaleVector == QVector3D(1.0f, 1.0f, 1.0f)) return;
+	glm::vec4 vin,
+		 vout;
 
+	final = *projection_matrix**modelview_matrix;
 
-    switch (m_TransformMemData.m_MatrixMode)
-    {
-        case MODEL_MATRIX:
-        {
-            GetModelMatrix().scale(scaleVector);
+	final = glm::inverse(final);
+	vin.x = windowx;
+	vin.y = windowy;
+	vin.z = windowz;
+	vin.w = 1.0f;
 
-            break;
-        }
+	vin.x = ( vin.x - viewport_matrix[ 0 ] ) / viewport_matrix[ 2 ];
+	vin.y = ( vin.y - viewport_matrix[ 1 ] ) / viewport_matrix[ 3 ];
 
-        case VIEW_MATRIX:
-        {
-            GetModelMatrix().scale(scaleVector);
+	vin.x = vin.x * 2.0f - 1.0f;
+	vin.y = vin.y * 2.0f - 1.0f;
+	vin.z = vin.z * 2.0f - 1.0f;
 
-            break;
-        }
+	Vec4MultiplyMat4( &vout, &vin, &final );
 
-        case PROJECTION_MATRIX:
-        {
-            GetProjectionMatrix().scale(scaleVector);
+	if( !vout.w ) return 0;
 
-            break;
-        }
-    }
-}
+	vout.x /= vout.w;
+	vout.y /= vout.w;
+	vout.z /= vout.w;
 
-QMatrix4x4& Transformation3D::GetModelMatrix()
-{
-    return m_TransformMemData.m_ModelMatrix[m_TransformMemData.m_ModelMatrixIndex];
-}
+	*objextx = vout.x;
+	*objecty = vout.y;
+	*objectz = vout.z;
 
-QMatrix4x4& Transformation3D::GetViewMatrix()
-{
-    return m_TransformMemData.m_ViewMatrix[m_TransformMemData.m_ViewMatrixIndex];
-}
-
-QMatrix4x4& Transformation3D::GetProjectionMatrix()
-{
-    return m_TransformMemData.m_ProjectionMatrix[m_TransformMemData.m_ProjectionMatrixIndex];
-}
-
-QMatrix4x4& Transformation3D::GetModelViewProjectionMatrix()
-{
-    m_TransformMemData.m_ModelViewProjectionMatrix = GetProjectionMatrix() * GetViewMatrix() * GetModelMatrix();
-
-    return m_TransformMemData.m_ModelViewProjectionMatrix;
-}
-
-QMatrix4x4& Transformation3D::GetModelViewMatrix()
-{
-    m_TransformMemData.m_ModelViewMatrix = GetViewMatrix() * GetModelMatrix();
-
-    return m_TransformMemData.m_ModelViewMatrix;
-}
-
-QMatrix3x3 Transformation3D::MVNormalMatrix()
-{
-    return GetModelViewMatrix().normalMatrix();
-}
-
-void Transformation3D::OrthoView(float p_Left, float p_Right, float p_Bottom, float p_Top, float p_Near, float p_Far)
-{
-    QMatrix4x4 matrixOrtho;
-    matrixOrtho.ortho(p_Left, p_Right, p_Bottom, p_Top, p_Near, p_Far);
-
-    switch (m_TransformMemData.m_MatrixMode)
-    {
-        case MODEL_MATRIX:
-        {
-            GetModelMatrix() = matrixOrtho;
-
-            break;
-        }
-
-        case VIEW_MATRIX:
-        {
-            GetViewMatrix() = matrixOrtho;
-
-            break;
-        }
-
-        case PROJECTION_MATRIX:
-        {
-            GetProjectionMatrix() = matrixOrtho;
-
-            break;
-        }
-    }
-}
-
-void Transformation3D::PerspectiveView(float p_FOV, float p_AspectRatio, float p_NearPlane, float p_FarPlane)
-{
-    QMatrix4x4 matrixPerspective;
-    matrixPerspective.perspective(p_FOV, p_AspectRatio, p_NearPlane, p_FarPlane);
-
-    switch (m_TransformMemData.m_MatrixMode)
-    {
-        case MODEL_MATRIX:
-        {
-            GetModelMatrix() = matrixPerspective;
-
-            break;
-        }
-
-        case VIEW_MATRIX:
-        {
-            GetViewMatrix() = matrixPerspective;
-
-            break;
-        }
-
-        case PROJECTION_MATRIX:
-        {
-            GetProjectionMatrix() = matrixPerspective;
-
-            break;
-        }
-    }
-}
-
-void Transformation3D::LookAt(const QVector3D& p_Eye, const QVector3D& p_Center, const QVector3D& p_Up)
-{
-    QMatrix4x4 lookat;
-    lookat.lookAt(p_Eye, p_Center, p_Up);
-
-    MultiplyMatrix(&lookat);
-}
-
-QVector3D Transformation3D::Project(float p_ObjX, float p_ObjY, float p_ObjZ, const QMatrix4x4& p_ModelViewMatrix, const QMatrix4x4& p_ProjectionMatrix, const QVector4D& p_Viewport)
-{
-    QVector4D inObjectCoord(p_ObjX, p_ObjY, p_ObjZ, 1.0f);
-
-    QVector4D modelViewCoord = p_ModelViewMatrix * inObjectCoord;
-
-    inObjectCoord = p_ProjectionMatrix * modelViewCoord; // doubt - check computation?
-
-    if (!inObjectCoord.w()) return QVector3D(0.0f, 0.0f, 0.0f);
-
-    inObjectCoord.setX(inObjectCoord.x() / inObjectCoord.w());
-    inObjectCoord.setY(inObjectCoord.y() / inObjectCoord.w());
-    inObjectCoord.setZ(inObjectCoord.z() / inObjectCoord.w());
-
-    inObjectCoord.setX(inObjectCoord.x() * 0.5f + 0.5f);
-    inObjectCoord.setY(inObjectCoord.y() * 0.5f + 0.5f);
-    inObjectCoord.setZ(inObjectCoord.z() * 0.5f + 0.5f);
-
-    inObjectCoord.setX((inObjectCoord.x() * p_Viewport.z()) + p_Viewport.x());
-    inObjectCoord.setY((inObjectCoord.y() * p_Viewport.w()) + p_Viewport.y());
-
-    return QVector3D(inObjectCoord.x(), inObjectCoord.y(), inObjectCoord.z());
-}
-
-QVector3D Transformation3D::Unproject(float p_WinX, float p_WinY, float p_WinZ, const QMatrix4x4& p_ModelViewMatrix, const QMatrix4x4& p_ProjectionMatrix, const QVector4D& p_Viewport)
-{
-    QVector4D inWindowCoord(p_WinX, p_WinY, p_WinZ, 1.0f);
-    QMatrix4x4 MVP;
-
-    QVector4D outObjectCoord;
-
-    MVP = p_ProjectionMatrix * p_ModelViewMatrix;
-
-    QMatrix4x4 matrixInverse = MVP.inverted();
-
-    inWindowCoord.setX((inWindowCoord.x() - p_Viewport.x()) / p_Viewport.z());
-    inWindowCoord.setY((inWindowCoord.y() - p_Viewport.y()) / p_Viewport.w());
-
-    inWindowCoord.setX((inWindowCoord.x() * 2.0f) - 1.0f);
-    inWindowCoord.setY((inWindowCoord.y() * 2.0f) - 1.0f);
-    inWindowCoord.setZ((inWindowCoord.z() * 2.0f) - 1.0f);
-
-    outObjectCoord = matrixInverse * inWindowCoord;
-
-    if (!outObjectCoord.w()) return QVector3D(0.0f, 0.0f, 0.0f);
-
-    inWindowCoord.setX(outObjectCoord.x() / outObjectCoord.w());
-    inWindowCoord.setY(outObjectCoord.y() / outObjectCoord.w());
-    inWindowCoord.setZ(outObjectCoord.z() / outObjectCoord.w());
-
-    return QVector3D(outObjectCoord.x(), outObjectCoord.y(), outObjectCoord.z());
+	return 1;
 }

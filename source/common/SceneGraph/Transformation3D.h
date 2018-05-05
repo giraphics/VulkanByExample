@@ -1,73 +1,133 @@
-#ifndef TRANSFORMATION_H
-#define TRANSFORMATION_H
-#include <QMatrix4x4>
+#pragma once
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
-#define MAX_PROJECTION_MATRIX   2
-#define MAX_MODEL_MATRIX        8
-#define MAX_VIEW_MATRIX         8
+//! The depth of the projection matrix stack.
+#define MAX_PROJECTION_MATRIX	2
+
+//! The depth of the model matrix stack.
+#define MAX_MODEL_MATRIX	8
+
+//! The depth of the view matrix stack.
+#define MAX_VIEW_MATRIX	8
+
+//! The depth of the texture matrix stack.
+#define MAX_TEXTURE_MATRIX		2
+
+//! The definition of the global  structure. This structure maintain the matrix stacks and current indexes. 
+typedef struct
+{
+	//! The current matrix mode (either MODEL_MATRIX, VIEW_MATRIX, PROJECTION_MATRIX, TEXTURE_MATRIX).
+	unsigned char	matrix_mode;
+	
+    //! The current modelview matrix index in the stack.
+	unsigned char	modelMatrixIndex;
+
+	//! The current modelview matrix index in the stack.
+	unsigned char	viewMatrixIndex;
+
+	//! The current projection matrix index in the stack.
+	unsigned char	projectionMatrixIndex;
+	
+	//! The current texture matrix index in the stack.	
+	unsigned char	textureMatrixIndex;
+
+    //! Array of 4x4 matrix that represent the model matrix stack.
+	glm::mat4			model_matrix[ MAX_MODEL_MATRIX ];
+	
+    //! Array of 4x4 matrix that represent the view matrix stack.
+	glm::mat4			view_matrix[ MAX_VIEW_MATRIX ];
+
+	//! Array of 4x4 matrix that represent the projection matrix stack.
+	glm::mat4			projection_matrix[ MAX_PROJECTION_MATRIX ];
+
+	//! Array of 4x4 matrix that represent the texture matrix stack.
+	glm::mat4			texture_matrix[ MAX_TEXTURE_MATRIX ];
+	
+	//! Used to store the result of the modelview matrix multiply by the projection matrix. \sa _get_modelview_projection_matrix
+	glm::mat4			modelview_projection_matrix;
+
+	//! Used to store the result of the modelview matrix multiply by the projection matrix. \sa _get_modelview_projection_matrix
+	glm::mat4			modelview_matrix;
+	
+	//! Used to store the result of the inverse, tranposed modelview matrix. \sa _get_normal_matrix
+	glm::mat3			normal_matrix;
+} TransformData;
+
 
 class Transformation3D
 {
 public:
-    enum MatrixType
-    {
-        MODEL_MATRIX = 0,
-        VIEW_MATRIX = 1,
-        PROJECTION_MATRIX = 2,
-    };
+	enum
+	{
+		//! The modelview matrix identifier.
+		//MODELVIEW_MATRIX = 0,
 
-    typedef struct
-    {
-        MatrixType m_MatrixMode;
+		//! The model matrix identifier.
+		MODEL_MATRIX = 0,
 
-        uint8_t m_ModelMatrixIndex;
-        uint8_t m_ViewMatrixIndex;
-        uint8_t m_ProjectionMatrixIndex;
+		//! The view matrix identifier.
+		VIEW_MATRIX = 1,
 
-        QMatrix4x4 m_ModelMatrix[MAX_MODEL_MATRIX];
-        QMatrix4x4 m_ViewMatrix[MAX_VIEW_MATRIX];
-        QMatrix4x4 m_ProjectionMatrix[MAX_PROJECTION_MATRIX];
+		//! The projection matrix identifier.
+		PROJECTION_MATRIX = 2,
 
-        QMatrix4x4 m_ModelViewProjectionMatrix;
-        QMatrix4x4 m_ModelViewMatrix;
-    }TransformData;
+		//! The texture matrix identifier.
+		TEXTURE_MATRIX = 3
+	};
 
-public:
-    Transformation3D();
+	Transformation3D(void);
+	~Transformation3D(void);
 
-    void Initialize();
-    void Error();
+    void Init( void );
 
-    void SetMatrixMode(MatrixType p_MatrixMode);
-    void LoadIdentity();
+    void SetMatrixMode( unsigned int mode );
 
-    void PushMatrix();
-    void PopMatrix();
+    void LoadIdentity( void );
 
-    void LoadMatrix(QMatrix4x4& p_Matrix);
-    void MultiplyMatrix(QMatrix4x4* p_Matrix);
+    void PushMatrix( void );
 
-    void Translate(float p_TranslateX, float p_TranslateY, float p_TranslateZ);
-    void Rotate(float p_Angle, float p_RotateX, float p_RotateY, float p_RotateZ);
-    void Scale(float p_ScaleX, float p_ScaleY, float p_ScaleZ);
+    void PopMatrix( void );
 
-    QMatrix4x4& GetModelMatrix();
-    QMatrix4x4& GetViewMatrix();
-    QMatrix4x4& GetProjectionMatrix();
+    void LoadMatrix( glm::mat4 *m );
 
-    QMatrix4x4& GetModelViewProjectionMatrix();
-    QMatrix4x4& GetModelViewMatrix();
-    QMatrix3x3 MVNormalMatrix();
+    void MultiplyMatrix( glm::mat4 *m );
 
-    void OrthoView(float p_Left, float p_Right, float p_Bottom, float p_Top, float p_Near, float p_Far);
-    void PerspectiveView(float p_FOV, float p_AspectRatio, float p_NearPlane, float p_FarPlane);
-    void LookAt(const QVector3D& p_Eye, const QVector3D& p_Center, const QVector3D& p_Up);
+    void Translate( float x, float y, float z );
 
-    QVector3D Project(float p_ObjX, float p_ObjY, float p_ObjZ, const QMatrix4x4& p_ModelViewMatrix, const QMatrix4x4& p_ProjectionMatrix, const QVector4D& p_Viewport);
-    QVector3D Unproject(float p_WinX, float p_WinY, float p_WinZ, const QMatrix4x4& p_ModelViewMatrix, const QMatrix4x4& p_ProjectionMatrix, const QVector4D& p_Viewport);
+    void Rotate( float angle, float x, float y, float z );
 
-private:
-    TransformData m_TransformMemData;
+    void Scale( float x, float y, float z );
+
+    glm::mat4* GetModelMatrix( void );
+    
+    glm::mat4* GetViewMatrix( void );
+    
+    glm::mat4* GetProjectionMatrix( void );
+
+    glm::mat4* GetTextureMatrix( void );
+
+    glm::mat4* GetModelViewProjectionMatrix( void );
+
+    glm::mat4* GetModelViewMatrix( void );
+
+    void GetNormalMatrix( glm::mat3* );
+
+    void Ortho( float left, float right, float bottom, float top, float clip_start, float clip_end );
+
+    void OrthoGrahpic( float screen_ratio, float scale, float aspect_ratio, float clip_start, float clip_end, float screen_orientation );
+
+    void SetPerspective( float fovy, float aspect_ratio, float clip_start, float clip_end);
+
+    void LookAt( glm::vec3 *eye, glm::vec3 *center, glm::vec3 *up );
+
+    void SetView(glm::mat4 mat);
+
+	int TransformProject( float objx, float objy, float objz, glm::mat4 *modelview_matrix, glm::mat4 *projection_matrix, int *viewport_matrix, float *winx, float *winy, float *winz );
+
+	int TransformUnproject( float winx, float winy, float winz, glm::mat4 *modelview_matrix, glm::mat4 *projection_matrix, int *viewport_matrix, float *objx, float *objy, float *objz );
+
+	void Vec4MultiplyMat4( glm::vec4* dst, glm::vec4 *v0, glm::mat4 *v1 );
+
+	TransformData TransformMemData;
 };
-
-#endif // TRANSFORMATION_H

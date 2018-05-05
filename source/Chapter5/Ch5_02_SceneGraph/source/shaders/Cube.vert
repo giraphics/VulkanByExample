@@ -20,7 +20,7 @@ void main()
 {
     //gl_Position = myBufferVals.mvp * inPosition;
     fragColor = inColor;
-	   gl_Position   = myBufferVals.mvp * instancePos * (inPosition + instanceRot);
+    gl_Position   = myBufferVals.mvp * instancePos * (inPosition /*+ instanceRot*/);
 
 	gl_Position.z = (gl_Position.z + gl_Position.w) / 2.0;
 

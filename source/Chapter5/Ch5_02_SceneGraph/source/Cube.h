@@ -11,7 +11,7 @@ struct Vertex
     glm::vec3 m_Color;    // Color format => r, g, b
 };
 
-const float dimension = 0.5f;
+const float dimension = 1.0f;
 static const Vertex cubeVertices[] =
 {
 	{ glm::vec3(dimension, -dimension, -dimension),		glm::vec3(0.f, 0.f, 0.f) },
@@ -136,40 +136,11 @@ private:
 	void CreateGraphicsPipeline();
 	void RecordCommandBuffer();
 	void CreateVertexBuffer(const void *vertexData, uint32_t dataSize, uint32_t dataStride);
-	void CreateCommandBuffers(); // Overide the default implementation as per application requirement
 
 public:
-	struct {
-		VulkanBuffer m_BufObj;
-	} VertexBuffer, instanceBufferNew;
+    VulkanBuffer m_VertexBuffer, m_InstanceBuffer;
 
 	////////////////////////////////////////////////////
-	// Per-instance data block
-	struct InstanceData {
-		glm::mat4 MVP;
-		//glm::vec3 pos;
-		glm::vec3 rot;
-		//float scale;
-		//uint32_t texIndex;
-	};
-	//struct InstanceData {
-	//	QMatrix4x4 MVP;
-	//	//glm::vec3 pos;
-	//	QVector3D rot;
-	//	//float scale;
-	//	//uint32_t texIndex;
-	//};
-
-	// Contains the instanced data
-	//struct {
-	//	VkBuffer buffer = VK_NULL_HANDLE;
-	//	VkDeviceMemory memory = VK_NULL_HANDLE;
-	//	size_t size = 0;
-	//	VkDescriptorBufferInfo descriptor;
-	//} instanceBuffer;
-	glm::mat4 Model;
-
-	void prepareInstanceData();
 	void prepareInstanceData(Scene3D* p_Scene);
 
 	// Vertex buffer specific objects
@@ -184,31 +155,17 @@ public:
 	QMap<QString, VkPipeline> m_GraphicsPipelineMap;
 
 	////////////////////////
-	static CubeFactory* SingleTon(VulkanApp* p_VulkanApp) 
-	{ 
-		return m_Singleton ? m_Singleton : (m_Singleton = new CubeFactory(p_VulkanApp));
-	}
-
+	static CubeFactory* SingleTon(VulkanApp* p_VulkanApp) { return m_Singleton ? m_Singleton : (m_Singleton = new CubeFactory(p_VulkanApp)); }
 	static CubeFactory* m_Singleton;
 	
-	#pragma pack(1)
-	struct InstanceDataFactory { // XXXXXXXXXXXXXXXXXX - remove Factory
-		//InstanceDataFactory() { m_Model.setToIdentity(); }
-		QMatrix4x4 m_Model;
-//		glm::mat4 m_Model;
+	// Per-instance data block
+    struct InstanceData {
+		glm::mat4 m_Model;
+		//glm::vec3 pos;
+		//glm::vec3 rot;
+		//float scale;
+		//uint32_t texIndex;
 	};
 
-	std::vector</*InstanceDataFactory*/glm::mat4> m_InstanceData;
-	std::vector<InstanceDataFactory> m_InstanceData1;
-	/*InstanceDataFactory*//*QMatrix4x4*/glm::mat4* GetNewInstance(int i)
-	{
-		return &m_InstanceData[i];
-	}
-
-	///*InstanceDataFactory*//*QMatrix4x4*/glm::mat4* GetNewInstance()
-	//{
-	//	m_InstanceData1.push_back(InstanceDataFactory());
-	//	m_InstanceData.push_back(/*InstanceDataFactory*//*QMatrix4x4()*/glm::mat4());
-	//	return &m_InstanceData[m_InstanceData.size() - 1];
-	//}
+	std::vector<glm::mat4> m_InstanceData;
 };

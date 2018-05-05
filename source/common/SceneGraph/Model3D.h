@@ -46,28 +46,19 @@ public:
 		}
 	}
 
-	virtual void Update()
-	{
-//		if (!m_IsVisible) return;
+    void UpdateNew();
 
-        foreach(Model3D* currentModel, m_ChildList)
-		{
-            Model3D* model = dynamic_cast<Model3D*>(currentModel);
-
-			if (!model) continue;
-
-			model->Update();
-		}
-	}
+    virtual void Update();
 
 	void Rotate(float p_Angle, float p_X, float p_Y, float p_Z) { m_Model = glm::rotate(m_Model, p_Angle, glm::vec3(p_X, p_Y, p_Z)); }
 	void Translate(float p_X, float p_Y, float p_Z) { m_Model = glm::translate(m_Model, glm::vec3(p_X, p_Y, p_Z)); }
     void Scale(float p_X, float p_Y, float p_Z) { m_Model = glm::translate(m_Model, glm::vec3(p_X, p_Y, p_Z)); }
-	void Reset() { m_Model = glm::mat4(); }
+	void Reset() { m_TransformedModel = glm::mat4(); }
 
 	GETSET(glm::mat4, Model)		// Owned by drawable item
 	GETSET(Scene3D*, Scene)
 	GETSET(Model3D*, Parent)
+	GETSET(glm::mat4, TransformedModel)		// Owned by drawable item
 
 	// Mouse interaction: Dummy interface for now.
 	virtual void mousePressEvent() UNIMPLEMENTED_INTEFACE
@@ -81,11 +72,10 @@ public:
 	// Application Window resizing
 	virtual void ResizeWindow(int width, int height) {}
 
-	void ApplyTransformation()
-	{
-	    *m_Scene->Transform().GetModelMatrix() *= m_Model;
-	}
-
+	inline Model3D* GetParent() const { return m_Parent; }
+	void ApplyTransformation() { *m_Scene->Transform().GetModelMatrix() *= m_Model; }
+	glm::mat4 GetRelativeTransformations() const { return GetParentsTransformation(GetParent()) * m_Model; }
+	glm::mat4 GetParentsTransformation(Model3D* p_Parent) const { return p_Parent ? (GetParentsTransformation(p_Parent->GetParent()) * p_Parent->m_Model) : glm::mat4(); }
 
 private:
     QList<Model3D*> m_ChildList;

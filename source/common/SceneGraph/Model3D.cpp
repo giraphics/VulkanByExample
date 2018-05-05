@@ -66,3 +66,37 @@
 //{
 //    m_Scene->Transform().GetModelMatrix() *= m_Transformation;
 //}
+
+void Model3D::UpdateNew()
+{
+    //if (!m_IsVisible) return;
+
+    m_Scene->PushMatrix();
+    m_Scene->ApplyTransformation(m_Model);
+
+	m_TransformedModel = *m_Scene->m_Transform.GetModelMatrix();
+    //Paint();
+	m_Scene->m_FlatList.push_back(this);
+
+    Q_FOREACH(Model3D* child, m_ChildList)
+    {
+        assert(child);
+        child->UpdateNew();
+    }
+
+    m_Scene->PopMatrix();
+}
+
+void Model3D::Update()
+{
+    //		if (!m_IsVisible) return;
+
+    foreach(Model3D* currentModel, m_ChildList)
+    {
+        Model3D* model = dynamic_cast<Model3D*>(currentModel);
+
+        if (!model) continue;
+
+        model->Update();
+    }
+}
