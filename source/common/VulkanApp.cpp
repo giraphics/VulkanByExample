@@ -1,4 +1,19 @@
 #include "VulkanApp.h"
+#include <QElapsedtimer>
+#define FPS_TIME_START { \
+                            static QElapsedTimer FPS; static int m_Frame;\
+                            if (!FPS.isValid()) { FPS.start(); }
+
+#define FPS_TIME_END        ++m_Frame; \
+                            const int threshold = 3 * 1000; \
+                            const int timing = FPS.elapsed(); \
+                            if (timing > threshold) \
+                            { \
+                                qDebug("FPS: %f", m_Frame / 3.0f); \
+                                m_Frame = 0; \
+                                FPS.start(); \
+                            } \
+                        }
 
 Window::Window(VulkanApp* vulkanApp) : m_VulkanApp(vulkanApp)
 {
@@ -116,9 +131,11 @@ void VulkanApp::Initialize()
 
 void VulkanApp::Run()
 {
+	FPS_TIME_START
     Update(); // For derive implementation to update data
     Render(); // Render application specific data
     Present(); // Display the drawing output on presentation window
+	FPS_TIME_END
 }
 
 void VulkanApp::SetWindowDimension(int width, int height)

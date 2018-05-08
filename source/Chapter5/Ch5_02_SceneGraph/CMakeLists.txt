@@ -4,7 +4,7 @@
 
 cmake_minimum_required(VERSION 3.7.1)
 
-set(Example_Name "Ch5_02_SGInstancing")
+set(Example_Name "Ch5_02_SceneGraph")
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(CMAKE_INCLUDE_CURRENT_DIR ON) # 

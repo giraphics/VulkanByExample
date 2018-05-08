@@ -210,7 +210,7 @@ void Transformation3D::PushMatrix( void )
                    &TransformMemData.view_matrix[ TransformMemData.viewMatrixIndex     ],
                    sizeof( glm::mat4 ) );
             
-			++TransformMemData.modelMatrixIndex;
+			++TransformMemData.viewMatrixIndex;
             
 			break;
 		}
@@ -636,9 +636,9 @@ void Transformation3D::SetPerspective( float fovy, float aspect_ratio, float cli
             
 		case PROJECTION_MATRIX:
 		{
-			glm::mat4	*matProjection = GetProjectionMatrix();
+//			glm::mat4	*matProjection = GetProjectionMatrix();
 			*GetProjectionMatrix() = glm::perspective(fovy, aspect_ratio, clip_start, clip_end);
-			*matProjection = glm::perspective(fovy, aspect_ratio, clip_start, clip_end);
+	//		*matProjection = glm::perspective(fovy, aspect_ratio, clip_start, clip_end);
 
 			break;
 		}
@@ -668,10 +668,13 @@ void Transformation3D::SetView(glm::mat4 mat)
 */
 void Transformation3D::LookAt( glm::vec3 *eye, glm::vec3 *center, glm::vec3 *up )
 {
-	glm::vec3 f, s, u;
-	glm::mat4 mat = glm::lookAt(*eye, *center, *up);
-	//TransformSetView(mat);
-	MultiplyMatrix( &mat );
+	*GetViewMatrix() = glm::lookAt(*eye, *center, *up);
+
+	//glm::vec3 f, s, u;
+	//static glm::mat4 mat = glm::lookAt(*eye, *center, *up);
+	////TransformSetView(mat);
+	////*GetViewMatrix() = (mat);
+	//MultiplyMatrix( &mat );
 }
 
 /*!

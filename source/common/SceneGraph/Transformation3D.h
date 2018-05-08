@@ -1,5 +1,9 @@
 #pragma once
-#include <glm/glm.hpp>
+
+/*********** GLM HEADER FILES ***********/
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include "glm/glm.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
 //! The depth of the projection matrix stack.
@@ -60,9 +64,6 @@ class Transformation3D
 public:
 	enum
 	{
-		//! The modelview matrix identifier.
-		//MODELVIEW_MATRIX = 0,
-
 		//! The model matrix identifier.
 		MODEL_MATRIX = 0,
 

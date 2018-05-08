@@ -26,21 +26,13 @@ void Scene3D::Setup()
 
 void Scene3D::Update()
 {
-    foreach (Model3D* currentModel, m_ModelList)
-    {
-        currentModel->Update();
-    }
-}
-
-void Scene3D::UpdateNew()
-{
 	m_FlatList.clear();
 
     Q_FOREACH(Model3D* item, m_ModelList)
     {
         assert(item);
 
-        item->UpdateNew();
+        item->Update();
     }
 }
 
@@ -68,12 +60,14 @@ void Scene3D::SetUpProjection()
     m_Transform.SetMatrixMode(Transformation3D::PROJECTION_MATRIX);
     m_Transform.LoadIdentity();
 
-    m_Transform.SetPerspective(45.0f,/* float(m_ScreenWidth)/m_ScreenHeight*/800.0f / 600.0f, 0.10f, 100.0f);
-	static glm::mat4 View = glm::translate(glm::mat4(1), glm::vec3(0, 0, -15));
+	m_Transform.SetPerspective(45.0f,/* float(m_ScreenWidth)/m_ScreenHeight*/800.0f / 600.0f, 0.10f, 100.0f);
 
     m_Transform.SetMatrixMode(Transformation3D::VIEW_MATRIX);
-    m_Transform.LoadIdentity();
-	m_Transform.Translate(0, 0, -15);
+	glm::vec3 eye(10.0, 10.0, 10.0); 
+	glm::vec3 center(0.0, 0.0, 0.0); 
+	glm::vec3 up(0.0, 1.0, 0.0);
+	m_Transform.LoadIdentity(); 
+	m_Transform.LookAt(&eye, &center, &up);	
 
     m_Transform.SetMatrixMode(Transformation3D::MODEL_MATRIX);
     m_Transform.LoadIdentity();

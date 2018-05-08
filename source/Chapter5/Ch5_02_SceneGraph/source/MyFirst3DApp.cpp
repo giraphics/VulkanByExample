@@ -27,17 +27,19 @@ MyFirst3DApp::MyFirst3DApp()
 
 	m_Scene = new Scene3D();
     
-	m_Cube1 = new Model3D(m_Scene, NULL, "Node 1", SHAPE_CUBE);
-	m_Cube2 = new Model3D(m_Scene, m_Cube1, "Node 2", SHAPE_CUBE);
+//	m_Cube1 = new Model3D(m_Scene, NULL, "Node 1", SHAPE_CUBE);
+	Model3D* lastModel = NULL;
+	for (int i = 0; i < 10; i++)
+	{
+		lastModel = new Model3D(m_Scene, lastModel, "Node 2", SHAPE_CUBE);
+		if (i == 0) m_Cube1 = lastModel;
 
-	m_Cube2->Translate(4.0f, 0.0f, 0.0f);
-
-//	m_Cube2->Translate(3.0f, 0.0f, 0.0f);
+		lastModel->Translate(0.0f, 0.0f, 3.0f);
+	}
 }
 
 MyFirst3DApp::~MyFirst3DApp()
 {
-	//delete m_Cube;
 }
 
 void MyFirst3DApp::Configure()
@@ -56,20 +58,16 @@ void MyFirst3DApp::Configure()
 
 void MyFirst3DApp::Setup()
 {
+	// Note: We are overidding the default Create Command pool with VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+	// because we need to re-record the command buffer when the instance data size changes. 
+	// This need to recreate the command buffer. 
+	VkCommandPoolCreateInfo poolInfo = {};
+	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+	poolInfo.queueFamilyIndex = m_physicalDeviceInfo.graphicsFamilyIndex;
+	VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo, &poolInfo);
+
 	m_Scene->SetUpProjection();
-
-	VkMemoryPropertyFlags memoryProperty = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    m_CubeFactory->m_InstanceBuffer.m_MemoryFlags = memoryProperty;
-    m_CubeFactory->m_InstanceBuffer.m_DataSize = 2/*m_Scene->m_MatrixVector.size()*/ * sizeof(QMatrix4x4);
-
-	VulkanHelper::CreateStagingBuffer(m_hDevice,
-		m_physicalDeviceInfo.memProp,
-		m_hCommandPool,
-		m_hGraphicsQueue,
-        m_CubeFactory->m_InstanceBuffer,
-		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-		m_Scene->m_MatrixVector.data()); // Please use this Create Buffer currently begin used
-
 	m_CubeFactory->Setup();
 }
 
@@ -77,9 +75,9 @@ void MyFirst3DApp::Update()
 {
 	static float rot = 0;
 	m_Cube1->Rotate(rot = .01f, 0.0f, 1.0f, 0.0f);
-	//	m_Scene->Update();
-//	m_Cube1->Reset();
-	m_Scene->UpdateNew();
-//	m_CubeFactory->Update();
+	
+//	Sleep(1000);
+	m_Scene->SetUpProjection();
+	m_Scene->Update();
 	m_CubeFactory->prepareInstanceData(m_Scene);
 }
