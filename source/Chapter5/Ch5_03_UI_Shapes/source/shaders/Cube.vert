@@ -10,6 +10,7 @@ layout (location = 1) in vec4 inColor;
 // Instanced attributes
 layout (location = 2) in mat4 instancePos;
 layout (location = 6) in vec4 instanceRot;
+layout (location = 7) in vec4 instanceCol;
 layout(location = 0) out vec4 fragColor;
 
 out gl_PerVertex { 
@@ -20,7 +21,8 @@ void main()
 {
     //gl_Position = myBufferVals.mvp * inPosition;
     vec4 inPositionNew = inPosition;
-	fragColor = inColor;
+//	fragColor = inColor;
+	fragColor = instanceCol;
 	inPositionNew.x = inPosition.x * instanceRot.x;
 	inPositionNew.y = inPosition.y * instanceRot.y;
     gl_Position   = myBufferVals.mvp * instancePos * (inPositionNew /*+ instanceRot*/);

@@ -358,6 +358,7 @@ void RectangleFactory::CreateVertexBuffer(const void * vertexData, uint32_t data
 	m_VertexInputAttribute[1].offset = offsetof(struct Vertex, m_Color);
 	////////////////////////////////////////////////////////////////////////////////////
 
+	// Model Matrix
 	m_VertexInputAttribute[2].binding = INSTANCE_BUFFER_BIND_IDX;
 	m_VertexInputAttribute[2].location = 2;
 	m_VertexInputAttribute[2].format = VK_FORMAT_R32G32B32A32_SFLOAT;
@@ -378,11 +379,17 @@ void RectangleFactory::CreateVertexBuffer(const void * vertexData, uint32_t data
 	m_VertexInputAttribute[5].format = VK_FORMAT_R32G32B32A32_SFLOAT;
 	m_VertexInputAttribute[5].offset = 16 * 3;
 	
+	// Dimension
 	m_VertexInputAttribute[6].binding = INSTANCE_BUFFER_BIND_IDX;
 	m_VertexInputAttribute[6].location = 6;
 	m_VertexInputAttribute[6].format = VK_FORMAT_R32G32B32_SFLOAT;
 	m_VertexInputAttribute[6].offset = 16 * 4;
 
+	// Color
+	m_VertexInputAttribute[7].binding = INSTANCE_BUFFER_BIND_IDX;
+	m_VertexInputAttribute[7].location = 7;
+	m_VertexInputAttribute[7].format = VK_FORMAT_R32G32B32_SFLOAT;
+	m_VertexInputAttribute[7].offset = 16 * 5;
 }
 
 //void CubeFactory::CreateCommandBuffers()
@@ -551,6 +558,7 @@ void RectangleFactory::prepareInstanceData(Scene3D* p_Scene)
 		m_InstanceData[i].m_Model = p_Scene->m_FlatList.at(i)->GetTransformedModel();
 		m_InstanceData[i].m_Rect.x = p_Scene->m_FlatList.at(i)->GetDimension().x;
 		m_InstanceData[i].m_Rect.y = p_Scene->m_FlatList.at(i)->GetDimension().y;
+		m_InstanceData[i].m_Color = p_Scene->m_FlatList.at(i)->GetColor();
 	}
 
 	if (modelSize != 0)

@@ -116,7 +116,7 @@ public:
 
 	// Vertex buffer specific objects
 	VkVertexInputBindingDescription		m_VertexInputBinding[2];   // 0 for (position and color) 1 for ()
-	VkVertexInputAttributeDescription	m_VertexInputAttribute[7]; // Why 7 = 2(for position and color) + 5 (transform and rotation)
+	VkVertexInputAttributeDescription	m_VertexInputAttribute[8]; // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
 
     // Store app specific objects
     VkPipelineLayout m_hPipelineLayout;
@@ -132,8 +132,8 @@ public:
 	// Per-instance data block
     struct InstanceData {
 		glm::mat4 m_Model;
-		//glm::vec4 pos;
 		glm::vec4 m_Rect;
+		glm::vec4 m_Color;
 		//float scale;
 		//uint32_t texIndex;
 	};

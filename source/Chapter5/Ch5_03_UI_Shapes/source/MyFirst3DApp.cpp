@@ -29,9 +29,11 @@ MyFirst3DApp::MyFirst3DApp()
 	
 	m_Cube1 = new Model3D(m_Scene, NULL, "Node 1", SHAPE_CUBE);
 	m_Cube1->Rectangle(100, 100, 100, 800);
+	m_Cube1->SetColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
 
 	m_Cube2 = new Model3D(m_Scene, m_Cube1, "Node 2", SHAPE_CUBE);
 	m_Cube2->Rectangle(0, 0, 100, 100);
+	m_Cube2->SetColor(glm::vec4(0.6, 0.4, 0.20, 1.0));
 //	m_Cube1->Rotate(2*3.14/4.0, 0.0, 0.0, 1.0);
 
 	m_Cube1->Scale(0.5, 0.5, 0.5);
