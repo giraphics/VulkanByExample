@@ -14,6 +14,10 @@ public:
     virtual void Setup();
     virtual void Update();
 
+	virtual void mousePressEvent(QMouseEvent* p_Event);
+	virtual void mouseReleaseEvent(QMouseEvent* p_Event);
+	virtual void mouseMoveEvent(QMouseEvent* p_Event);
+
 private:
     RectangleFactory* m_CubeFactory;
 	///////////////////

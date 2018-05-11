@@ -29,16 +29,18 @@ public:
 	void Rectangle(float p_X, float p_Y, float p_Width, float p_Height);
 	GETSET(glm::vec2, Position)
 	GETSET(glm::vec2, Dimension)
+	GETSET(glm::vec4, Color)
+	GETSET(glm::vec4, DefaultColor)
 	GETSET(glm::mat4, Model)		// Owned by drawable item
 	GETSET(Scene3D*, Scene)
 	GETSET(Model3D*, Parent)
 	GETSET(glm::mat4, TransformedModel)		// Owned by drawable item
 
 	// Mouse interaction: Dummy interface for now.
-	virtual void mousePressEvent() UNIMPLEMENTED_INTEFACE
-	virtual void mouseReleaseEvent() UNIMPLEMENTED_INTEFACE
-	virtual void mouseMoveEvent() UNIMPLEMENTED_INTEFACE
-	virtual void mouseDoubleClickEvent() UNIMPLEMENTED_INTEFACE
+	virtual void mousePressEvent(QMouseEvent* p_Event);
+	virtual void mouseReleaseEvent(QMouseEvent* p_Event);
+	virtual bool mouseMoveEvent(QMouseEvent* p_Event);
+	virtual void mouseDoubleClickEvent(QMouseEvent* p_Event) UNIMPLEMENTED_INTEFACE
 
 	// Key interaction: Dummy interface for now.
 	virtual void keyPressEvent() UNIMPLEMENTED_INTEFACE

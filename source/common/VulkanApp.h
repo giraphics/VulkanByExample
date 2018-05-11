@@ -42,7 +42,10 @@ public:
 	virtual void CreateCommandBuffers(); // Overide the default implementation as per application requirement
 
     virtual void ResizeWindow(int width, int height);
-	
+	virtual void mousePressEvent(QMouseEvent* p_Event) {} // Default implementation, Overide as required
+	virtual void mouseReleaseEvent(QMouseEvent* p_Event) {}
+	virtual void mouseMoveEvent(QMouseEvent* p_Event) {}
+
 protected:
 	// Core virtual methods used by derived classes
 	virtual void Configure() = 0; // Application's user configuration prior to Setup()
@@ -138,6 +141,9 @@ public:
 	public slots:
 	void Run();
     void resizeEvent(QResizeEvent* pEvent);
+	virtual void mousePressEvent(QMouseEvent* p_Event) { m_VulkanApp->mousePressEvent(p_Event); }
+	virtual void mouseReleaseEvent(QMouseEvent* p_Event) { m_VulkanApp->mouseReleaseEvent(p_Event); }
+	virtual void mouseMoveEvent(QMouseEvent* p_Event) { m_VulkanApp->mouseMoveEvent(p_Event); }
 
 private:
 	QTimer* renderTimer;	// Refresh timer

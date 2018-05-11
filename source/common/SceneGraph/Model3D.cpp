@@ -1,4 +1,6 @@
 #include "Model3D.h"
+#include<QMouseEvent>
+#include<glm/gtx/string_cast.hpp>
 
 Model3D::Model3D(Scene3D *p_Scene, Model3D *p_Parent, const QString &p_Name, SHAPE p_ShapeType)
     : m_Scene(p_Scene)
@@ -18,6 +20,72 @@ void Model3D::Setup()
 
         model->Setup();
     }
+}
+
+void Model3D::mousePressEvent(QMouseEvent* p_Event)
+{
+	glm::vec4 posStart((0 * m_Dimension.x), (0 * m_Dimension.y), 0.0, 1.0);
+	glm::vec4 posStartResult = m_TransformedModel * posStart;
+
+	glm::vec4 posEnd((m_Dimension.x), (m_Dimension.y), 0.0, 1.0);
+	glm::vec4 posEndResult = m_TransformedModel * posEnd;
+
+	cout << "\n##### mousePressEventS" << glm::to_string(posStartResult);// << posEndResult;
+	cout << "\n##### mousePressEventE" << glm::to_string(posEndResult);// << posEndResult;
+
+	QRect rect(QPoint(posStartResult.x, posStartResult.y), QPoint(posEndResult.x, posEndResult.y));
+	if (rect.contains(p_Event->x(), p_Event->y()))
+		cout << "\n***************";
+	
+
+	foreach(Model3D* item, m_ChildList)
+	{
+		assert(item);
+
+		item->mousePressEvent(p_Event);
+	}
+}
+
+void Model3D::mouseReleaseEvent(QMouseEvent* p_Event)
+{
+	//cout << "\n##### mouseReleaseEvent";
+	foreach(Model3D* item, m_ChildList)
+	{
+		assert(item);
+
+		item->mouseReleaseEvent(p_Event);
+	}
+}
+
+bool Model3D::mouseMoveEvent(QMouseEvent* p_Event)
+{
+	glm::vec4 posStart((0 * m_Dimension.x), (0 * m_Dimension.y), 0.0, 1.0);
+	glm::vec4 posStartResult = /*GetParentsTransformation(GetParent()) **/ m_TransformedModel * posStart;
+
+	glm::vec4 posEnd((m_Dimension.x), (m_Dimension.y), 0.0, 1.0);
+	glm::vec4 posEndResult = /*GetParentsTransformation(GetParent()) **/ m_TransformedModel * posEnd;
+
+	QRect rect(QPoint(posStartResult.x, posStartResult.y), QPoint(posEndResult.x, posEndResult.y));
+	if (rect.contains(p_Event->x(), p_Event->y()))
+	{
+		m_Scene->SetCurrentHoverItem(this);
+
+		//cout << "\n##### mouseMoveEvent";
+		for (int i = m_ChildList.size() - 1; i >= 0; i--)
+		{
+			Model3D* item = m_ChildList.at(i);
+			assert(item);
+
+			if (item->mouseMoveEvent(p_Event))
+			{
+				return true;
+			}
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
 void Model3D::Update()

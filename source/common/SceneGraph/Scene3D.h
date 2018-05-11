@@ -8,6 +8,7 @@
 
 class Model3D;
 class Scene3D;
+class QMouseEvent;
 
 class Scene3D
 {
@@ -27,19 +28,21 @@ public:
 	
 	void PushMatrix() { m_Transform.PushMatrix(); }
 	void PopMatrix() { m_Transform.PopMatrix(); }
-	void ApplyTransformation(const glm::mat4& m_TransformationMatrix) 
-	{ 
-		*m_Transform.GetModelMatrix() *= m_TransformationMatrix; 
-	}
+	void ApplyTransformation(const glm::mat4& m_TransformationMatrix) { *m_Transform.GetModelMatrix() *= m_TransformationMatrix; }
+
+	virtual void mousePressEvent(QMouseEvent* p_Event);
+	virtual void mouseReleaseEvent(QMouseEvent* p_Event);
+	virtual void mouseMoveEvent(QMouseEvent* p_Event);
 
 	GETSET(glm::mat4*, Projection)	// Not owned by Scene, double check this can be owned. TODO: PS
 	GETSET(glm::mat4*, View)		// Not owned by Scene
+	GETSET(Model3D*, CurrentHoverItem)	// Not owned by Scene
 
 public:
     int m_ScreenHeight;
     int m_ScreenWidth;
 
-	QList<Model3D*> m_ModelList;
+	std::vector<Model3D*> m_ModelList;
     Transformation3D m_Transform;
     int m_Frame;
 
