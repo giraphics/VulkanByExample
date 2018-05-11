@@ -195,12 +195,12 @@ void RectangleFactory::CreateGraphicsPipeline()
 	// Set to write out RGBA components
 	VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
 	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	colorBlendAttachment.blendEnable = VK_FALSE;
+	colorBlendAttachment.blendEnable = VK_TRUE;
 
 	// Setup color blending
 	VkPipelineColorBlendStateCreateInfo colorBlending = {};
 	colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-	colorBlending.logicOpEnable = VK_FALSE;
+	colorBlending.logicOpEnable = VK_TRUE;
 	colorBlending.logicOp = VK_LOGIC_OP_COPY;
 	colorBlending.attachmentCount = 1;
 	colorBlending.pAttachments = &colorBlendAttachment;
@@ -541,6 +541,7 @@ void CubeDescriptorSet::CreateDescriptorSet()
 
 void RectangleFactory::prepareInstanceData(Scene3D* p_Scene)
 {
+	printf(".");
 	glm::mat4 VP = (*p_Scene->GetProjection()) * *p_Scene->GetView();
 	VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice,
 		UniformBuffer->m_MappedMemory,
