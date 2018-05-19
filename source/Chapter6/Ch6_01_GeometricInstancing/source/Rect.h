@@ -68,11 +68,7 @@ private:
 	std::vector<VkDescriptorSet> descriptorSet;
 
 	// Per-instance data block
-	struct InstanceData {
-		glm::mat4 MVP;
-		glm::vec3 Rotation;
-	};
-	glm::mat4 Model;
+	struct InstanceData { glm::mat4 MVP; };
 	VulkanBuffer m_VertexBuffer, m_InstanceBuffer;
 
 	// Vertex buffer specific objects

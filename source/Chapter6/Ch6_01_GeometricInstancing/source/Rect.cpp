@@ -52,6 +52,8 @@ Rect::~Rect()
 
 void Rect::Setup()
 {
+	PrepareInstanceData();
+
     uint32_t dataSize = sizeof(rectVertices);
     uint32_t dataStride = sizeof(rectVertices[0]);
     CreateVertexBuffer(rectVertices, dataSize, dataStride);
@@ -327,8 +329,6 @@ void Rect::RecordCommandBuffer()
 
 void Rect::CreateVertexBuffer(const void * vertexData, uint32_t dataSize, uint32_t dataStride)
 {
-	PrepareInstanceData();
-
 	m_VertexBuffer.m_DataSize = dataSize;
 	m_VertexBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 
@@ -347,12 +347,12 @@ void Rect::CreateVertexBuffer(const void * vertexData, uint32_t dataSize, uint32
 	m_VertexInputBinding[1].stride = sizeof(InstanceData);
 
 	// The VkVertexInputAttribute interpreting the data.
-	m_VertexInputAttribute[0].binding = 0;
+	m_VertexInputAttribute[0].binding = VERTEX_BUFFER_BIND_IDX;
 	m_VertexInputAttribute[0].location = 0;
 	m_VertexInputAttribute[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 	m_VertexInputAttribute[0].offset = offsetof(struct Vertex, m_Position);
 
-	m_VertexInputAttribute[1].binding = 0;
+	m_VertexInputAttribute[1].binding = VERTEX_BUFFER_BIND_IDX;
 	m_VertexInputAttribute[1].location = 1;
 	m_VertexInputAttribute[1].format = VK_FORMAT_R32G32B32_SFLOAT;
 	m_VertexInputAttribute[1].offset = offsetof(struct Vertex, m_Color);
@@ -548,10 +548,7 @@ void Rect::PrepareInstanceData()
    								  40 * sin(theta) , 
 								  cos(phi)) * 20.0f;
 
-		Model = glm::translate(glm::mat4(1.0f), pos);
-
-		instanceData[i].MVP = Model;
-		instanceData[i].Rotation = glm::vec3(M_PI * 10 * uniformDist(rndGenerator), M_PI * 10 * uniformDist(rndGenerator), M_PI * 10 * uniformDist(rndGenerator));
+		instanceData[i].MVP = glm::translate(glm::mat4(1.0f), pos);
 	}
 
 	VkMemoryPropertyFlags memoryProperty = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
@@ -564,5 +561,5 @@ void Rect::PrepareInstanceData()
 		m_VulkanApplication->m_hGraphicsQueue,
 		m_InstanceBuffer,
 		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-		instanceData.data()); // Please use this Create Buffer currently begin used
+		instanceData.data());
 }
