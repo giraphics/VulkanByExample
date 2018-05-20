@@ -16,7 +16,7 @@ using namespace std;
 	public: type Get##var() { return m_##var; } \
 	void Set##var(type val) { m_##var = val; } \
 	type& GetRef##var() { return m_##var; } \
-	void Set##var(type& val) { m_##var = val; }
+	void SetRef##var(type& val) { m_##var = val; }
 
 #define UNIMPLEMENTED_INTEFACE { printf("\n Attempting to use an unimplemented default interface: %s\n", __FUNCTION__); assert(0); }
 
