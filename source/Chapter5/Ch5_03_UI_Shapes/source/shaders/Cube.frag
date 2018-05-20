@@ -22,4 +22,5 @@ void main()
     weight = smoothstep( 0.4, 0.45, length );
 
     outColor = mix( vec4(fragColor.rgb, 1.0), vec4(1.0, 0.0, 0.0, 0.0), weight);
+    outColor = fragColor;
 }

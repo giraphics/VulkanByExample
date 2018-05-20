@@ -19,6 +19,10 @@ public:
 	virtual void mouseMoveEvent(QMouseEvent* p_Event);
 
 private:
+	void Grid(Scene3D* m_Scene);
+	void ProgressBarFunc(Scene3D* m_Scene);
+
+private:
     RectangleFactory* m_CubeFactory;
 	///////////////////
 	Scene3D* m_Scene;

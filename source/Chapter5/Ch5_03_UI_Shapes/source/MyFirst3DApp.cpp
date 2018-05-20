@@ -5,7 +5,7 @@
 #include <QMainWindow>
 #include <QHBoxLayout>
 #include <QApplication>
-bool isDirty = true;
+extern bool isDirty;
 int main(int argc, char **argv)
 {
 	QApplication qtApp(argc, argv);
@@ -28,30 +28,20 @@ MyFirst3DApp::~MyFirst3DApp()
 {
 }
 
-void MyFirst3DApp::Configure()
+void MyFirst3DApp::ProgressBarFunc(Scene3D* m_Scene)
 {
-    SetApplicationName("My First 3D Application - Depth buffer");
-    SetWindowDimension(800*2, 600);
+	//ProgressBar* m_Parent = new ProgressBar(m_Scene, NULL, "Node 1", SHAPE_CUBE);
+}
 
-    // Add Validation Layers
-    AddValidationLayer("VK_LAYER_LUNARG_standard_validation");
-
-    // Add Vulkan instance extensions
-    AddInstanceExtension(VK_KHR_SURFACE_EXTENSION_NAME);
-    AddInstanceExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-    AddInstanceExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-
-	m_CubeFactory = RectangleFactory::SingleTon(this);
-
-	m_Scene = new Scene3D();
-
-	float parentCol = 4;
-	float parentRow = 2;
+void MyFirst3DApp::Grid(Scene3D* m_Scene)
+{
+	float parentCol = 20;
+	float parentRow = 10;
 	float parentColWidth = m_windowDim.width / parentCol;
 	float parentColHeight = m_windowDim.height / parentRow;
 
-	const float Col = 2;
-	const float Row = 2;
+	const float Col = 10;
+	const float Row = 10;
 	float colWidth = parentColWidth / Col;
 	float colHeight = parentColHeight / Row;
 
@@ -76,7 +66,27 @@ void MyFirst3DApp::Configure()
 			}
 		}
 	}
-	//	m_Cube1->Scale(0.5, 0.5, 0.5);
+}
+
+void MyFirst3DApp::Configure()
+{
+    SetApplicationName("My First 3D Application - Depth buffer");
+    SetWindowDimension(800*2, 600);
+
+    // Add Validation Layers
+    AddValidationLayer("VK_LAYER_LUNARG_standard_validation");
+
+    // Add Vulkan instance extensions
+    AddInstanceExtension(VK_KHR_SURFACE_EXTENSION_NAME);
+    AddInstanceExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+    AddInstanceExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+
+	m_CubeFactory = RectangleFactory::SingleTon(this);
+
+	m_Scene = new Scene3D();
+//	ProgressBar(m_Scene);
+	ProgressBar* m_Parent = new ProgressBar(m_Scene, NULL, "Node 1", SHAPE_CUBE);
+//	Grid(m_Scene);
 }
 
 void MyFirst3DApp::Setup()
