@@ -12,9 +12,6 @@ using namespace std;
 #include <random>
 #define VERTEX_BUFFER_BIND_IDX 0
 #define INSTANCE_BUFFER_BIND_IDX 1
-//#define INSTANCE_COUNT 2048*300
-#define INSTANCE_COUNT 2
-#define M_PI 3.14
 
 using namespace std;
 std::shared_ptr<CubeDescriptorSet> CDS = NULL;// std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
@@ -30,7 +27,6 @@ CubeFactory::CubeFactory(VulkanApp* p_VulkanApp)
 	memset(&m_InstanceBuffer, 0, sizeof(VulkanBuffer));
 
     m_VulkanApplication = p_VulkanApp;
-//	m_InstanceData.resize(2);
 }
 
 CubeFactory::~CubeFactory()
@@ -262,6 +258,8 @@ void CubeFactory::CreateGraphicsPipeline()
 
 void CubeFactory::RecordCommandBuffer()
 {
+	if (m_InstanceData.size() <= 0) return;
+
 	// Specify the clear color value
 	VkClearValue clearColor[2];
 	clearColor[0].color.float32[0] = 0.0f;
@@ -314,7 +312,7 @@ void CubeFactory::RecordCommandBuffer()
 		
 		// Draw the Cube 
 		const int vertexCount = sizeof(cubeVertices) / sizeof(Vertex);
-		vkCmdDraw(m_VulkanApplication->m_hCommandBufferList[i], vertexCount, INSTANCE_COUNT, 0, 0);
+		vkCmdDraw(m_VulkanApplication->m_hCommandBufferList[i], vertexCount, m_InstanceData.size(), 0, 0);
 
 		// End the Render pass
         vkCmdEndRenderPass(m_VulkanApplication->m_hCommandBufferList[i]);
@@ -462,10 +460,6 @@ void CubeDescriptorSet::DestroyDescriptorLayout()
 
 void CubeDescriptorSet::CreateDescriptor()
 {
-
-	//if (UniformBuffer) return;
-
-	//UniformBuffer = new CubeDescriptorSet::UniformBufferObj;
 	CreateDescriptorSetLayout();
 	CreateUniformBuffer();
 	CreateDescriptorPool();
@@ -540,7 +534,19 @@ void CubeDescriptorSet::CreateDescriptorSet()
 
 void CubeFactory::prepareInstanceData(Scene3D* p_Scene)
 {
-	glm::mat4 VP = (*p_Scene->m_Transform.GetProjectionMatrix()) * (*p_Scene->m_Transform.GetViewMatrix());
+	//p_Scene->m_Transform.SetMatrixMode(Transformation3D::VIEW_MATRIX);
+	//glm::vec3 eye(10.0, 10.0, 10.0);
+	//glm::vec3 center(0.0, 0.0, 0.0);
+	//glm::vec3 up(0.0, 1.0, 0.0);
+	//p_Scene->m_Transform.LoadIdentity();
+	//p_Scene->m_Transform.LookAt(&eye, &center, &up);
+
+	glm::vec3 eye(10.0, 10.0, 10.0); glm::vec3 center(0.0, 0.0, 0.0); glm::vec3 up(0.0, 1.0, 0.0);
+	//m_Transform.Translate(0, 3, -15);
+	glm::mat4 V;
+	V = glm::lookAt(eye, center, up);
+	glm::mat4 V1 = (*p_Scene->m_Transform.GetViewMatrix());
+	glm::mat4 VP = (*p_Scene->m_Transform.GetProjectionMatrix()) * V;// (*p_Scene->m_Transform.GetViewMatrix());
 
 	VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice,
 		UniformBuffer->m_MappedMemory,
@@ -548,15 +554,8 @@ void CubeFactory::prepareInstanceData(Scene3D* p_Scene)
 		UniformBuffer->m_BufObj.m_MemoryFlags,
 		&VP, sizeof(VP));
 
-	//const int modelSize = p_Scene->m_ModelList.size();
-	//m_InstanceData.clear();
-	//m_InstanceData.resize(modelSize);
-
-	//for (int i = 0; i < modelSize; i++)
-	//{
-	//	m_InstanceData[i] = p_Scene->m_ModelList.at(i)->GetModel();
-	//}
 	const int modelSize = p_Scene->m_FlatList.size();
+	int oldInstanceDataSize = m_InstanceData.size();
 	m_InstanceData.clear();
 	m_InstanceData.resize(modelSize);
 
@@ -565,16 +564,24 @@ void CubeFactory::prepareInstanceData(Scene3D* p_Scene)
 		m_InstanceData[i] = p_Scene->m_FlatList.at(i)->GetTransformedModel();
 	}
 
-	VkMemoryPropertyFlags memoryProperty = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-	m_InstanceBuffer.m_MemoryFlags = memoryProperty;
-    m_InstanceBuffer.m_DataSize = m_InstanceData.size() * sizeof(InstanceData);
-	// Re-Create instance buffer if size not same.
+	if (modelSize != 0)
+	{
+		VkMemoryPropertyFlags memoryProperty = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+		m_InstanceBuffer.m_MemoryFlags = memoryProperty;
+		m_InstanceBuffer.m_DataSize = modelSize * sizeof(InstanceData);
+		// Re-Create instance buffer if size not same.
 
-	VulkanHelper::CreateStagingBuffer(m_VulkanApplication->m_hDevice,
-		m_VulkanApplication->m_physicalDeviceInfo.memProp,
-		m_VulkanApplication->m_hCommandPool,
-		m_VulkanApplication->m_hGraphicsQueue,
-		m_InstanceBuffer,
-		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-        m_InstanceData.data());
+		VulkanHelper::CreateStagingBuffer(m_VulkanApplication->m_hDevice,
+			m_VulkanApplication->m_physicalDeviceInfo.memProp,
+			m_VulkanApplication->m_hCommandPool,
+			m_VulkanApplication->m_hGraphicsQueue,
+			m_InstanceBuffer,
+			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+			m_InstanceData.data());
+
+		if (modelSize != oldInstanceDataSize && modelSize != 0)
+		{
+			RecordCommandBuffer();
+		}
+	}
 }
