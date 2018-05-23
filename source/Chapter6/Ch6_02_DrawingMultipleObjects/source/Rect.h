@@ -100,21 +100,32 @@ struct RectangleDescriptorSet
 	UniformBufferObj* UniformBuffer;
 };
 
-class RectangleFactory
+class RectangleMultiDrawFactory : public AbstractModelFactory
 {
 public:
-    RectangleFactory(VulkanApp* p_VulkanApp);
-    virtual ~RectangleFactory();
+    RectangleMultiDrawFactory(VulkanApp* p_VulkanApp);
+    virtual ~RectangleMultiDrawFactory();
 
-	void Setup();
+	RectangleModel* GetModel(VulkanApp* p_VulkanApp, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE)
+	{
+		m_ModelList.push_back(new RectangleModel(p_VulkanApp, p_Scene, p_Parent, p_Name, p_ShapeType)); // consider using shared ptr/smart pointers
+		
+		// Todo: Is it good to introduce another parameter as into RectangleModel
+		RectangleModel* rectangleModel = static_cast<RectangleModel*>(m_ModelList.back());
+		rectangleModel->m_AbstractFactory = this;
+
+		return rectangleModel;
+	}
+
+	virtual void Setup();
 	void Update();
     void ResizeWindow(int width, int height);
 
-	void PrepareMultipleDataObjects(Scene3D* p_Scene);
+	virtual void Prepare(Scene3D* p_Scene);
 
 	// Parminder: Is it possible to remove the parameter from SingleTon, it looks wierd
-	static RectangleFactory* SingleTon(VulkanApp* p_VulkanApp = NULL) { return m_Singleton ? m_Singleton : (m_Singleton = new RectangleFactory(p_VulkanApp)); }
-	static RectangleFactory* m_Singleton;
+    static RectangleMultiDrawFactory* SingleTon(VulkanApp* p_VulkanApp = NULL) { return m_Singleton ? m_Singleton : (m_Singleton = new RectangleMultiDrawFactory(p_VulkanApp)); }
+    static RectangleMultiDrawFactory* m_Singleton;
 
 	// Pipeline
 	QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;

@@ -94,7 +94,6 @@ void Model3D::Update()
     m_Scene->ApplyTransformation(m_Model);
 
     m_TransformedModel = *m_Scene->m_Transform.GetModelMatrix();
-    m_Scene->m_FlatList.push_back(this);
 
     Q_FOREACH(Model3D* child, m_ChildList)
     {
@@ -146,4 +145,15 @@ bool ProgressBar::mouseMoveEvent(QMouseEvent* p_Event)
 	}
 
 	return false;
+}
+
+void Model3D::GatherFlatList()
+{
+    m_Scene->m_FlatList.push_back(this);
+
+    Q_FOREACH(Model3D* child, m_ChildList)
+    {
+        assert(child);
+        child->GatherFlatList();
+    }
 }

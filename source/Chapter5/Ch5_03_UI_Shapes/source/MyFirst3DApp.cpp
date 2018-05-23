@@ -49,7 +49,8 @@ void MyFirst3DApp::Grid(Scene3D* m_Scene)
 	{
 		for (int j = 0; j < parentRow; j++)
 		{
-			Model3D* m_Parent = new Model3D(m_Scene, NULL, "Node 1", SHAPE_CUBE);
+			//Model3D* m_Parent = new Model3D(m_Scene, NULL, "Node 1", SHAPE_CUBE);
+			Model3D* m_Parent = m_CubeFactory->GetModel(this, m_Scene, NULL, "Rectangle 1", SHAPE_RECTANGLE);
 			m_Parent->Rectangle((i * parentColWidth), (j * parentColHeight), parentColWidth - 2, parentColHeight);
 			m_Parent->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
 			m_Parent->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
@@ -58,7 +59,8 @@ void MyFirst3DApp::Grid(Scene3D* m_Scene)
 			{
 				for (int l = 0; l < Row; l++)
 				{
-					m_Cube1 = new Model3D(m_Scene, m_Parent, "Node 1", SHAPE_CUBE);
+					//m_Cube1 = new Model3D(m_Scene, m_Parent, "Node 1", SHAPE_CUBE);
+					m_Cube1 = m_CubeFactory->GetModel(this, m_Scene, m_Parent, "Node 1", SHAPE_CUBE);
 					m_Cube1->Rectangle((k * colWidth), (l * colHeight), colWidth, colHeight);
 					m_Cube1->SetColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
 					m_Cube1->SetDefaultColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
@@ -85,8 +87,8 @@ void MyFirst3DApp::Configure()
 
 	m_Scene = new Scene3D();
 //	ProgressBar(m_Scene);
-	ProgressBar* m_Parent = new ProgressBar(m_Scene, NULL, "Node 1", SHAPE_CUBE);
-//	Grid(m_Scene);
+//	ProgressBar* m_Parent = new ProgressBar(m_Scene, NULL, "Node 1", SHAPE_CUBE);
+	Grid(m_Scene);
 }
 
 void MyFirst3DApp::Setup()
@@ -110,7 +112,8 @@ void MyFirst3DApp::Setup()
 	m_Scene->SetView(&View);
 
 	m_Scene->SetUpProjection(); // For some reason the ViewMatrix is not working properly, this setupensure model matrix is set properly.
-	m_CubeFactory->Setup();
+//	m_CubeFactory->Setup();
+	m_Scene->Setup();
 	isDirty = true;
 }
 
@@ -124,8 +127,8 @@ void MyFirst3DApp::Update()
 
 	if (!isDirty) return;
 
+	m_CubeFactory->m_Transform = (*m_Scene->GetProjection()) * (*m_Scene->GetView());
 	m_Scene->Update();
-	m_CubeFactory->prepareInstanceData(m_Scene);
 
 	isDirty = false;
 }

@@ -75,7 +75,7 @@ void Cube::Update()
 								UniformBuffer.m_MappedRange,
 								UniformBuffer.m_BufObj.m_MemoryFlags,
 								&MVP, sizeof(MVP));
-	prepareInstanceData();
+	//prepareInstanceData();
 }
 
 void Cube::ResizeWindow(int width, int height)

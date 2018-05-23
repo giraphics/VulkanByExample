@@ -16,7 +16,7 @@ using namespace std;
 
 std::shared_ptr<RectangleDescriptorSet> CDS = NULL;// std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
 RectangleDescriptorSet::UniformBufferObj* UniformBuffer = NULL;
-RectangleFactory* RectangleFactory::m_Singleton = NULL;
+RectangleMultiDrawFactory* RectangleMultiDrawFactory::m_Singleton = NULL;
 
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -164,7 +164,7 @@ void RectangleDescriptorSet::CreateDescriptorSet()
 
 /////////////////////////////////////////////////////////////////////
 
-RectangleFactory::RectangleFactory(VulkanApp* p_VulkanApp)
+RectangleMultiDrawFactory::RectangleMultiDrawFactory(VulkanApp* p_VulkanApp)
 {
 	assert(p_VulkanApp);
 
@@ -174,7 +174,7 @@ RectangleFactory::RectangleFactory(VulkanApp* p_VulkanApp)
     m_VulkanApplication = p_VulkanApp;
 }
 
-RectangleFactory::~RectangleFactory()
+RectangleMultiDrawFactory::~RectangleMultiDrawFactory()
 {
 	// Destroy Vertex Buffer
     vkDestroyBuffer(m_VulkanApplication->m_hDevice, m_VertexBuffer.m_Buffer, NULL);
@@ -194,21 +194,19 @@ RectangleFactory::~RectangleFactory()
     vkFreeMemory(m_VulkanApplication->m_hDevice, UniformBuffer->m_BufObj.m_Memory, NULL);
 }
 
-void RectangleFactory::Setup()
+void RectangleMultiDrawFactory::Setup()
 {
+	if (!CDS)
+	{
+		CDS = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
+		CDS->CreateDescriptor();
+		UniformBuffer = CDS->UniformBuffer;
+	}
+
     uint32_t dataSize = sizeof(rectVertices);
     uint32_t dataStride = sizeof(rectVertices[0]);
     CreateVertexBuffer(rectVertices, dataSize, dataStride);
-	// for each model in scene
-	// CreateVertexBuffer
 	
-	//if (!CDS)
-	//{
- //       CDS = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
-	//	CDS->CreateDescriptor();
-	//	UniformBuffer = CDS->UniformBuffer;
-	//}
-
 	CreateGraphicsPipeline();
 
 	CreateCommandBuffers(); // Create command buffers
@@ -216,11 +214,16 @@ void RectangleFactory::Setup()
 	RecordCommandBuffer();
 }
 
-void RectangleFactory::Update()
+void RectangleMultiDrawFactory::Update()
 {
+	VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice,
+		UniformBuffer->m_MappedMemory,
+		UniformBuffer->m_MappedRange,
+		UniformBuffer->m_BufObj.m_MemoryFlags,
+		&m_Transform, sizeof(m_Transform));
 }
 
-void RectangleFactory::ResizeWindow(int width, int height)
+void RectangleMultiDrawFactory::ResizeWindow(int width, int height)
 {
     CreateGraphicsPipeline(true);
 
@@ -229,7 +232,7 @@ void RectangleFactory::ResizeWindow(int width, int height)
     RecordCommandBuffer();
 }
 
-void RectangleFactory::CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap)
+void RectangleMultiDrawFactory::CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap)
 {
 	if (p_ClearGraphicsPipelineMap)
 	{
@@ -416,7 +419,7 @@ void RectangleFactory::CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap)
     vkDestroyShaderModule(m_VulkanApplication->m_hDevice, vertShader, nullptr);
 }
 
-void RectangleFactory::RecordCommandBuffer()
+void RectangleMultiDrawFactory::RecordCommandBuffer()
 {
 	// Specify the clear color value
 	VkClearValue clearColor[2];
@@ -516,7 +519,7 @@ void RectangleFactory::RecordCommandBuffer()
 	}
 }
 
-void RectangleFactory::CreateVertexBuffer(const void * vertexData, uint32_t dataSize, uint32_t dataStride)
+void RectangleMultiDrawFactory::CreateVertexBuffer(const void * vertexData, uint32_t dataSize, uint32_t dataStride)
 {
 	//m_VertexBuffer.m_DataSize = dataSize;
 	//m_VertexBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
@@ -543,36 +546,26 @@ void RectangleFactory::CreateVertexBuffer(const void * vertexData, uint32_t data
 	m_VertexInputAttribute[1].offset = offsetof(struct Vertex, m_Color);
 }
 
-void RectangleFactory::CreateCommandBuffers()
+void RectangleMultiDrawFactory::CreateCommandBuffers()
 {
     m_VulkanApplication->CreateCommandBuffers();
 }
 
-void RectangleFactory::PrepareMultipleDataObjects(Scene3D* p_Scene)
+void RectangleMultiDrawFactory::Prepare(Scene3D* p_Scene)
 {
-	// Update the objects
-	const int modelSize = p_Scene->m_FlatList.size();
-	m_ModelList.clear();
-	for (int i = 0; i < modelSize; i++)
-	{
-		m_ModelList.push_back(p_Scene->m_FlatList.at(i)); // consider using shared ptr/smart pointers
-	}
-
 	// Update the uniform
-	if (!CDS)
-	{
-		CDS = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
-		CDS->CreateDescriptor();
-		UniformBuffer = CDS->UniformBuffer;
-	}
+	//if (!CDS)
+	//{
+	//	CDS = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
+	//	CDS->CreateDescriptor();
+	//	UniformBuffer = CDS->UniformBuffer;
+	//}
 
-	glm::mat4 VP = (*p_Scene->GetProjection()) * (*p_Scene->GetView());
-
-	VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice,
-		UniformBuffer->m_MappedMemory,
-		UniformBuffer->m_MappedRange,
-		UniformBuffer->m_BufObj.m_MemoryFlags,
-		&VP, sizeof(VP));
+	//VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice,
+	//	UniformBuffer->m_MappedMemory,
+	//	UniformBuffer->m_MappedRange,
+	//	UniformBuffer->m_BufObj.m_MemoryFlags,
+	//	&m_Transform, sizeof(m_Transform));
 }
 
 RectangleModel::RectangleModel(VulkanApp *p_VulkanApp, Scene3D *p_Scene, Model3D *p_Parent, const QString &p_Name, SHAPE p_ShapeType)
@@ -614,7 +607,7 @@ void RectangleModel::Setup()
 
 void RectangleModel::Render(VkCommandBuffer& p_CmdBuffer)
 {
-	RectangleFactory* cubeFactory = RectangleFactory::SingleTon();
+	RectangleMultiDrawFactory* cubeFactory = RectangleMultiDrawFactory::SingleTon();
 	if (!cubeFactory->m_GraphicsPipelineMap.contains("RectGraphicsPipeline")) return;
 
 	VkPipeline graphicsPipeline = graphicsPipeline = cubeFactory->m_GraphicsPipelineMap["RectGraphicsPipeline"].first;

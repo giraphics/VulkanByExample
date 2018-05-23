@@ -70,26 +70,48 @@ void RectangleFactory::Setup()
 
 	m_VulkanApplication->CreateCommandBuffers(); // Create command buffers
 
+	prepareInstanceData();
+
 	RecordCommandBuffer();
 }
 
 void RectangleFactory::Update()
 {
-	//glm::mat4 MVP = (*m_Projection) * (*m_View) * m_Model;
+	VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice,
+		UniformBuffer->m_MappedMemory,
+		UniformBuffer->m_MappedRange,
+		UniformBuffer->m_BufObj.m_MemoryFlags,
+		&m_Transform, sizeof(m_Transform));
 
-	//VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice, 
-	//							UniformBuffer->m_MappedMemory, 
-	//							UniformBuffer->m_MappedRange,
-	//							UniformBuffer->m_BufObj.m_MemoryFlags,
-	//							&MVP, sizeof(MVP));
-//	prepareInstanceData();
+	prepareInstanceData();
 }
 
-void RectangleFactory::CreateGraphicsPipeline()
+void RectangleFactory::CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap)
 {
+	//if (m_GraphicsPipelineMap.contains("CubeGraphicsPipeline"))
+	//{
+	//	m_hGraphicsPipeline = m_GraphicsPipelineMap["CubeGraphicsPipeline"];
+	//	return;
+	//}
+	if (p_ClearGraphicsPipelineMap)
+	{
+		const VkDevice& device = m_VulkanApplication->m_hDevice;
+		QMap<QString, QPair<VkPipeline, VkPipelineLayout> >::iterator i;
+		for (i = m_GraphicsPipelineMap.begin(); i != m_GraphicsPipelineMap.end(); ++i)
+		{
+			vkDestroyPipeline(m_VulkanApplication->m_hDevice, i.value().first, nullptr);
+			vkDestroyPipelineLayout(device, i.value().second, nullptr);
+		}
+
+		m_GraphicsPipelineMap.clear();
+	}
+
+	VkPipelineLayout graphicsPipelineLayout = VK_NULL_HANDLE;
+	VkPipeline       graphicsPipeline = VK_NULL_HANDLE;
 	if (m_GraphicsPipelineMap.contains("CubeGraphicsPipeline"))
 	{
-		m_hGraphicsPipeline = m_GraphicsPipelineMap["CubeGraphicsPipeline"];
+		graphicsPipeline = m_GraphicsPipelineMap["CubeGraphicsPipeline"].first;
+		graphicsPipelineLayout = m_GraphicsPipelineMap["CubeGraphicsPipeline"].second;
 		return;
 	}
 
@@ -249,7 +271,8 @@ void RectangleFactory::CreateGraphicsPipeline()
 		assert(false);
 	}
 
-	m_GraphicsPipelineMap["CubeGraphicsPipeline"] = m_hGraphicsPipeline;
+//	m_GraphicsPipelineMap["CubeGraphicsPipeline"] = m_hGraphicsPipeline;
+	m_GraphicsPipelineMap["RectGraphicsPipeline"] = qMakePair(graphicsPipeline, graphicsPipelineLayout);
 
 	// Cleanup
     vkDestroyShaderModule(m_VulkanApplication->m_hDevice, fragShader, nullptr);
@@ -258,8 +281,6 @@ void RectangleFactory::CreateGraphicsPipeline()
 
 void RectangleFactory::RecordCommandBuffer()
 {
-	if (m_InstanceData.size() <= 0) return;
-
 	// Specify the clear color value
 	VkClearValue clearColor[2];
 	clearColor[0].color.float32[0] = 0.0f;
@@ -313,6 +334,15 @@ void RectangleFactory::RecordCommandBuffer()
 		// Draw the Cube 
 		const int vertexCount = sizeof(cubeVertices) / sizeof(Vertex);
 		vkCmdDraw(m_VulkanApplication->m_hCommandBufferList[i], vertexCount, m_InstanceData.size(), 0, 0);
+		//const int modelSize = m_ModelList.size();
+		////for (int j = 0; j < modelSize; j++)
+		//{
+		//	//if (m_ModelList.at(j)->GetRefShapeType() == SHAPE_RECTANGLE)
+		//	{
+		//		RectangleModel* m = ((RectangleModel*)m_ModelList.at(j));
+		//		m->Render(m_VulkanApplication->m_hCommandBufferList[i]); // consider using shared ptr/smart pointers
+		//	}
+		//}
 
 		// End the Render pass
         vkCmdEndRenderPass(m_VulkanApplication->m_hCommandBufferList[i]);
@@ -539,27 +569,27 @@ void CubeDescriptorSet::CreateDescriptorSet()
     vkUpdateDescriptorSets(m_VulkanApplication->m_hDevice, 1, writes, 0, NULL);
 }
 
-void RectangleFactory::prepareInstanceData(Scene3D* p_Scene)
+void RectangleFactory::prepareInstanceData()
 {
-	printf(".");
-	glm::mat4 VP = (*p_Scene->GetProjection()) * *p_Scene->GetView();
-	VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice,
-		UniformBuffer->m_MappedMemory,
-		UniformBuffer->m_MappedRange,
-		UniformBuffer->m_BufObj.m_MemoryFlags,
-		&VP, sizeof(glm::mat4));
+	//printf(".");
+	//glm::mat4 VP = (*p_Scene->GetProjection()) * *p_Scene->GetView();
+	//VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice,
+	//	UniformBuffer->m_MappedMemory,
+	//	UniformBuffer->m_MappedRange,
+	//	UniformBuffer->m_BufObj.m_MemoryFlags,
+	//	&VP, sizeof(glm::mat4));
 
-	const int modelSize = p_Scene->m_FlatList.size();
+	const int modelSize = m_ModelList.size();
 	int oldInstanceDataSize = m_InstanceData.size();
 	m_InstanceData.clear();
 	m_InstanceData.resize(modelSize);
 
 	for (int i = 0; i < modelSize; i++)
 	{
-		m_InstanceData[i].m_Model = p_Scene->m_FlatList.at(i)->GetTransformedModel();
-		m_InstanceData[i].m_Rect.x = p_Scene->m_FlatList.at(i)->GetDimension().x;
-		m_InstanceData[i].m_Rect.y = p_Scene->m_FlatList.at(i)->GetDimension().y;
-		m_InstanceData[i].m_Color = p_Scene->m_FlatList.at(i)->GetColor();
+		m_InstanceData[i].m_Model = m_ModelList.at(i)->GetTransformedModel();
+		m_InstanceData[i].m_Rect.x = m_ModelList.at(i)->GetDimension().x;
+		m_InstanceData[i].m_Rect.y = m_ModelList.at(i)->GetDimension().y;
+		m_InstanceData[i].m_Color = m_ModelList.at(i)->GetColor();
 	}
 
 	if (modelSize != 0)
@@ -583,3 +613,123 @@ void RectangleFactory::prepareInstanceData(Scene3D* p_Scene)
 		}
 	}
 }
+
+RectangleModel::RectangleModel(VulkanApp *p_VulkanApp, Scene3D *p_Scene, Model3D *p_Parent, const QString &p_Name, SHAPE p_ShapeType)
+	: Model3D(p_Scene, p_Parent, p_Name, p_ShapeType)
+	, m_VulkanApplication(p_VulkanApp)
+{
+	memset(&m_VertexBuffer, 0, sizeof(VulkanBuffer));
+	memset(&m_InstanceBuffer, 0, sizeof(VulkanBuffer));
+}
+
+void RectangleModel::CreateVertexBuffer(const void *vertexData, uint32_t dataSize, uint32_t dataStride)
+{
+	m_VertexBuffer.m_DataSize = dataSize;
+	m_VertexBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+
+	const VkPhysicalDeviceMemoryProperties& memProp = m_VulkanApplication->m_physicalDeviceInfo.memProp;
+	const VkDevice& device = m_VulkanApplication->m_hDevice;
+	VulkanHelper::CreateBuffer(device, memProp, m_VertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexData);
+}
+
+void RectangleModel::Setup()
+{
+	const float dimension = 10.0f;
+	const Vertex rectVertices[] =
+	{
+		{ glm::vec3(dimension, -dimension, -dimension), glm::vec3(0.f, 0.f, 0.f) },
+		{ glm::vec3(-dimension, -dimension, -dimension), glm::vec3(1.f, 0.f, 0.f) },
+		{ glm::vec3(dimension,  dimension, -dimension), glm::vec3(0.f, 1.f, 0.f) },
+		{ glm::vec3(dimension,  dimension, -dimension), glm::vec3(0.f, 1.f, 0.f) },
+		{ glm::vec3(-dimension, -dimension, -dimension), glm::vec3(1.f, 0.f, 0.f) },
+		{ glm::vec3(-dimension,  dimension, -dimension), glm::vec3(1.f, 1.f, 0.f) },
+	};
+
+	uint32_t dataSize = sizeof(rectVertices);
+	uint32_t dataStride = sizeof(rectVertices[0]);
+	CreateVertexBuffer(rectVertices, dataSize, dataStride);
+
+	Model3D::Setup();
+}
+
+
+void RectangleModel::Render(VkCommandBuffer& p_CmdBuffer)
+{
+	/*RectangleMultiDrawFactory*/RectangleFactory* cubeFactory = RectangleFactory::SingleTon();
+	if (!cubeFactory->m_GraphicsPipelineMap.contains("CubeGraphicsPipeline")) return;
+
+	VkPipeline graphicsPipeline = graphicsPipeline = cubeFactory->m_GraphicsPipelineMap["CubeGraphicsPipeline"].first;
+
+	vkCmdBindPipeline(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+
+	// Specify vertex buffer information
+	//const VkDeviceSize offsets[1] = { 0 };
+	//vkCmdBindVertexBuffers(p_CmdBuffer, VERTEX_BUFFER_BIND_IDX, 1, &m_VertexBuffer.m_Buffer, offsets);
+
+	//////////////////
+
+	//// Bind graphics pipeline
+	//      vkCmdBindPipeline(m_VulkanApplication->m_hCommandBufferList[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_hGraphicsPipeline);
+
+	// Specify vertex buffer information
+	const VkDeviceSize offsets[1] = { 0 };
+	vkCmdBindVertexBuffers(p_CmdBuffer, VERTEX_BUFFER_BIND_IDX, 1, &m_VertexBuffer.m_Buffer, offsets);
+	vkCmdBindVertexBuffers(p_CmdBuffer, INSTANCE_BUFFER_BIND_IDX, 1, &m_InstanceBuffer.m_Buffer, offsets);
+
+
+
+
+	// Draw the Cube 
+//	const int vertexCount = sizeof(rectVertices) / sizeof(Vertex);
+//	vkCmdDraw(p_CmdBuffer, vertexCount, /*INSTANCE_COUNT*/1, 0, 0);
+	const int vertexCount = sizeof(cubeVertices) / sizeof(Vertex);
+	vkCmdDraw(p_CmdBuffer, vertexCount, m_InstanceData.size(), 0, 0);
+
+}
+
+//void RectangleModel::prepareInstanceData(Scene3D* p_Scene)
+//{
+//	//printf(".");
+//	//glm::mat4 VP = (*p_Scene->GetProjection()) * *p_Scene->GetView();
+//	//VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice,
+//	//	UniformBuffer->m_MappedMemory,
+//	//	UniformBuffer->m_MappedRange,
+//	//	UniformBuffer->m_BufObj.m_MemoryFlags,
+//	//	&VP, sizeof(glm::mat4));
+//
+//	const int modelSize = p_Scene->m_FlatList.size();
+//	int oldInstanceDataSize = m_InstanceData.size();
+//	m_InstanceData.clear();
+//	m_InstanceData.resize(modelSize);
+//
+//	for (int i = 0; i < modelSize; i++)
+//	{
+//		m_InstanceData[i].m_Model = p_Scene->m_FlatList.at(i)->GetTransformedModel();
+//		m_InstanceData[i].m_Rect.x = p_Scene->m_FlatList.at(i)->GetDimension().x;
+//		m_InstanceData[i].m_Rect.y = p_Scene->m_FlatList.at(i)->GetDimension().y;
+//		m_InstanceData[i].m_Color = p_Scene->m_FlatList.at(i)->GetColor();
+//	}
+//
+//	if (modelSize != 0)
+//	{
+//		VkMemoryPropertyFlags memoryProperty = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+//		m_InstanceBuffer.m_MemoryFlags = memoryProperty;
+//		m_InstanceBuffer.m_DataSize = modelSize * sizeof(InstanceData);
+//		// Re-Create instance buffer if size not same.
+//
+//		VulkanHelper::CreateStagingBuffer(m_VulkanApplication->m_hDevice,
+//			m_VulkanApplication->m_physicalDeviceInfo.memProp,
+//			m_VulkanApplication->m_hCommandPool,
+//			m_VulkanApplication->m_hGraphicsQueue,
+//			m_InstanceBuffer,
+//			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+//			m_InstanceData.data());
+//
+//		if (modelSize != oldInstanceDataSize && modelSize != 0) 
+//		{
+//			//if (m_InstanceData.size() <= 0) return;
+//
+//			((RectangleFactory*)m_AbstractFactory)->RecordCommandBuffer();
+//		}
+//	}
+//}

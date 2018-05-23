@@ -2,7 +2,7 @@
 #include "../../../common/VulkanApp.h"
 #include "../../../common/SceneGraph/Scene3D.h"
 
-class RectangleFactory;
+class RectangleMultiDrawFactory;
 class InstancingDemoApp : public VulkanApp
 {
 public:
@@ -18,7 +18,7 @@ private:
 	void Grid(Scene3D* m_Scene);
 
 private:
-	RectangleFactory* m_CubeFactory;
+	RectangleMultiDrawFactory* m_CubeFactory;
     //Rect* m_Cube;
 	Scene3D* m_Scene;
 	Model3D* m_Cube;
