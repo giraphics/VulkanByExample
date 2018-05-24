@@ -30,17 +30,17 @@ MyFirst3DApp::~MyFirst3DApp()
 
 void MyFirst3DApp::ProgressBarFunc(Scene3D* m_Scene)
 {
-	//ProgressBar* m_Parent = new ProgressBar(m_Scene, NULL, "Node 1", SHAPE_CUBE);
+	ProgressBar* m_Parent = new ProgressBar(this, m_Scene, NULL, "Node 1", SHAPE_CUBE);
 }
 
 void MyFirst3DApp::Grid(Scene3D* m_Scene)
 {
 	float parentCol = 20;
-	float parentRow = 10;
+	float parentRow = 20;
 	float parentColWidth = m_windowDim.width / parentCol;
 	float parentColHeight = m_windowDim.height / parentRow;
 
-	const float Col = 10;
+	const float Col = 20;
 	const float Row = 10;
 	float colWidth = parentColWidth / Col;
 	float colHeight = parentColHeight / Row;
@@ -87,8 +87,8 @@ void MyFirst3DApp::Configure()
 
 	m_Scene = new Scene3D();
 //	ProgressBar(m_Scene);
-//	ProgressBar* m_Parent = new ProgressBar(m_Scene, NULL, "Node 1", SHAPE_CUBE);
-	Grid(m_Scene);
+	ProgressBar* m_Parent = new ProgressBar(this, m_Scene, NULL, "Node 1", SHAPE_CUBE);
+//	Grid(m_Scene);
 }
 
 void MyFirst3DApp::Setup()

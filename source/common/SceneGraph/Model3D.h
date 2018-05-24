@@ -80,7 +80,7 @@ private:
 class ProgressBar : public Model3D
 {
 public:
-	ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
+	ProgressBar(VulkanApp* p_VulkanApp, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
 	virtual ~ProgressBar() {}
 
 	virtual bool mouseMoveEvent(QMouseEvent* p_Event);

@@ -133,9 +133,8 @@ public:
 	{
 		m_ModelList.push_back(new RectangleModel(p_VulkanApp, p_Scene, p_Parent, p_Name, p_ShapeType)); // consider using shared ptr/smart pointers
 
-																										// Todo: Is it good to introduce another parameter as into RectangleModel
 		RectangleModel* rectangleModel = static_cast<RectangleModel*>(m_ModelList.back());
-		rectangleModel->m_AbstractFactory = this;
+		rectangleModel->m_AbstractFactory = this; // TODO: Make this as an argument to Model3D
 
 		return rectangleModel;
 	}

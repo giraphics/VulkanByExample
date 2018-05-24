@@ -114,22 +114,25 @@ void Model3D::Rectangle(float p_X, float p_Y, float p_Width, float p_Height)
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
+#include "../Chapter5/Ch5_03_UI_Shapes/source/Cube.h"
 
 
-ProgressBar::ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, SHAPE p_ShapeType)
+ProgressBar::ProgressBar(VulkanApp* p_VulkanApp, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, SHAPE p_ShapeType)
 	: Model3D(p_Scene, p_Parent, p_Name, p_ShapeType)
 {
-	Model3D* background = new Model3D(m_Scene, this, "Background", SHAPE_CUBE);
+	RectangleFactory* m_CubeFactory = RectangleFactory::SingleTon(p_VulkanApp);
+	Model3D* background = m_CubeFactory->GetModel(p_VulkanApp, m_Scene, this, "Background", SHAPE_CUBE);
+	m_AbstractFactory = m_CubeFactory; // this is not correct, cube factory should be a part of 
 	background->Rectangle(300, 300, 400, 50);
 	background->SetColor(glm::vec4(0.6, 0.52, 1.0, 1.0));
 	background->SetDefaultColor(glm::vec4(0.42, 0.65, 0.60, 1.0));
 
-	Model3D* bar = new Model3D(m_Scene, background, "Bar", SHAPE_CUBE);
+	Model3D* bar = m_CubeFactory->GetModel(p_VulkanApp, m_Scene, background, "Bar", SHAPE_CUBE);
 	bar->Rectangle(0, (background->GetDimension().y * 0.25f), 400, 25);
 	bar->SetColor(glm::vec4(0.6, 0.52, 0.320, 1.0));
 	bar->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
 
-	progressIndicator = new Model3D(m_Scene, bar, "ProgressIndicator", SHAPE_CUBE);
+	progressIndicator = m_CubeFactory->GetModel(p_VulkanApp, m_Scene, bar, "ProgressIndicator", SHAPE_CUBE);
 	progressIndicator->Rectangle(0, 0, 20, background->GetDimension().y);
 	progressIndicator->Translate(0, -(background->GetDimension().y * 0.25f), 0);
 	progressIndicator->SetColor(glm::vec4(0.1, 0.52, 0.320, 1.0));
