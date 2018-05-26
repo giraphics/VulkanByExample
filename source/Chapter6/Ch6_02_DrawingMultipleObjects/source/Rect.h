@@ -25,8 +25,10 @@ static const Vertex rectVertices[] =
 class RectangleModel : public Model3D
 {
 public:
-    RectangleModel(VulkanApp* p_VulkanApp, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
+    RectangleModel(VulkanApp* p_VulkanApp, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_MULTIDRAW);
     virtual ~RectangleModel() {}
+
+	AbstractModelFactory* GetRenderScemeFactory();
 
 	virtual void Setup();
 
@@ -34,9 +36,6 @@ public:
     void Render(VkCommandBuffer& p_CmdBuffer);
 
 	VulkanBuffer m_VertexBuffer;
-
-	// Store app specific objects
-	VulkanApp* m_VulkanApplication;
 };
 
 struct RectangleDescriptorSet
@@ -106,16 +105,16 @@ public:
     RectangleMultiDrawFactory(VulkanApp* p_VulkanApp);
     virtual ~RectangleMultiDrawFactory();
 
-	RectangleModel* GetModel(VulkanApp* p_VulkanApp, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE)
-	{
-		m_ModelList.push_back(new RectangleModel(p_VulkanApp, p_Scene, p_Parent, p_Name, p_ShapeType)); // consider using shared ptr/smart pointers
-		
-		// Todo: Is it good to introduce another parameter as into RectangleModel
-		RectangleModel* rectangleModel = static_cast<RectangleModel*>(m_ModelList.back());
-		rectangleModel->m_AbstractFactory = this;
+	//RectangleModel* GetModel(VulkanApp* p_VulkanApp, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE)
+	//{
+	//	m_ModelList.push_back(new RectangleModel(p_VulkanApp, p_Scene, p_Parent, p_Name, p_ShapeType)); // consider using shared ptr/smart pointers
+	//	
+	//	// Todo: Is it good to introduce another parameter as into RectangleModel
+	//	RectangleModel* rectangleModel = static_cast<RectangleModel*>(m_ModelList.back());
+	//	rectangleModel->m_AbstractFactory = this;
 
-		return rectangleModel;
-	}
+	//	return rectangleModel;
+	//}
 
 	virtual void Setup();
 	void Update();
@@ -124,8 +123,8 @@ public:
 	virtual void Prepare(Scene3D* p_Scene);
 
 	// Parminder: Is it possible to remove the parameter from SingleTon, it looks wierd
-    static RectangleMultiDrawFactory* SingleTon(VulkanApp* p_VulkanApp = NULL) { return m_Singleton ? m_Singleton : (m_Singleton = new RectangleMultiDrawFactory(p_VulkanApp)); }
-    static RectangleMultiDrawFactory* m_Singleton;
+    //static RectangleMultiDrawFactory* SingleTon(VulkanApp* p_VulkanApp = NULL) { return m_Singleton ? m_Singleton : (m_Singleton = new RectangleMultiDrawFactory(p_VulkanApp)); }
+    //static RectangleMultiDrawFactory* m_Singleton;
 
 	// Pipeline
 	QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
@@ -142,8 +141,6 @@ private:
 	VkVertexInputBindingDescription		m_VertexInputBinding[1];   // 0 for (position and color)
 	VkVertexInputAttributeDescription	m_VertexInputAttribute[2]; // Why 2 = 2(for position and color)
 
-
-	std::vector<Model3D*> m_ModelList; // consider them as shared pointer
 
     // Store app specific objects
     VulkanApp* m_VulkanApplication;

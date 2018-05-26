@@ -18,7 +18,7 @@ private:
 	void Grid(Scene3D* m_Scene);
 
 private:
-	RectangleMultiDrawFactory* m_CubeFactory;
+//	RectangleMultiDrawFactory* m_CubeFactory;
     //Rect* m_Cube;
 	Scene3D* m_Scene;
 	Model3D* m_Cube;

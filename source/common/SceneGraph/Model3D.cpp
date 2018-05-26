@@ -2,10 +2,11 @@
 #include<QMouseEvent>
 #include<glm/gtx/string_cast.hpp>
 
-Model3D::Model3D(Scene3D *p_Scene, Model3D *p_Parent, const QString &p_Name, SHAPE p_ShapeType)
+Model3D::Model3D(Scene3D *p_Scene, Model3D *p_Parent, const QString &p_Name, SHAPE p_ShapeType, RENDER_SCEHEME_TYPE p_RenderSchemeType)
     : m_Scene(p_Scene)
     , m_Parent(p_Parent)
     , m_ShapeType(p_ShapeType)
+	, m_RenderSchemeType(p_RenderSchemeType)
 {
     m_Parent ? m_Parent->m_ChildList.append(this) : p_Scene->AddModel(this);
 }
@@ -112,44 +113,6 @@ void Model3D::Rectangle(float p_X, float p_Y, float p_Width, float p_Height)
 	//	Scale(p_Width, p_Height, 1);
 }
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-#include "../Chapter5/Ch5_03_UI_Shapes/source/Cube.h"
-
-
-ProgressBar::ProgressBar(VulkanApp* p_VulkanApp, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, SHAPE p_ShapeType)
-	: Model3D(p_Scene, p_Parent, p_Name, p_ShapeType)
-{
-	RectangleFactory* m_CubeFactory = RectangleFactory::SingleTon(p_VulkanApp);
-	Model3D* background = m_CubeFactory->GetModel(p_VulkanApp, m_Scene, this, "Background", SHAPE_CUBE);
-	m_AbstractFactory = m_CubeFactory; // this is not correct, cube factory should be a part of 
-	background->Rectangle(300, 300, 400, 50);
-	background->SetColor(glm::vec4(0.6, 0.52, 1.0, 1.0));
-	background->SetDefaultColor(glm::vec4(0.42, 0.65, 0.60, 1.0));
-
-	Model3D* bar = m_CubeFactory->GetModel(p_VulkanApp, m_Scene, background, "Bar", SHAPE_CUBE);
-	bar->Rectangle(0, (background->GetDimension().y * 0.25f), 400, 25);
-	bar->SetColor(glm::vec4(0.6, 0.52, 0.320, 1.0));
-	bar->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
-
-	progressIndicator = m_CubeFactory->GetModel(p_VulkanApp, m_Scene, bar, "ProgressIndicator", SHAPE_CUBE);
-	progressIndicator->Rectangle(0, 0, 20, background->GetDimension().y);
-	progressIndicator->Translate(0, -(background->GetDimension().y * 0.25f), 0);
-	progressIndicator->SetColor(glm::vec4(0.1, 0.52, 0.320, 1.0));
-	progressIndicator->SetDefaultColor(glm::vec4(0.2, 0.15, 0.60, 1.0));
-}
-
-bool ProgressBar::mouseMoveEvent(QMouseEvent* p_Event)
-{
-	if (progressIndicator->mouseMoveEvent(p_Event))
-	{
-		progressIndicator->Translate(p_Event->x(), 0.0, 0.0);
-		return true;
-	}
-
-	return false;
-}
-
 void Model3D::GatherFlatList()
 {
     m_Scene->m_FlatList.push_back(this);
@@ -160,3 +123,67 @@ void Model3D::GatherFlatList()
         child->GatherFlatList();
     }
 }
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+#include "../Chapter5/Ch5_03_UI_Shapes/source/Cube.h"
+//#include "../Chapter6/Ch6_02_DrawingMultipleObjects/source/Rect.h"
+
+ProgressBar::ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, SHAPE p_ShapeType)
+	: Model3D(p_Scene, p_Parent, p_Name, p_ShapeType)
+{
+    Model3D* background = new RectangleModel(NULL, m_Scene, this, "Rectangle 1", SHAPE_RECTANGLE);
+	background->Rectangle(0, 0, 400, 50);
+	background->SetColor(glm::vec4(0.6, 01.0, 0.0, 1.0));
+	background->SetDefaultColor(glm::vec4(0.42, 0.65, 0.60, 1.0));
+
+    Model3D* bar = new RectangleModel(NULL, m_Scene, background, "Bar", SHAPE_RECTANGLE);
+    bar->Rectangle(0, (background->GetDimension().y * 0.25f), 400, 25);
+	bar->SetColor(glm::vec4(0.6, 0.52, 0.320, 1.0));
+	bar->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+    
+    progressIndicator = new RectangleModel(NULL, m_Scene, bar, "ProgressIndicator", SHAPE_RECTANGLE);
+    progressIndicator->Rectangle(0, 0, 20, background->GetDimension().y);
+	progressIndicator->Translate(0, -(background->GetDimension().y * 0.25f), 0);
+	progressIndicator->SetColor(glm::vec4(0.1, 0.52, 0.320, 1.0));
+	progressIndicator->SetDefaultColor(glm::vec4(0.2, 0.15, 0.60, 1.0));
+}
+
+bool ProgressBar::mouseMoveEvent(QMouseEvent* p_Event)
+{
+    if (progressIndicator->mouseMoveEvent(p_Event))
+    {
+        progressIndicator->Translate(p_Event->x(), 0.0, 0.0);
+        return true;
+    }
+
+    return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+
+AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, SHAPE p_ShapeType)
+    : Model3D(p_Scene, p_Parent, p_Name, p_ShapeType)
+{
+    //RectangleFactory* m_CubeFactory = RectangleFactory::SingleTon(p_VulkanApp);
+    //m_AbstractFactory = m_CubeFactory; // this is not correct, cube factory should be a part of
+//    background->Rectangle(300, 300, 400, 50);
+//    background->SetColor(glm::vec4(0.6, 0.52, 1.0, 1.0));
+//    background->SetDefaultColor(glm::vec4(0.42, 0.65, 0.60, 1.0));
+
+//    Model3D* bar = m_CubeFactory->GetModel(p_VulkanApp, m_Scene, background, "Bar", SHAPE_CUBE);
+//    bar->Rectangle(0, (background->GetDimension().y * 0.25f), 400, 25);
+//    bar->SetColor(glm::vec4(0.6, 0.52, 0.320, 1.0));
+//    bar->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+
+//    progressIndicator = m_CubeFactory->GetModel(p_VulkanApp, m_Scene, bar, "ProgressIndicator", SHAPE_CUBE);
+//    progressIndicator->Rectangle(0, 0, 20, background->GetDimension().y);
+//    progressIndicator->Translate(0, -(background->GetDimension().y * 0.25f), 0);
+//    progressIndicator->SetColor(glm::vec4(0.1, 0.52, 0.320, 1.0));
+//    progressIndicator->SetDefaultColor(glm::vec4(0.2, 0.15, 0.60, 1.0));
+}
+
+//bool AudioMixerItem::mouseMoveEvent(QMouseEvent* p_Event)
+//{
+//    return false;
+//}

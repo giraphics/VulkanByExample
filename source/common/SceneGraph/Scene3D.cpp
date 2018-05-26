@@ -1,11 +1,13 @@
 ﻿#include "Scene3D.h"
 #include "Model3D.h"
 
+#include "../../common/VulkanApp.h" // Not a good design to include vulkan app here: Todo move AbstractApp 
 #include <QMouseEvent> 
 /*extern*/ bool isDirty;
 
-Scene3D::Scene3D(const QString& p_Name)
-    : m_Frame(0)
+Scene3D::Scene3D(AbstractApp* p_Application)
+    : m_Application(p_Application)
+    , m_Frame(0)
     , m_ScreenWidth(800)
     , m_ScreenHeight(600)
     , m_CurrentHoverItem(NULL)
@@ -33,10 +35,36 @@ void Scene3D::Setup()
 
     foreach(Model3D* currentModel, m_FlatList)
     {
-        m_ModelFactories.insert(currentModel->m_AbstractFactory);
+        AbstractModelFactory* factory = GetFactory(currentModel); // Populate factories
+        if (!factory) continue;
+
+        factory->UpdateModelList(currentModel);
     }
 
-    foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+    ////////////////////////////////////////////////
+    RenderSchemeTypeMap* m_FactoryMap = NULL;
+    std::map<SHAPE, RenderSchemeTypeMap*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
+    if (itSRST != m_ShapeRenderSchemeTypeMap.end())
+    {
+        m_FactoryMap = itSRST->second;
+        std::map<RENDER_SCEHEME_TYPE, AbstractModelFactory*>::iterator it = m_FactoryMap->begin();
+        if (it != m_FactoryMap->end())
+        {
+            m_ModelFactories.insert(it->second);
+            it++;
+        }
+
+        itSRST++;
+    }
+
+    ///////////////////////////////////////////////
+    foreach(Model3D* currentModel, m_FlatList)
+    {
+//        m_ModelFactories.insert(currentModel->m_AbstractFactory);
+    }
+
+	assert(m_ModelFactories.size());
+	foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
     {
         currentModelFactory->Setup();
     }
@@ -44,6 +72,11 @@ void Scene3D::Setup()
 
 void Scene3D::Update()
 {
+    foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+    {
+        currentModelFactory->m_Transform = (*GetProjection()) * (*GetView());
+    }
+
     foreach (Model3D* item, m_ModelList)
     {
         assert(item);
@@ -94,6 +127,11 @@ void Scene3D::Resize(int p_Width, int p_Height)
 {
     m_ScreenWidth = p_Width;
     m_ScreenHeight = p_Height;
+
+	foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+	{
+		currentModelFactory->ResizeWindow(p_Width, p_Height);
+	}
 }
 
 void Scene3D::SetUpProjection()
@@ -161,3 +199,37 @@ void Scene3D::mouseMoveEvent(QMouseEvent* p_Event)
         oldModelItem->SetColor(oldModelItem->GetDefaultColor());
     }
 }
+
+AbstractModelFactory* Scene3D::GetFactory(Model3D* p_Model)
+{
+    const SHAPE shapeType = p_Model->GetShapeType();
+    if ((shapeType <= SHAPE_NONE) && (shapeType >= SHAPE_COUNT)) return NULL;
+
+    RenderSchemeTypeMap* m_FactoryMap = NULL;
+    std::map<SHAPE, RenderSchemeTypeMap*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.find(shapeType);
+    if (itSRST != m_ShapeRenderSchemeTypeMap.end())
+    {
+        m_FactoryMap = itSRST->second;
+    }
+    else
+    {
+        m_FactoryMap = new RenderSchemeTypeMap();
+        m_ShapeRenderSchemeTypeMap[shapeType] = m_FactoryMap;
+    }
+
+    const RENDER_SCEHEME_TYPE renderSchemeType = p_Model->GetRenderSchemeType();
+    std::map<RENDER_SCEHEME_TYPE, AbstractModelFactory*>::iterator it = m_FactoryMap->find(renderSchemeType);
+    if (it != m_FactoryMap->end())
+    {
+        return it->second;
+    }
+
+    AbstractModelFactory* abstractFactory = p_Model->GetRenderScemeFactory();
+    if (abstractFactory)
+    {
+        (*m_FactoryMap)[renderSchemeType] = abstractFactory;
+    }
+
+    return abstractFactory;
+}
+

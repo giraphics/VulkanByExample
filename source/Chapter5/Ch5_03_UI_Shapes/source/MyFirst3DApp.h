@@ -20,10 +20,11 @@ public:
 
 private:
 	void Grid(Scene3D* m_Scene);
+	void MixerView(Scene3D* m_Scene);
 	void ProgressBarFunc(Scene3D* m_Scene);
 
 private:
-    RectangleFactory* m_CubeFactory;
+    //RectangleFactory* m_CubeFactory;
 	///////////////////
 	Scene3D* m_Scene;
 	Model3D* m_Cube1;

@@ -36,7 +36,7 @@ static const Vertex cubeVertices[] =
 class RectangleModel : public Model3D
 {
 public:
-	RectangleModel(VulkanApp* p_VulkanApp, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
+	RectangleModel(VulkanApp* p_VulkanApp/*REMOVE ME*/, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_INSTANCED);
 	virtual ~RectangleModel() {}
 
 	virtual void Setup();
@@ -44,7 +44,7 @@ public:
 	void CreateVertexBuffer(const void * vertexData, uint32_t dataSize, uint32_t dataStride);
 	void Render(VkCommandBuffer& p_CmdBuffer);
 
-//	void prepareInstanceData(Scene3D* p_Scene);
+    virtual AbstractModelFactory* GetRenderScemeFactory();
 
 	VulkanBuffer m_VertexBuffer, m_InstanceBuffer;
 	// Per-instance data block
@@ -57,9 +57,6 @@ public:
 	};
 
 	std::vector<InstanceData> m_InstanceData;
-
-	// Store app specific objects
-	VulkanApp* m_VulkanApplication;
 };
 
 struct CubeDescriptorSet
@@ -124,20 +121,20 @@ UniformBufferObj* UniformBuffer;
 
 class RectangleFactory : public AbstractModelFactory
 {
-private:
+public:
     RectangleFactory(VulkanApp* p_VulkanApp);
     virtual ~RectangleFactory();
 
 public:
-	RectangleModel* GetModel(VulkanApp* p_VulkanApp, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE)
-	{
-		m_ModelList.push_back(new RectangleModel(p_VulkanApp, p_Scene, p_Parent, p_Name, p_ShapeType)); // consider using shared ptr/smart pointers
+	//RectangleModel* GetModel(VulkanApp* p_VulkanApp, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE)
+	//{
+	//	m_ModelList.push_back(new RectangleModel(p_VulkanApp, p_Scene, p_Parent, p_Name, p_ShapeType)); // consider using shared ptr/smart pointers
 
-		RectangleModel* rectangleModel = static_cast<RectangleModel*>(m_ModelList.back());
-		rectangleModel->m_AbstractFactory = this; // TODO: Make this as an argument to Model3D
+	//	RectangleModel* rectangleModel = static_cast<RectangleModel*>(m_ModelList.back());
+	//	rectangleModel->m_AbstractFactory = this; // TODO: Make this as an argument to Model3D
 
-		return rectangleModel;
-	}
+	//	return rectangleModel;
+	//}
 
 public:
 	void Setup();
@@ -163,7 +160,7 @@ public:
     VkPipelineLayout m_hPipelineLayout;
     VkPipeline       m_hGraphicsPipeline;
 
-	std::vector<Model3D*> m_ModelList; // consider them as shared pointer
+//	std::vector<Model3D*> m_ModelList; // consider them as shared pointer
 
 	VulkanApp*		 m_VulkanApplication;
 
@@ -172,8 +169,8 @@ public:
 
 	////////////////////////
     //static RectangleFactory* SingleTon(VulkanApp* p_VulkanApp) { return m_Singleton ? m_Singleton : (m_Singleton = new RectangleFactory(p_VulkanApp)); }
-	static RectangleFactory* SingleTon(VulkanApp* p_VulkanApp = NULL) { return m_Singleton ? m_Singleton : (m_Singleton = new RectangleFactory(p_VulkanApp)); }
-	static RectangleFactory* m_Singleton;
+//	static RectangleFactory* SingleTon(VulkanApp* p_VulkanApp = NULL) { return m_Singleton ? m_Singleton : (m_Singleton = new RectangleFactory(p_VulkanApp)); }
+//	static RectangleFactory* m_Singleton;
 
 	//// Per-instance data block
     struct InstanceData {

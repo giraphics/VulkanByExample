@@ -19,8 +19,15 @@ class VulkanApp;
 class Window;
 class DrawableInterface;
 
+class AbstractApp
+{
+public:
+	AbstractApp() {}
+	virtual ~AbstractApp() {}
+};
+
 // Base class for Vulkan application
-class VulkanApp
+class VulkanApp : public AbstractApp
 {
 public:
     VulkanApp();

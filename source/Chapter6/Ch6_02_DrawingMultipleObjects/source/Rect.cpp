@@ -16,7 +16,7 @@ using namespace std;
 
 std::shared_ptr<RectangleDescriptorSet> CDS = NULL;// std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
 RectangleDescriptorSet::UniformBufferObj* UniformBuffer = NULL;
-RectangleMultiDrawFactory* RectangleMultiDrawFactory::m_Singleton = NULL;
+//RectangleMultiDrawFactory* RectangleMultiDrawFactory::m_Singleton = NULL;
 
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -568,10 +568,14 @@ void RectangleMultiDrawFactory::Prepare(Scene3D* p_Scene)
 	//	&m_Transform, sizeof(m_Transform));
 }
 
-RectangleModel::RectangleModel(VulkanApp *p_VulkanApp, Scene3D *p_Scene, Model3D *p_Parent, const QString &p_Name, SHAPE p_ShapeType)
-	: Model3D(p_Scene, p_Parent, p_Name, p_ShapeType)
-	, m_VulkanApplication(p_VulkanApp)
+RectangleModel::RectangleModel(VulkanApp *p_VulkanApp, Scene3D *p_Scene, Model3D *p_Parent, const QString &p_Name, SHAPE p_ShapeType, RENDER_SCEHEME_TYPE p_RenderSchemeType)
+	: Model3D(p_Scene, p_Parent, p_Name, p_ShapeType, p_RenderSchemeType)
 {
+}
+
+AbstractModelFactory* RectangleModel::GetRenderScemeFactory()
+{
+	return new RectangleMultiDrawFactory(static_cast<VulkanApp*>(m_Scene->GetApplication()));
 }
 
 void RectangleModel::CreateVertexBuffer(const void *vertexData, uint32_t dataSize, uint32_t dataStride)
@@ -579,8 +583,9 @@ void RectangleModel::CreateVertexBuffer(const void *vertexData, uint32_t dataSiz
 	m_VertexBuffer.m_DataSize = dataSize;
 	m_VertexBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 
-	const VkPhysicalDeviceMemoryProperties& memProp = m_VulkanApplication->m_physicalDeviceInfo.memProp;
-	const VkDevice& device = m_VulkanApplication->m_hDevice;
+	VulkanApp* app = static_cast<VulkanApp*>(m_Scene->GetApplication());
+	const VkPhysicalDeviceMemoryProperties& memProp = app->m_physicalDeviceInfo.memProp;
+	const VkDevice& device = app->m_hDevice;
 	VulkanHelper::CreateBuffer(device, memProp, m_VertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexData);
 }
 
@@ -607,7 +612,8 @@ void RectangleModel::Setup()
 
 void RectangleModel::Render(VkCommandBuffer& p_CmdBuffer)
 {
-	RectangleMultiDrawFactory* cubeFactory = RectangleMultiDrawFactory::SingleTon();
+//	RectangleMultiDrawFactory* cubeFactory = RectangleMultiDrawFactory::SingleTon();
+	RectangleMultiDrawFactory* cubeFactory = static_cast<RectangleMultiDrawFactory*>(m_Scene->GetFactory(this));// RectangleFactory::SingleTon();
 	if (!cubeFactory->m_GraphicsPipelineMap.contains("RectGraphicsPipeline")) return;
 
 	VkPipeline graphicsPipeline = graphicsPipeline = cubeFactory->m_GraphicsPipelineMap["RectGraphicsPipeline"].first;

@@ -5,16 +5,18 @@
 
 #include "Transformation3D.h"
 #include "../VulkanHelper.h"
+#include "SGCommon.h"
 
 class Model3D;
 class Scene3D;
 class QMouseEvent;
 class AbstractModelFactory;
+class AbstractApp;
 
 class Scene3D
 {
 public:
-    Scene3D(const QString& p_Name = "");
+    Scene3D(AbstractApp* p_Application = NULL);
     virtual ~Scene3D();
 
     void Setup();
@@ -35,13 +37,15 @@ public:
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
     virtual void mouseMoveEvent(QMouseEvent* p_Event);
 
-    GETSET(glm::mat4*, Projection)	// Not owned by Scene, double check this can be owned. TODO: PS
-    GETSET(glm::mat4*, View)		// Not owned by Scene
+    GETSET(glm::mat4*, Projection)	    // Not owned by Scene, double check this can be owned. TODO: PS
+    GETSET(glm::mat4*, View)		    // Not owned by Scene
     GETSET(Model3D*, CurrentHoverItem)	// Not owned by Scene
+    GETSET(AbstractApp*, Application)
+    
+    AbstractModelFactory* GetFactory(Model3D* p_Model);
 
 private:
     void GatherFlatList();
-
 
 public:
     int m_ScreenHeight;
@@ -54,4 +58,7 @@ public:
     std::vector<QMatrix4x4> m_MatrixVector;
     std::vector<Model3D*> m_FlatList;
     std::set<AbstractModelFactory*> m_ModelFactories;
+
+    typedef std::map<RENDER_SCEHEME_TYPE, AbstractModelFactory*> RenderSchemeTypeMap;
+    std::map<SHAPE, RenderSchemeTypeMap*> m_ShapeRenderSchemeTypeMap;
 };

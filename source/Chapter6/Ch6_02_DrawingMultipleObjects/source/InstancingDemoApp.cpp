@@ -25,14 +25,15 @@ InstancingDemoApp::InstancingDemoApp()
 {
     VulkanHelper::GetInstanceLayerExtensionProperties();
 
-    m_CubeFactory = RectangleMultiDrawFactory::SingleTon(this);
+//    m_CubeFactory = RectangleMultiDrawFactory::SingleTon(this);
 
-    m_Scene = new Scene3D();
+    m_Scene = new Scene3D(this);
 
-    m_Cube = m_CubeFactory->GetModel(this, m_Scene, NULL, "Rectangle 1", SHAPE_RECTANGLE);
-    m_Cube->Rectangle(0, 0 , 10, 10);
-    m_Cube->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
-    m_Cube->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+	//m_Cube = new RectangleModel(this, m_Scene, NULL, "Rectangle 1", SHAPE_RECTANGLE, RENDER_SCEHEME_MULTIDRAW);
+ //   m_Cube->Rectangle(0, 0 , 10, 10);
+ //   m_Cube->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
+ //   m_Cube->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+	Grid(m_Scene);
 }
 
 InstancingDemoApp::~InstancingDemoApp()
@@ -42,37 +43,37 @@ InstancingDemoApp::~InstancingDemoApp()
 
 void InstancingDemoApp::Grid(Scene3D* m_Scene)
 {
-    //float parentCol = 20;
-    //float parentRow = 10;
-    //float parentColWidth = m_windowDim.width / parentCol;
-    //float parentColHeight = m_windowDim.height / parentRow;
+	float parentCol = 20;
+	float parentRow = 20;
+	float parentColWidth = m_windowDim.width / parentCol;
+	float parentColHeight = m_windowDim.height / parentRow;
 
-    //const float Col = 10;
-    //const float Row = 10;
-    //float colWidth = parentColWidth / Col;
-    //float colHeight = parentColHeight / Row;
+	const float Col = 20;
+	const float Row = 10;
+	float colWidth = parentColWidth / Col;
+	float colHeight = parentColHeight / Row;
 
-    //for (int i = 0; i < parentCol; i++)
-    //{
-    //	for (int j = 0; j < parentRow; j++)
-    //	{
-    //		Model3D* m_Parent = new Model3D(m_Scene, NULL, "Node 1", SHAPE_CUBE);
-    //		m_Parent->Rectangle((i * parentColWidth), (j * parentColHeight), parentColWidth - 2, parentColHeight);
-    //		m_Parent->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
-    //		m_Parent->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+	for (int i = 0; i < parentCol; i++)
+	{
+		for (int j = 0; j < parentRow; j++)
+		{
+			Model3D* m_Parent = new RectangleModel(NULL, m_Scene, NULL, "Node 1", SHAPE_RECTANGLE, RENDER_SCEHEME_MULTIDRAW);
+			m_Parent->Rectangle((i * parentColWidth), (j * parentColHeight), parentColWidth - 2, parentColHeight);
+			m_Parent->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
+			m_Parent->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
 
-    //		for (int k = 0; k < Col; k++)
-    //		{
-    //			for (int l = 0; l < Row; l++)
-    //			{
-    //				m_Cube1 = new Model3D(m_Scene, m_Parent, "Node 1", SHAPE_CUBE);
-    //				m_Cube1->Rectangle((k * colWidth), (l * colHeight), colWidth, colHeight);
-    //				m_Cube1->SetColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
-    //				m_Cube1->SetDefaultColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
-    //			}
-    //		}
-    //	}
-    //}
+			for (int k = 0; k < Col; k++)
+			{
+				for (int l = 0; l < Row; l++)
+				{
+					RectangleModel* m_Cube1 = new RectangleModel(NULL, m_Scene, m_Parent, "Node 1", SHAPE_RECTANGLE, RENDER_SCEHEME_MULTIDRAW);
+					m_Cube1->Rectangle((k * colWidth), (l * colHeight), colWidth, colHeight);
+					m_Cube1->SetColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
+					m_Cube1->SetDefaultColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
+				}
+			}
+		}
+	}
 }
 
 void InstancingDemoApp::Configure()
@@ -87,8 +88,6 @@ void InstancingDemoApp::Configure()
     AddInstanceExtension(VK_KHR_SURFACE_EXTENSION_NAME);
     AddInstanceExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
     AddInstanceExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-    //m_Scene = new Scene3D();
-    //Grid(m_Scene);
 }
 
 void InstancingDemoApp::Setup()
@@ -107,22 +106,22 @@ void InstancingDemoApp::Update()
     static float phi = 0.0f;
     glm::mat4 View = glm::lookAt(glm::vec3(500, 500, 500) * sin(phi += 0.01), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
     m_Scene->SetView(&View);
-    //static float rot = 0;
-    //m_Cube->Rotate(rot += .001f, 0.0f, 1.0f, 0.0f);
-    //m_Cube->Update();
 
-    m_CubeFactory->m_Transform = (*m_Scene->GetProjection()) * (*m_Scene->GetView());
+	// TODO: Add dirty flag check to avoid constant update
 
-    m_CubeFactory->Prepare(m_Scene);
-    m_CubeFactory->Update();
-
-    m_Scene->Update();
+	static int i = 0;
+	i++;
+	// This is a test check to see the perform
+	if (i < 20)
+	{
+		printf("\n Update: %d......", i);
+		m_Scene->Update();
+	}
 }
 
 void InstancingDemoApp::ResizeWindow(int width, int height)
 {
     VulkanApp::ResizeWindow(width, height);
 
-    // Parminder: Need to think over how to recreate the pipeline for various factories
-    m_CubeFactory->ResizeWindow(width, height);
+	m_Scene->Resize(width, height);
 }

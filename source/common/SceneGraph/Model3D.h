@@ -5,15 +5,9 @@
 
 #include "Scene3D.h"
 #include "../common/VulkanHelper.h"
-class VulkanApp;
+#include "SGCommon.h"
 
-enum SHAPE
-{
-	SHAPE_NONE = -1,
-	SHAPE_CUBE,
-	SHAPE_RECTANGLE,
-	SHAPE_COUNT
-};
+class VulkanApp;
 
 class AbstractModelFactory
 {
@@ -25,17 +19,21 @@ public:
 	virtual void Setup() {}
 	virtual void Update() {}
 	virtual void Prepare(Scene3D* p_Scene) {}
+    virtual void UpdateModelList(Model3D* p_Parent) { m_ModelList.push_back(p_Parent); }
+	virtual void ResizeWindow(int p_Width, int p_Height) {}
 
 	glm::mat4x4 m_Transform;
+    std::vector<Model3D*> m_ModelList; // consider them as shared pointer
 };
 
 class Model3D
 {
 public:
-    Model3D(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
+    Model3D(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_INSTANCED);
 
     virtual void Setup();
     void Update();
+    virtual AbstractModelFactory* GetRenderScemeFactory() { return NULL; } // Custom model class do not need to implement it as they are made of basic model classes.
 
 	void Rotate(float p_Angle, float p_X, float p_Y, float p_Z) { m_Model = glm::rotate(m_Model, p_Angle, glm::vec3(p_X, p_Y, p_Z)); }
 	void Translate(float p_X, float p_Y, float p_Z) { m_Model = glm::translate(m_Model, glm::vec3(p_X, p_Y, p_Z)); }
@@ -44,6 +42,7 @@ public:
 
 	void Rectangle(float p_X, float p_Y, float p_Width, float p_Height);
 	GETSET(SHAPE, ShapeType);
+	GETSET(RENDER_SCEHEME_TYPE, RenderSchemeType);
 	GETSET(glm::vec2, Position)
 	GETSET(glm::vec2, Dimension)
 	GETSET(glm::vec4, Color)
@@ -72,7 +71,7 @@ public:
 
 	void GatherFlatList();
 
-	AbstractModelFactory* m_AbstractFactory;
+	AbstractModelFactory* m_AbstractFactory; // REMOVE ME
 private:
     QList<Model3D*> m_ChildList;
 };
@@ -80,9 +79,20 @@ private:
 class ProgressBar : public Model3D
 {
 public:
-	ProgressBar(VulkanApp* p_VulkanApp, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
-	virtual ~ProgressBar() {}
+    ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
+    virtual ~ProgressBar() {}
 
-	virtual bool mouseMoveEvent(QMouseEvent* p_Event);
-	Model3D* progressIndicator;
+    virtual bool mouseMoveEvent(QMouseEvent* p_Event);
+    Model3D* progressIndicator;
 };
+
+class AudioMixerItem : public Model3D
+{
+public:
+    AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
+    virtual ~AudioMixerItem() {}
+
+    //virtual bool mouseMoveEvent(QMouseEvent* p_Event);
+    //Model3D* progressIndicator;
+};
+
