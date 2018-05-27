@@ -162,25 +162,57 @@ bool ProgressBar::mouseMoveEvent(QMouseEvent* p_Event)
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, SHAPE p_ShapeType)
+AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, glm::vec2 p_TopLeftPos, glm::vec2 p_Dim, SHAPE p_ShapeType)
     : Model3D(p_Scene, p_Parent, p_Name, p_ShapeType)
 {
-    //RectangleFactory* m_CubeFactory = RectangleFactory::SingleTon(p_VulkanApp);
-    //m_AbstractFactory = m_CubeFactory; // this is not correct, cube factory should be a part of
-//    background->Rectangle(300, 300, 400, 50);
-//    background->SetColor(glm::vec4(0.6, 0.52, 1.0, 1.0));
-//    background->SetDefaultColor(glm::vec4(0.42, 0.65, 0.60, 1.0));
+	Rectangle(p_TopLeftPos.x, p_TopLeftPos.y, p_Dim.x, p_Dim.y);
 
-//    Model3D* bar = m_CubeFactory->GetModel(p_VulkanApp, m_Scene, background, "Bar", SHAPE_CUBE);
-//    bar->Rectangle(0, (background->GetDimension().y * 0.25f), 400, 25);
-//    bar->SetColor(glm::vec4(0.6, 0.52, 0.320, 1.0));
-//    bar->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+	Model3D* background = new RectangleModel(NULL, m_Scene, this, "Audio Mixer Background", SHAPE_RECTANGLE);
+	background->Rectangle(0, 0, p_Dim.x, p_Dim.y);
+	background->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
+	background->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
 
-//    progressIndicator = m_CubeFactory->GetModel(p_VulkanApp, m_Scene, bar, "ProgressIndicator", SHAPE_CUBE);
-//    progressIndicator->Rectangle(0, 0, 20, background->GetDimension().y);
-//    progressIndicator->Translate(0, -(background->GetDimension().y * 0.25f), 0);
-//    progressIndicator->SetColor(glm::vec4(0.1, 0.52, 0.320, 1.0));
-//    progressIndicator->SetDefaultColor(glm::vec4(0.2, 0.15, 0.60, 1.0));
+	bool isActiveTrack = true;
+	const int activeIndicatorWidth = 5;
+	const int activeTrackIndicatorTopMargin = 5.0;
+	const int activeTrackIndicatorTopMarginLeftMargin = 4.0;
+	Model3D* activeTrackIndicator = new RectangleModel(NULL, m_Scene, background, "Active Track Indicator", SHAPE_RECTANGLE);
+	activeTrackIndicator->Rectangle(activeTrackIndicatorTopMarginLeftMargin, activeTrackIndicatorTopMargin, p_Dim.x - (5 * activeTrackIndicatorTopMarginLeftMargin), activeIndicatorWidth);
+	activeTrackIndicator->SetColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
+	activeTrackIndicator->SetDefaultColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
+	
+	const int formatType = 1 ;
+	const int channelTopMargin = activeTrackIndicatorTopMargin + 15.0;
+	const int channelLeftMargin = 4.0;
+	const int channelWidth = (p_Dim.x / formatType) / 2;
+	for (int i = 0; i < formatType; i++)
+	{
+		Model3D* channelBackground = new RectangleModel(NULL, m_Scene, background, "Channel", SHAPE_RECTANGLE);
+		channelBackground->Rectangle((i * channelWidth) + channelLeftMargin, channelTopMargin, ((i == (formatType - 1)) ? 2 : 0) + channelWidth, p_Dim.y - channelTopMargin - 5.0);
+		channelBackground->SetColor(glm::vec4(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0));
+		channelBackground->SetDefaultColor(glm::vec4(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0));
+
+		Model3D* channel = new RectangleModel(NULL, m_Scene, channelBackground, "Channel", SHAPE_RECTANGLE);
+		channel->Rectangle(2, 2, channelWidth - 2, p_Dim.y - channelTopMargin - 5.0 - 4);
+		channel->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
+		channel->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
+		
+		glm::vec4 red(246.0 / 255.0f, 24.0 / 255.0f, 39.0f / 255.0f, 1.0);
+		glm::vec4 yellow(226.0 / 255.0f, 208.0 / 255.0f, 4.0f / 255.0f, 1.0);
+		glm::vec4 green(29.0 / 255.0f, 148.0 / 255.0f, 56.0f / 255.0f, 1.0);
+		const int totalRangeIndicator = channel->GetRefDimension().y / 4;
+		const int redIndicatorRange = totalRangeIndicator * 0.05;
+		const int yellowIndicatorRange = totalRangeIndicator * 0.20;
+		for (int j = 0; j < totalRangeIndicator; j++)
+		{
+			Model3D* levelIndicator = new RectangleModel(NULL, m_Scene, channel, "Channel", SHAPE_RECTANGLE);
+			levelIndicator->Rectangle(2, j * 4, channelWidth - 4.0, 2.0);
+
+			const glm::vec4 color = (j <= redIndicatorRange) ? red : ((j <= yellowIndicatorRange) ? yellow : green);
+			levelIndicator->SetColor(color);
+			levelIndicator->SetDefaultColor(color);
+		}
+	}
 }
 
 //bool AudioMixerItem::mouseMoveEvent(QMouseEvent* p_Event)

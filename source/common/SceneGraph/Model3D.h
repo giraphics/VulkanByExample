@@ -89,7 +89,7 @@ public:
 class AudioMixerItem : public Model3D
 {
 public:
-    AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
+    AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, glm::vec2 p_TopLeftPos, glm::vec2 p_Dim, SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
     virtual ~AudioMixerItem() {}
 
     //virtual bool mouseMoveEvent(QMouseEvent* p_Event);

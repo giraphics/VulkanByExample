@@ -73,21 +73,17 @@ void MyFirst3DApp::Grid(Scene3D* m_Scene)
 
 void MyFirst3DApp::MixerView(Scene3D* m_Scene)
 {
-    const float mixerPanelWidth = 400;// m_windowDim.width;// / numberOfMixers;
+    const float mixerPanelWidth = m_windowDim.width;
     const float mixerPanelHeight = m_windowDim.height;
 
     const float mixerWidth = 100;
-    const int numberOfMixers = 1;// mixerPanelWidth / mixerWidth;
-
-    //Model3D* backGround = new RectangleModel(NULL, m_Scene, NULL, "Rectangle 1", SHAPE_RECTANGLE);
-    //backGround->Rectangle(500, 0, mixerPanelWidth, mixerPanelHeight);
-    //backGround->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
-    //backGround->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+	const int numberOfMixers = mixerPanelWidth / mixerWidth;
 
     for (int i = 0; i < numberOfMixers; i++)
     {
-        AudioMixerItem* m_MixerItem = new AudioMixerItem(m_Scene, /*backGround*/NULL, "Mixer Item 1", SHAPE_RECTANGLE);
-        m_MixerItem->Rectangle((i * mixerWidth), 0, mixerPanelWidth - 2, mixerPanelHeight);
+		glm::vec2 p_TopLeftPos((i * mixerWidth), 0); 
+		glm::vec2 p_Dim(mixerWidth, mixerPanelHeight);
+        AudioMixerItem* m_MixerItem = new AudioMixerItem(m_Scene, NULL, "Mixer Item 1", p_TopLeftPos, p_Dim, SHAPE_CUSTOM);
         m_MixerItem->SetColor(glm::vec4(1.1, 0.2, 0.20, 1.0));
         m_MixerItem->SetDefaultColor(glm::vec4(1.0, 0.15, 0.60, 1.0));
     }
@@ -112,14 +108,9 @@ void MyFirst3DApp::Configure()
 //	ProgressBar(m_Scene);
 	//Grid(m_Scene);
 
-    ProgressBar* pb = new ProgressBar(m_Scene, /*backGround*/NULL, "Node 1", SHAPE_RECTANGLE);
+    //ProgressBar* pb = new ProgressBar(m_Scene, /*backGround*/NULL, "Node 1", SHAPE_RECTANGLE);
 
-    //AudioMixerItem* m_MixerItem = new AudioMixerItem(m_Scene, backGround, "Mixer Item 1", SHAPE_RECTANGLE);
-    //m_MixerItem->Rectangle(0, 0, 300, 300);
-    //m_MixerItem->SetColor(glm::vec4(1.1, 0.2, 0.20, 1.0));
-    //m_MixerItem->SetDefaultColor(glm::vec4(1.0, 0.15, 0.60, 1.0));
-
-	//MixerView(m_Scene);
+	MixerView(m_Scene);
 }
 
 void MyFirst3DApp::Setup()
