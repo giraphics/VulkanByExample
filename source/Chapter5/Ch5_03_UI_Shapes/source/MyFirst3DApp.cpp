@@ -108,9 +108,9 @@ void MyFirst3DApp::Configure()
 //	ProgressBar(m_Scene);
 	//Grid(m_Scene);
 
-    //ProgressBar* pb = new ProgressBar(m_Scene, /*backGround*/NULL, "Node 1", SHAPE_RECTANGLE);
+    ProgressBar* pb = new ProgressBar(m_Scene, /*backGround*/NULL, "Node 1", SHAPE_CUSTOM);
 
-	MixerView(m_Scene);
+	//MixerView(m_Scene);
 }
 
 void MyFirst3DApp::Setup()

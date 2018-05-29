@@ -76,6 +76,7 @@ private:
     QList<Model3D*> m_ChildList;
 };
 
+class RectangleModel;
 class ProgressBar : public Model3D
 {
 public:
@@ -83,7 +84,7 @@ public:
     virtual ~ProgressBar() {}
 
     virtual bool mouseMoveEvent(QMouseEvent* p_Event);
-    Model3D* progressIndicator;
+    RectangleModel* progressIndicator;
 };
 
 class AudioMixerItem : public Model3D
