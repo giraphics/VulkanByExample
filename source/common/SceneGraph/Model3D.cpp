@@ -149,7 +149,7 @@ ProgressBar::ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_N
 	progressIndicator->Translate(0, -(background->GetDimension().y * 0.25f), 0);
 	progressIndicator->SetColor(glm::vec4(0.1, 0.52, 0.320, 1.0));
 	progressIndicator->SetDefaultColor(glm::vec4(0.2, 0.15, 0.60, 1.0));
-    progressIndicator->SetDrawType(RectangleModel::FILLED);
+    progressIndicator->SetDrawType(RectangleModel::OUTLINE);
 }
 
 bool ProgressBar::mouseMoveEvent(QMouseEvent* p_Event)

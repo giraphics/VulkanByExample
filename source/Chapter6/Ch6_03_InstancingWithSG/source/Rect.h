@@ -119,7 +119,7 @@ private:
     void RecordCommandBuffer(); // made public
     virtual void UpdateModelList(Model3D* p_Item) 
     {
-        m_ModelList.push_back(p_Item);
+        //m_ModelList.push_back(p_Item);
 
         RectangleModel* rectangle = dynamic_cast<RectangleModel*>(p_Item);
         // Note: Based on the draw type push the model in respective pipelines
@@ -151,7 +151,7 @@ public:
     VkVertexInputBindingDescription		m_VertexInputBinding[2];   // 0 for (position and color) 1 for ()
     VkVertexInputAttributeDescription	m_VertexInputAttribute[8]; // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
 
-    VulkanApp*		 m_VulkanApplication;
+    VulkanApp* m_VulkanApplication;
 
     QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
 
@@ -162,7 +162,7 @@ public:
         glm::vec4 m_Color;
     };
     VulkanBuffer m_VertexBuffer, m_InstanceBuffer;
-    std::vector<InstanceData> m_InstanceData;
+//    std::vector<InstanceData> m_InstanceData;
 
     enum RECTANGLE_GRAPHICS_PIPELINES
     {
@@ -173,6 +173,7 @@ public:
     std::set<RECTANGLE_GRAPHICS_PIPELINES> m_ActivePipelines;
     
     typedef std::vector<Model3D*> ModelVector;
-    ModelVector m_ModelList; // consider them as shared pointer
-    ModelVector m_PipelineTypeModelVector[RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT];
+    //ModelVector m_ModelList; // consider them as shared pointer
+    ModelVector m_PipelineTypeModelVector[PIPELINE_COUNT];
+    int m_OldInstanceDataSize[PIPELINE_COUNT];
 };
