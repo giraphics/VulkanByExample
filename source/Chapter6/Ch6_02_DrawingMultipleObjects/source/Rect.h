@@ -121,6 +121,7 @@ public:
     void ResizeWindow(int width, int height);
 
 	virtual void Prepare(Scene3D* p_Scene);
+    virtual void UpdateModelList(Model3D* p_Parent) { m_ModelList.push_back(p_Parent); }
 
 	// Parminder: Is it possible to remove the parameter from SingleTon, it looks wierd
     //static RectangleMultiDrawFactory* SingleTon(VulkanApp* p_VulkanApp = NULL) { return m_Singleton ? m_Singleton : (m_Singleton = new RectangleMultiDrawFactory(p_VulkanApp)); }
@@ -144,4 +145,5 @@ private:
 
     // Store app specific objects
     VulkanApp* m_VulkanApplication;
+    std::vector<Model3D*> m_ModelList; // consider them as shared pointer
 };

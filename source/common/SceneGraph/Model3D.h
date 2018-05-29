@@ -19,11 +19,10 @@ public:
 	virtual void Setup() {}
 	virtual void Update() {}
 	virtual void Prepare(Scene3D* p_Scene) {}
-    virtual void UpdateModelList(Model3D* p_Parent) { m_ModelList.push_back(p_Parent); }
-	virtual void ResizeWindow(int p_Width, int p_Height) {}
+    virtual void UpdateModelList(Model3D* p_Parent) {}
+    virtual void ResizeWindow(int p_Width, int p_Height) {}
 
 	glm::mat4x4 m_Transform;
-    std::vector<Model3D*> m_ModelList; // consider them as shared pointer
 };
 
 class Model3D
