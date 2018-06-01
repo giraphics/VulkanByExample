@@ -92,7 +92,7 @@ void MyFirst3DApp::MixerView(Scene3D* m_Scene)
 void MyFirst3DApp::Configure()
 {
     SetApplicationName("My First 3D Application - Depth buffer");
-    SetWindowDimension(800*2, 900);
+    SetWindowDimension(800, 600);
 
     // Add Validation Layers
     AddValidationLayer("VK_LAYER_LUNARG_standard_validation");
@@ -108,9 +108,9 @@ void MyFirst3DApp::Configure()
 //	ProgressBar(m_Scene);
 	//Grid(m_Scene);
 
-    ProgressBar* pb = new ProgressBar(m_Scene, /*backGround*/NULL, "Node 1", SHAPE_CUSTOM);
+    //ProgressBar* pb = new ProgressBar(m_Scene, /*backGround*/NULL, "Node 1", SHAPE_CUSTOM);
 
-	//MixerView(m_Scene);
+	MixerView(m_Scene);
 }
 
 void MyFirst3DApp::Setup()

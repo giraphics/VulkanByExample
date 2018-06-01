@@ -122,6 +122,10 @@ public:
     VulkanBuffer m_VertexBuffer, m_InstanceBuffer;
 
     void PrepareInstanceData();
+    virtual void UpdateModelList(Model3D* p_Item)
+    {
+        m_ModelList.push_back(p_Item);
+    }
 
     // Vertex buffer specific objects
     VkVertexInputBindingDescription		m_VertexInputBinding[2];   // 0 for (position and color) 1 for ()
@@ -141,4 +145,6 @@ public:
     };
 
     std::vector<InstanceData> m_InstanceData;
+    typedef std::vector<Model3D*> ModelVector;
+    ModelVector m_ModelList; // consider them as shared pointer
 };

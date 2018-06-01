@@ -133,16 +133,16 @@ ProgressBar::ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_N
 	: Model3D(p_Scene, p_Parent, p_Name, p_ShapeType)
 {
     RectangleModel* background = new RectangleModel(NULL, m_Scene, this, "Rectangle 1", SHAPE_RECTANGLE);
-	background->Rectangle(0, 0, 400, 50);
+	background->Rectangle(10, 10, 400, 50);
 	background->SetColor(glm::vec4(0.6, 01.0, 0.0, 1.0));
 	background->SetDefaultColor(glm::vec4(0.42, 0.65, 0.60, 1.0));
-    background->SetDrawType(RectangleModel::OUTLINE);
+    //background->SetDrawType(RectangleModel::OUTLINE);
 
     RectangleModel* bar = new RectangleModel(NULL, m_Scene, background, "Bar", SHAPE_RECTANGLE);
     bar->Rectangle(0, (background->GetDimension().y * 0.25f), 400, 25);
 	bar->SetColor(glm::vec4(0.6, 0.52, 0.320, 1.0));
 	bar->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
-    bar->SetDrawType(RectangleModel::FILLED);
+    bar->SetDrawType(RectangleModel::OUTLINE);
 
     progressIndicator = new RectangleModel(NULL, m_Scene, bar, "ProgressIndicator", SHAPE_RECTANGLE);
     progressIndicator->Rectangle(0, 0, 20, background->GetDimension().y);
@@ -176,7 +176,7 @@ AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QStrin
 	background->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
 
 	bool isActiveTrack = true;
-	const int activeIndicatorWidth = 5;
+	const int activeIndicatorWidth = 7;
 	const int activeTrackIndicatorTopMargin = 5.0;
 	const int activeTrackIndicatorTopMarginLeftMargin = 4.0;
 	Model3D* activeTrackIndicator = new RectangleModel(NULL, m_Scene, background, "Active Track Indicator", SHAPE_RECTANGLE);
@@ -185,10 +185,10 @@ AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QStrin
 	activeTrackIndicator->SetDefaultColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
 	
     static int cnt = 0;
-	const int formatType = 3;
+	const int formatType = 25;
 	const int channelTopMargin = activeTrackIndicatorTopMargin + 15.0;
 	const int channelLeftMargin = 4.0;
-	const int channelWidth = (p_Dim.x / formatType);
+	const int channelWidth = (p_Dim.x / formatType)/2;
 	for (int i = 0; i < formatType; i++)
 	{
 		Model3D* channelBackground = new RectangleModel(NULL, m_Scene, background, "Channel", SHAPE_RECTANGLE);
@@ -217,7 +217,6 @@ AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QStrin
 			levelIndicator->SetDefaultColor(color);
             cnt++;
 		}
-        printf("##################### %d:", cnt++);
 	}
 }
 

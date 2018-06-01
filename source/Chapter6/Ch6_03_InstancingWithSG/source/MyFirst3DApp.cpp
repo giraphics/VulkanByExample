@@ -88,8 +88,8 @@ void MyFirst3DApp::MixerView(Scene3D* m_Scene)
 
 void MyFirst3DApp::Configure()
 {
-    SetApplicationName("My First 3D Application - Depth buffer");
-    SetWindowDimension(800*2, 900);
+    SetApplicationName("Render Concepts - Ui interfaces");
+    SetWindowDimension(800 * 2, 900);
 
     // Add Validation Layers
     AddValidationLayer("VK_LAYER_LUNARG_standard_validation");

@@ -11,16 +11,6 @@ struct Vertex
     glm::vec3 m_Color;    // Color format => r, g, b
 };
 
-static const Vertex cubeVertices[] =
-{
-    { glm::vec3(1, 0, -0),	glm::vec3(0.f, 0.f, 0.f) },
-    { glm::vec3(0, 0, -0),	glm::vec3(1.f, 0.f, 0.f) },
-    { glm::vec3(1, 1, -0),	glm::vec3(0.f, 1.f, 0.f) },
-    { glm::vec3(1, 1, -0),	glm::vec3(0.f, 1.f, 0.f) },
-    { glm::vec3(0, 0, -0),	glm::vec3(1.f, 0.f, 0.f) },
-    { glm::vec3(0, 1, -0),	glm::vec3(1.f, 1.f, 0.f) },
-};
-
 class RectangleModel : public Model3D
 {
 public:
@@ -114,7 +104,7 @@ private:
     void CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap = false);
         void CreateRectFillPipeline();
         void CreateRectOutlinePipeline();
-    void CreateVertexBuffer(const void *vertexData, uint32_t dataSize, uint32_t dataStride);
+    void CreateVertexBuffer();
 
     void RecordCommandBuffer(); // made public
     virtual void UpdateModelList(Model3D* p_Item) 
@@ -122,6 +112,8 @@ private:
         //m_ModelList.push_back(p_Item);
 
         RectangleModel* rectangle = dynamic_cast<RectangleModel*>(p_Item);
+        assert(rectangle);
+
         // Note: Based on the draw type push the model in respective pipelines
         // Keep the draw type loose couple with the pipeline type, 
         // they may be in one-to-one correspondence but that is not necessary.
@@ -129,7 +121,7 @@ private:
         {
             case RectangleModel::FILLED:
                 m_PipelineTypeModelVector[PIPELINE_FILLED].push_back(p_Item);
-                    break;
+                break;
 
             case RectangleModel::OUTLINE:
                 m_PipelineTypeModelVector[PIPELINE_OUTLINE].push_back(p_Item);
@@ -154,6 +146,12 @@ public:
     VulkanApp* m_VulkanApplication;
 
     QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
+    enum RECTANGLE_GRAPHICS_PIPELINES
+    {
+        PIPELINE_FILLED = 0,
+        PIPELINE_OUTLINE,
+        PIPELINE_COUNT,
+    };
 
     // Per-instance data block
     struct InstanceData {
@@ -161,19 +159,19 @@ public:
         glm::vec4 m_Rect;
         glm::vec4 m_Color;
     };
-    VulkanBuffer m_VertexBuffer, m_InstanceBuffer;
-//    std::vector<InstanceData> m_InstanceData;
 
-    enum RECTANGLE_GRAPHICS_PIPELINES
-    {
-        PIPELINE_FILLED = 0,
-        PIPELINE_OUTLINE,
-        PIPELINE_COUNT,
-    };
+    VulkanBuffer m_VertexBuffer[PIPELINE_COUNT], m_InstanceBuffer[PIPELINE_COUNT];
+
     std::set<RECTANGLE_GRAPHICS_PIPELINES> m_ActivePipelines;
     
     typedef std::vector<Model3D*> ModelVector;
-    //ModelVector m_ModelList; // consider them as shared pointer
     ModelVector m_PipelineTypeModelVector[PIPELINE_COUNT];
     int m_OldInstanceDataSize[PIPELINE_COUNT];
+    int m_VertexCount[PIPELINE_COUNT];
 };
+
+
+//TODO: 
+//a. VertexBuffer should be m_VertexBuffer[PIPELINE_COUNT]
+//b. Address its distruction.
+//c. Assign correct vertex buffer data as per pipeline rectFilledVertices, rectOutlineVertices

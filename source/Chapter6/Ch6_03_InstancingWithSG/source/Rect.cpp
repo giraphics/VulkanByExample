@@ -22,8 +22,8 @@ CubeDescriptorSet::UniformBufferObj* UniformBuffer = NULL;
 RectangleFactory::RectangleFactory(VulkanApp* p_VulkanApp)
 {
 	memset(&UniformBuffer, 0, sizeof(UniformBuffer));
-	memset(&m_VertexBuffer, 0, sizeof(VulkanBuffer));
-    memset(&m_InstanceBuffer, 0, sizeof(VulkanBuffer));
+	memset(&m_VertexBuffer, 0, sizeof(VulkanBuffer) * PIPELINE_COUNT);
+    memset(&m_InstanceBuffer, 0, sizeof(VulkanBuffer) * PIPELINE_COUNT);
     memset(&m_OldInstanceDataSize, 0, sizeof(int) * PIPELINE_COUNT);
 
     m_VulkanApplication = p_VulkanApp;
@@ -47,9 +47,12 @@ RectangleFactory::~RectangleFactory()
         vkDestroyPipelineLayout(m_VulkanApplication->m_hDevice, graphicsPipelineLayout, nullptr);
     }
 
-    // Destroy Vertex Buffer
-    vkDestroyBuffer(m_VulkanApplication->m_hDevice, m_VertexBuffer.m_Buffer, NULL);
-    vkFreeMemory(m_VulkanApplication->m_hDevice, m_VertexBuffer.m_Memory, NULL);
+    for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
+    {
+        // Destroy Vertex Buffer
+        vkDestroyBuffer(m_VulkanApplication->m_hDevice, m_VertexBuffer[pipelineIdx].m_Buffer, NULL);
+        vkFreeMemory(m_VulkanApplication->m_hDevice, m_VertexBuffer[pipelineIdx].m_Memory, NULL);
+    }
 
     //vkFreeDescriptorSets(m_VulkanApplication->m_hDevice, descriptorPool, (uint32_t)descriptorSet.size(), &descriptorSet[0]);
     //vkDestroyDescriptorPool(m_VulkanApplication->m_hDevice, descriptorPool, NULL);
@@ -61,13 +64,15 @@ RectangleFactory::~RectangleFactory()
 
 void RectangleFactory::Setup()
 {
-    uint32_t dataSize = sizeof(cubeVertices);
-    uint32_t dataStride = sizeof(cubeVertices[0]);
-    CreateVertexBuffer(cubeVertices, dataSize, dataStride);
+    //m_VertexCount[PIPELINE_FILLED] = sizeof(rectFilledVertices) / sizeof(Vertex);
+    //m_VertexCount[PIPELINE_OUTLINE] = sizeof(rectOutlineVertices) / sizeof(Vertex);
+
+    //uint32_t dataSize = sizeof(rectFilledVertices);
+    //uint32_t dataStride = sizeof(rectFilledVertices[0]);
+    CreateVertexBuffer(/*rectFilledVertices, dataSize, dataStride*/);
     if (!CDS)
     {
         CDS = std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
-        //CDS = new CubeDescriptorSet(m_VulkanApplication);
         CDS->CreateDescriptor();
         UniformBuffer = CDS->UniformBuffer;
     }
@@ -493,6 +498,8 @@ void RectangleFactory::RecordCommandBuffer()
         for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
         {
             ModelVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
+            if (!m_ModelList.size()) continue;
+
             VkPipelineLayout graphicsPipelineLayout = VK_NULL_HANDLE;
             VkPipeline       graphicsPipeline = VK_NULL_HANDLE;
             if (pipelineIdx == PIPELINE_FILLED)
@@ -523,13 +530,11 @@ void RectangleFactory::RecordCommandBuffer()
 
             // Specify vertex buffer information
             const VkDeviceSize offsets[1] = { 0 };
-            vkCmdBindVertexBuffers(m_VulkanApplication->m_hCommandBufferList[i], VERTEX_BUFFER_BIND_IDX, 1, &m_VertexBuffer.m_Buffer, offsets);
-            vkCmdBindVertexBuffers(m_VulkanApplication->m_hCommandBufferList[i], INSTANCE_BUFFER_BIND_IDX, 1, &m_InstanceBuffer.m_Buffer, offsets);
+            vkCmdBindVertexBuffers(m_VulkanApplication->m_hCommandBufferList[i], VERTEX_BUFFER_BIND_IDX, 1, &m_VertexBuffer[pipelineIdx].m_Buffer, offsets);
+            vkCmdBindVertexBuffers(m_VulkanApplication->m_hCommandBufferList[i], INSTANCE_BUFFER_BIND_IDX, 1, &m_InstanceBuffer[pipelineIdx].m_Buffer, offsets);
 
             // Draw the Cube
-            const int vertexCount = sizeof(cubeVertices) / sizeof(Vertex);
-            const int instanceSize = m_ModelList.size();
-            vkCmdDraw(m_VulkanApplication->m_hCommandBufferList[i], vertexCount, instanceSize, 0, 0);
+            vkCmdDraw(m_VulkanApplication->m_hCommandBufferList[i], m_VertexCount[pipelineIdx], m_ModelList.size(), 0, 0);
         }
         ////for (int j = 0; j < modelSize; j++)
         //{
@@ -553,69 +558,158 @@ void RectangleFactory::RecordCommandBuffer()
     }
 }
 
-void RectangleFactory::CreateVertexBuffer(const void * vertexData, uint32_t dataSize, uint32_t dataStride)
+void RectangleFactory::CreateVertexBuffer(/*const void * vertexData, uint32_t dataSize, uint32_t dataStride*/)
 {
-    m_VertexBuffer.m_DataSize = dataSize;
-    m_VertexBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+    for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
+    {
+        m_VertexBuffer[pipelineIdx].m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 
-    const VkPhysicalDeviceMemoryProperties& memProp = m_VulkanApplication->m_physicalDeviceInfo.memProp;
-    const VkDevice& device = m_VulkanApplication->m_hDevice;
-    VulkanHelper::CreateBuffer(device, memProp, m_VertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexData);
+        const VkPhysicalDeviceMemoryProperties& memProp = m_VulkanApplication->m_physicalDeviceInfo.memProp;
+        const VkDevice& device = m_VulkanApplication->m_hDevice;
+        if (pipelineIdx == PIPELINE_FILLED)
+        {
+            static const Vertex rectFilledVertices[] =
+            {
+                { glm::vec3(1, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
+                { glm::vec3(0, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
+                { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
+                { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
+                { glm::vec3(0, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
+                { glm::vec3(0, 1, 0),	glm::vec3(1.f, 1.f, 0.f) },
+            };
 
-    // Indicates the rate at which the information will be
-    // injected for vertex input.
-    m_VertexInputBinding[0].binding = VERTEX_BUFFER_BIND_IDX;
-    m_VertexInputBinding[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-    m_VertexInputBinding[0].stride = dataStride;
+            m_VertexBuffer[pipelineIdx].m_DataSize = sizeof(rectFilledVertices);
+            m_VertexCount[PIPELINE_FILLED] = sizeof(rectFilledVertices) / sizeof(Vertex);
+//            uint32_t dataSize = ;
+            uint32_t dataStride = sizeof(rectFilledVertices[0]);
+            VulkanHelper::CreateBuffer(device, memProp, m_VertexBuffer[pipelineIdx], VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, rectFilledVertices);
+            // Indicates the rate at which the information will be
+            // injected for vertex input.
+            m_VertexInputBinding[0].binding = VERTEX_BUFFER_BIND_IDX;
+            m_VertexInputBinding[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+            m_VertexInputBinding[0].stride = dataStride;
 
-    m_VertexInputBinding[1].binding = INSTANCE_BUFFER_BIND_IDX;
-    m_VertexInputBinding[1].inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
-    m_VertexInputBinding[1].stride = sizeof(InstanceData);
+            m_VertexInputBinding[1].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputBinding[1].inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+            m_VertexInputBinding[1].stride = sizeof(InstanceData);
 
-    // The VkVertexInputAttribute interpreting the data.
-    m_VertexInputAttribute[0].binding = 0;
-    m_VertexInputAttribute[0].location = 0;
-    m_VertexInputAttribute[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-    m_VertexInputAttribute[0].offset = offsetof(struct Vertex, m_Position);
+            // The VkVertexInputAttribute interpreting the data.
+            m_VertexInputAttribute[0].binding = 0;
+            m_VertexInputAttribute[0].location = 0;
+            m_VertexInputAttribute[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+            m_VertexInputAttribute[0].offset = offsetof(struct Vertex, m_Position);
 
-    m_VertexInputAttribute[1].binding = 0;
-    m_VertexInputAttribute[1].location = 1;
-    m_VertexInputAttribute[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-    m_VertexInputAttribute[1].offset = offsetof(struct Vertex, m_Color);
-    ////////////////////////////////////////////////////////////////////////////////////
+            m_VertexInputAttribute[1].binding = 0;
+            m_VertexInputAttribute[1].location = 1;
+            m_VertexInputAttribute[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+            m_VertexInputAttribute[1].offset = offsetof(struct Vertex, m_Color);
+            ////////////////////////////////////////////////////////////////////////////////////
 
-    // Model Matrix
-    m_VertexInputAttribute[2].binding = INSTANCE_BUFFER_BIND_IDX;
-    m_VertexInputAttribute[2].location = 2;
-    m_VertexInputAttribute[2].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-    m_VertexInputAttribute[2].offset = 0;
+            // Model Matrix
+            m_VertexInputAttribute[2].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[2].location = 2;
+            m_VertexInputAttribute[2].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            m_VertexInputAttribute[2].offset = 0;
 
-    m_VertexInputAttribute[3].binding = INSTANCE_BUFFER_BIND_IDX;
-    m_VertexInputAttribute[3].location = 3;
-    m_VertexInputAttribute[3].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-    m_VertexInputAttribute[3].offset = 16 * 1;
+            m_VertexInputAttribute[3].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[3].location = 3;
+            m_VertexInputAttribute[3].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            m_VertexInputAttribute[3].offset = 16 * 1;
 
-    m_VertexInputAttribute[4].binding = INSTANCE_BUFFER_BIND_IDX;
-    m_VertexInputAttribute[4].location = 4;
-    m_VertexInputAttribute[4].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-    m_VertexInputAttribute[4].offset = 16 * 2;
+            m_VertexInputAttribute[4].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[4].location = 4;
+            m_VertexInputAttribute[4].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            m_VertexInputAttribute[4].offset = 16 * 2;
 
-    m_VertexInputAttribute[5].binding = INSTANCE_BUFFER_BIND_IDX;
-    m_VertexInputAttribute[5].location = 5;
-    m_VertexInputAttribute[5].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-    m_VertexInputAttribute[5].offset = 16 * 3;
+            m_VertexInputAttribute[5].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[5].location = 5;
+            m_VertexInputAttribute[5].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            m_VertexInputAttribute[5].offset = 16 * 3;
 
-    // Dimension
-    m_VertexInputAttribute[6].binding = INSTANCE_BUFFER_BIND_IDX;
-    m_VertexInputAttribute[6].location = 6;
-    m_VertexInputAttribute[6].format = VK_FORMAT_R32G32B32_SFLOAT;
-    m_VertexInputAttribute[6].offset = 16 * 4;
+            // Dimension
+            m_VertexInputAttribute[6].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[6].location = 6;
+            m_VertexInputAttribute[6].format = VK_FORMAT_R32G32B32_SFLOAT;
+            m_VertexInputAttribute[6].offset = 16 * 4;
 
-    // Color
-    m_VertexInputAttribute[7].binding = INSTANCE_BUFFER_BIND_IDX;
-    m_VertexInputAttribute[7].location = 7;
-    m_VertexInputAttribute[7].format = VK_FORMAT_R32G32B32_SFLOAT;
-    m_VertexInputAttribute[7].offset = 16 * 5;
+            // Color
+            m_VertexInputAttribute[7].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[7].location = 7;
+            m_VertexInputAttribute[7].format = VK_FORMAT_R32G32B32_SFLOAT;
+            m_VertexInputAttribute[7].offset = 16 * 5;
+
+        }
+        else if (pipelineIdx == PIPELINE_OUTLINE)
+        {
+            static const Vertex rectOutlineVertices[] =
+            {
+                { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
+                { glm::vec3(1, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
+                { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
+                { glm::vec3(0, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
+                { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
+            };
+
+            m_VertexBuffer[pipelineIdx].m_DataSize = sizeof(rectOutlineVertices);
+            m_VertexCount[PIPELINE_OUTLINE] = sizeof(rectOutlineVertices) / sizeof(Vertex);
+            const uint32_t dataStride = sizeof(rectOutlineVertices[0]);
+            VulkanHelper::CreateBuffer(device, memProp, m_VertexBuffer[pipelineIdx], VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, rectOutlineVertices);
+            // Indicates the rate at which the information will be
+            // injected for vertex input.
+            m_VertexInputBinding[0].binding = VERTEX_BUFFER_BIND_IDX;
+            m_VertexInputBinding[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+            m_VertexInputBinding[0].stride = dataStride;
+
+            m_VertexInputBinding[1].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputBinding[1].inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+            m_VertexInputBinding[1].stride = sizeof(InstanceData);
+
+            // The VkVertexInputAttribute interpreting the data.
+            m_VertexInputAttribute[0].binding = 0;
+            m_VertexInputAttribute[0].location = 0;
+            m_VertexInputAttribute[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+            m_VertexInputAttribute[0].offset = offsetof(struct Vertex, m_Position);
+
+            m_VertexInputAttribute[1].binding = 0;
+            m_VertexInputAttribute[1].location = 1;
+            m_VertexInputAttribute[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+            m_VertexInputAttribute[1].offset = offsetof(struct Vertex, m_Color);
+            ////////////////////////////////////////////////////////////////////////////////////
+
+            // Model Matrix
+            m_VertexInputAttribute[2].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[2].location = 2;
+            m_VertexInputAttribute[2].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            m_VertexInputAttribute[2].offset = 0;
+
+            m_VertexInputAttribute[3].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[3].location = 3;
+            m_VertexInputAttribute[3].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            m_VertexInputAttribute[3].offset = 16 * 1;
+
+            m_VertexInputAttribute[4].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[4].location = 4;
+            m_VertexInputAttribute[4].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            m_VertexInputAttribute[4].offset = 16 * 2;
+
+            m_VertexInputAttribute[5].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[5].location = 5;
+            m_VertexInputAttribute[5].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            m_VertexInputAttribute[5].offset = 16 * 3;
+
+            // Dimension
+            m_VertexInputAttribute[6].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[6].location = 6;
+            m_VertexInputAttribute[6].format = VK_FORMAT_R32G32B32_SFLOAT;
+            m_VertexInputAttribute[6].offset = 16 * 4;
+
+            // Color
+            m_VertexInputAttribute[7].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[7].location = 7;
+            m_VertexInputAttribute[7].format = VK_FORMAT_R32G32B32_SFLOAT;
+            m_VertexInputAttribute[7].offset = 16 * 5;
+        }
+    }
 }
 
 void CubeDescriptorSet::CreateUniformBuffer()
@@ -762,6 +856,7 @@ void CubeDescriptorSet::CreateDescriptorSet()
 
 void RectangleFactory::PrepareInstanceData()
 {
+    bool update = false;
     for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
     {
         ModelVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
@@ -784,26 +879,33 @@ void RectangleFactory::PrepareInstanceData()
         if (modelSize != 0)
         {
             VkMemoryPropertyFlags memoryProperty = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-            m_InstanceBuffer.m_MemoryFlags = memoryProperty;
-            m_InstanceBuffer.m_DataSize = modelSize * sizeof(InstanceData);
+            m_InstanceBuffer[pipelineIdx].m_MemoryFlags = memoryProperty;
+            m_InstanceBuffer[pipelineIdx].m_DataSize = modelSize * sizeof(InstanceData);
             // Re-Create instance buffer if size not same.
 
             VulkanHelper::CreateStagingBuffer(m_VulkanApplication->m_hDevice,
                 m_VulkanApplication->m_physicalDeviceInfo.memProp,
                 m_VulkanApplication->m_hCommandPool,
                 m_VulkanApplication->m_hGraphicsQueue,
-                m_InstanceBuffer,
+                m_InstanceBuffer[pipelineIdx],
                 VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                 m_InstanceData.data());
 
             if (modelSize != m_OldInstanceDataSize[pipelineIdx] && modelSize != 0)
             {
-                RecordCommandBuffer();
+                update = true;
+                //RecordCommandBuffer();
             }
         }
 
         m_OldInstanceDataSize[pipelineIdx] = modelSize;
     }
+
+    if (update)
+    {
+        RecordCommandBuffer();
+    }
+
 }
 //void RectangleFactory::PrepareInstanceData()
 //{
