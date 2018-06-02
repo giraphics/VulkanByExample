@@ -139,13 +139,6 @@ private:
 public:
     void PrepareInstanceData();
 
-    // Vertex buffer specific objects
-    VkVertexInputBindingDescription		m_VertexInputBinding[2];   // 0 for (position and color) 1 for ()
-    VkVertexInputAttributeDescription	m_VertexInputAttribute[8]; // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
-
-    VulkanApp* m_VulkanApplication;
-
-    QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
     enum RECTANGLE_GRAPHICS_PIPELINES
     {
         PIPELINE_FILLED = 0,
@@ -153,6 +146,12 @@ public:
         PIPELINE_COUNT,
     };
 
+    std::vector<VkVertexInputBindingDescription>   m_VertexInputBinding[PIPELINE_COUNT];   // 0 for (position and color) 1 for ()
+    std::vector<VkVertexInputAttributeDescription> m_VertexInputAttribute[PIPELINE_COUNT]; // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
+
+    VulkanApp* m_VulkanApplication;
+
+    QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
     // Per-instance data block
     struct InstanceData {
         glm::mat4 m_Model;
@@ -160,11 +159,12 @@ public:
         glm::vec4 m_Color;
     };
 
-    VulkanBuffer m_VertexBuffer[PIPELINE_COUNT], m_InstanceBuffer[PIPELINE_COUNT];
 
     std::set<RECTANGLE_GRAPHICS_PIPELINES> m_ActivePipelines;
     
     typedef std::vector<Model3D*> ModelVector;
+
+    VulkanBuffer m_VertexBuffer[PIPELINE_COUNT], m_InstanceBuffer[PIPELINE_COUNT];
     ModelVector m_PipelineTypeModelVector[PIPELINE_COUNT];
     int m_OldInstanceDataSize[PIPELINE_COUNT];
     int m_VertexCount[PIPELINE_COUNT];

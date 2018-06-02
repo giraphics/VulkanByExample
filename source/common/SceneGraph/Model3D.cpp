@@ -105,12 +105,24 @@ void Model3D::Update()
     m_Scene->PopMatrix();
 }
 
-void Model3D::Rectangle(float p_X, float p_Y, float p_Width, float p_Height)
+void Model3D::Rectangle(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder/*=0*/)
 {
-	Translate(p_X, p_Y, 0);
-	m_Dimension.x = p_Width;
+	Translate(p_X, p_Y, p_ZOrder);
+
+    m_Position.x = p_X;
+    m_Position.y = p_Y;
+    m_Position.z = p_ZOrder;
+
+    m_Dimension.x = p_Width;
 	m_Dimension.y = p_Height;
-	//	Scale(p_Width, p_Height, 1);
+}
+
+void Model3D::SetZOrder(float p_ZOrder)
+{
+    m_Position.z = p_ZOrder;
+
+    Reset();
+    Translate(m_Position.x, m_Position.y, m_Position.z);
 }
 
 void Model3D::GatherFlatList()
@@ -185,7 +197,7 @@ AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QStrin
 	activeTrackIndicator->SetDefaultColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
 	
     static int cnt = 0;
-	const int formatType = 25;
+	const int formatType = 7;
 	const int channelTopMargin = activeTrackIndicatorTopMargin + 15.0;
 	const int channelLeftMargin = 4.0;
 	const int channelWidth = (p_Dim.x / formatType)/2;

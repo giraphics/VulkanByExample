@@ -39,17 +39,19 @@ public:
     void Scale(float p_X, float p_Y, float p_Z) { m_Model = glm::scale(m_Model, glm::vec3(p_X, p_Y, p_Z)); }
 	void Reset() { m_TransformedModel = glm::mat4(); }
 
-	void Rectangle(float p_X, float p_Y, float p_Width, float p_Height);
+	void Rectangle(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder = 0.0f);
+    void SetZOrder(float p_ZOrder);
+
 	GETSET(SHAPE, ShapeType);
 	GETSET(RENDER_SCEHEME_TYPE, RenderSchemeType);
-	GETSET(glm::vec2, Position)
+	GETSET(glm::vec3, Position)
 	GETSET(glm::vec2, Dimension)
 	GETSET(glm::vec4, Color)
 	GETSET(glm::vec4, DefaultColor)
 	GETSET(glm::mat4, Model)		// Owned by drawable item
 	GETSET(Scene3D*, Scene)
 	GETSET(Model3D*, Parent)
-	GETSET(glm::mat4, TransformedModel)		// Owned by drawable item
+   	GETSET(glm::mat4, TransformedModel)		// Owned by drawable item
 
 	// Mouse interaction: Dummy interface for now.
 	virtual void mousePressEvent(QMouseEvent* p_Event);

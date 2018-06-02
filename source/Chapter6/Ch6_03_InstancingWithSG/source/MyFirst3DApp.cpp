@@ -105,33 +105,23 @@ void MyFirst3DApp::Configure()
 //	ProgressBar(m_Scene);
 	//Grid(m_Scene);
 
-    ProgressBar* pb = new ProgressBar(m_Scene, /*backGround*/NULL, "Node 1", SHAPE_CUSTOM);
-
-	//MixerView(m_Scene);
+    ProgressBar* pb = new ProgressBar(m_Scene, NULL, "Progressbar", SHAPE_CUSTOM);
+    pb->SetZOrder(1);
+    MixerView(m_Scene);
 }
 
 void MyFirst3DApp::Setup()
 {
-	// Note: We are overidding the default Create Command pool with VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
-	// because we need to re-record the command buffer when the instance data size changes. 
-	// This need to recreate the command buffer. 
-	VkCommandPoolCreateInfo poolInfo = {};
-	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-	poolInfo.queueFamilyIndex = m_physicalDeviceInfo.graphicsFamilyIndex;
-	VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo, &poolInfo);
-
-	// static glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+	//static glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 	static glm::mat4 Projection = glm::ortho(0.0f, static_cast<float>(m_windowDim.width), 0.0f, static_cast<float>(m_windowDim.height));
 	m_Scene->SetProjection(&Projection);
 
-	// static glm::mat4 View = glm::lookAt(glm::vec3(20, -20, 20), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-	static glm::mat4 View;
-	//View = glm::translate(View, glm::vec3(0, 0, -100));
-	m_Scene->SetView(&View);
+	//static glm::mat4 View = glm::lookAt(glm::vec3(0, 0, 1500), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	//View = glm::translate(View, glm::vec3(-1000, -500, 0));
+    static glm::mat4 View;
+    m_Scene->SetView(&View);
 
 	m_Scene->SetUpProjection(); // For some reason the ViewMatrix is not working properly, this setupensure model matrix is set properly.
-//	m_CubeFactory->Setup();
 	m_Scene->Setup();
 	isDirty = true;
 }

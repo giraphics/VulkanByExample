@@ -122,11 +122,12 @@ void RectangleFactory::CreateRectOutlinePipeline()
     // Setup the vertex input
     VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount = sizeof(m_VertexInputBinding) / sizeof(VkVertexInputBindingDescription);
-    vertexInputInfo.pVertexBindingDescriptions = m_VertexInputBinding;
-    vertexInputInfo.vertexAttributeDescriptionCount = sizeof(m_VertexInputAttribute) / sizeof(VkVertexInputAttributeDescription);
-    vertexInputInfo.pVertexAttributeDescriptions = m_VertexInputAttribute;
-
+    // Check the size where every necessrry
+    vertexInputInfo.vertexBindingDescriptionCount = m_VertexInputBinding[PIPELINE_OUTLINE].size();// sizeof(m_VertexInputBinding[PIPELINE_OUTLINE]) / sizeof(VkVertexInputBindingDescription);
+    vertexInputInfo.pVertexBindingDescriptions = m_VertexInputBinding[PIPELINE_OUTLINE].data();
+    vertexInputInfo.vertexAttributeDescriptionCount = m_VertexInputAttribute[PIPELINE_OUTLINE].size();// sizeof(m_VertexInputAttribute[PIPELINE_OUTLINE]) / sizeof(VkVertexInputAttributeDescription);
+    vertexInputInfo.pVertexAttributeDescriptions = m_VertexInputAttribute[PIPELINE_OUTLINE].data();
+    
     // Setup input assembly
     // We will be rendering 1 triangle using triangle strip topology
     VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
@@ -287,10 +288,10 @@ void RectangleFactory::CreateRectFillPipeline()
     // Setup the vertex input
     VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount = sizeof(m_VertexInputBinding) / sizeof(VkVertexInputBindingDescription);
-    vertexInputInfo.pVertexBindingDescriptions = m_VertexInputBinding;
-    vertexInputInfo.vertexAttributeDescriptionCount = sizeof(m_VertexInputAttribute) / sizeof(VkVertexInputAttributeDescription);
-    vertexInputInfo.pVertexAttributeDescriptions = m_VertexInputAttribute;
+    vertexInputInfo.vertexBindingDescriptionCount = m_VertexInputBinding[PIPELINE_FILLED].size();// sizeof(m_VertexInputBinding[PIPELINE_FILLED]) / sizeof(VkVertexInputBindingDescription);
+    vertexInputInfo.pVertexBindingDescriptions = m_VertexInputBinding[PIPELINE_FILLED].data();
+    vertexInputInfo.vertexAttributeDescriptionCount = m_VertexInputAttribute[PIPELINE_FILLED].size();// sizeof(m_VertexInputAttribute[PIPELINE_FILLED]) / sizeof(VkVertexInputAttributeDescription);
+    vertexInputInfo.pVertexAttributeDescriptions = m_VertexInputAttribute[PIPELINE_FILLED].data();
 
     // Setup input assembly
     // We will be rendering 1 triangle using triangle strip topology
@@ -580,63 +581,67 @@ void RectangleFactory::CreateVertexBuffer(/*const void * vertexData, uint32_t da
 
             m_VertexBuffer[pipelineIdx].m_DataSize = sizeof(rectFilledVertices);
             m_VertexCount[PIPELINE_FILLED] = sizeof(rectFilledVertices) / sizeof(Vertex);
-//            uint32_t dataSize = ;
+
             uint32_t dataStride = sizeof(rectFilledVertices[0]);
             VulkanHelper::CreateBuffer(device, memProp, m_VertexBuffer[pipelineIdx], VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, rectFilledVertices);
+
+            m_VertexInputBinding[pipelineIdx].resize(2);   // 0 for position and 1 for color
+            m_VertexInputAttribute[pipelineIdx].resize(8); // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
+
             // Indicates the rate at which the information will be
             // injected for vertex input.
-            m_VertexInputBinding[0].binding = VERTEX_BUFFER_BIND_IDX;
-            m_VertexInputBinding[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-            m_VertexInputBinding[0].stride = dataStride;
+            m_VertexInputBinding[pipelineIdx][0].binding = VERTEX_BUFFER_BIND_IDX;
+            m_VertexInputBinding[pipelineIdx][0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+            m_VertexInputBinding[pipelineIdx][0].stride = dataStride;
 
-            m_VertexInputBinding[1].binding = INSTANCE_BUFFER_BIND_IDX;
-            m_VertexInputBinding[1].inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
-            m_VertexInputBinding[1].stride = sizeof(InstanceData);
+            m_VertexInputBinding[pipelineIdx][1].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputBinding[pipelineIdx][1].inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+            m_VertexInputBinding[pipelineIdx][1].stride = sizeof(InstanceData);
 
             // The VkVertexInputAttribute interpreting the data.
-            m_VertexInputAttribute[0].binding = 0;
-            m_VertexInputAttribute[0].location = 0;
-            m_VertexInputAttribute[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-            m_VertexInputAttribute[0].offset = offsetof(struct Vertex, m_Position);
+            m_VertexInputAttribute[pipelineIdx][0].binding = 0;
+            m_VertexInputAttribute[pipelineIdx][0].location = 0;
+            m_VertexInputAttribute[pipelineIdx][0].format = VK_FORMAT_R32G32B32_SFLOAT;
+            m_VertexInputAttribute[pipelineIdx][0].offset = offsetof(struct Vertex, m_Position);
 
-            m_VertexInputAttribute[1].binding = 0;
-            m_VertexInputAttribute[1].location = 1;
-            m_VertexInputAttribute[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-            m_VertexInputAttribute[1].offset = offsetof(struct Vertex, m_Color);
+            m_VertexInputAttribute[pipelineIdx][1].binding = 0;
+            m_VertexInputAttribute[pipelineIdx][1].location = 1;
+            m_VertexInputAttribute[pipelineIdx][1].format = VK_FORMAT_R32G32B32_SFLOAT;
+            m_VertexInputAttribute[pipelineIdx][1].offset = offsetof(struct Vertex, m_Color);
             ////////////////////////////////////////////////////////////////////////////////////
 
             // Model Matrix
-            m_VertexInputAttribute[2].binding = INSTANCE_BUFFER_BIND_IDX;
-            m_VertexInputAttribute[2].location = 2;
-            m_VertexInputAttribute[2].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-            m_VertexInputAttribute[2].offset = 0;
+            m_VertexInputAttribute[pipelineIdx][2].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[pipelineIdx][2].location = 2;
+            m_VertexInputAttribute[pipelineIdx][2].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            m_VertexInputAttribute[pipelineIdx][2].offset = 0;
 
-            m_VertexInputAttribute[3].binding = INSTANCE_BUFFER_BIND_IDX;
-            m_VertexInputAttribute[3].location = 3;
-            m_VertexInputAttribute[3].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-            m_VertexInputAttribute[3].offset = 16 * 1;
+            m_VertexInputAttribute[pipelineIdx][3].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[pipelineIdx][3].location = 3;
+            m_VertexInputAttribute[pipelineIdx][3].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            m_VertexInputAttribute[pipelineIdx][3].offset = 16 * 1;
 
-            m_VertexInputAttribute[4].binding = INSTANCE_BUFFER_BIND_IDX;
-            m_VertexInputAttribute[4].location = 4;
-            m_VertexInputAttribute[4].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-            m_VertexInputAttribute[4].offset = 16 * 2;
+            m_VertexInputAttribute[pipelineIdx][4].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[pipelineIdx][4].location = 4;
+            m_VertexInputAttribute[pipelineIdx][4].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            m_VertexInputAttribute[pipelineIdx][4].offset = 16 * 2;
 
-            m_VertexInputAttribute[5].binding = INSTANCE_BUFFER_BIND_IDX;
-            m_VertexInputAttribute[5].location = 5;
-            m_VertexInputAttribute[5].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-            m_VertexInputAttribute[5].offset = 16 * 3;
+            m_VertexInputAttribute[pipelineIdx][5].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[pipelineIdx][5].location = 5;
+            m_VertexInputAttribute[pipelineIdx][5].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            m_VertexInputAttribute[pipelineIdx][5].offset = 16 * 3;
 
             // Dimension
-            m_VertexInputAttribute[6].binding = INSTANCE_BUFFER_BIND_IDX;
-            m_VertexInputAttribute[6].location = 6;
-            m_VertexInputAttribute[6].format = VK_FORMAT_R32G32B32_SFLOAT;
-            m_VertexInputAttribute[6].offset = 16 * 4;
+            m_VertexInputAttribute[pipelineIdx][6].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[pipelineIdx][6].location = 6;
+            m_VertexInputAttribute[pipelineIdx][6].format = VK_FORMAT_R32G32B32_SFLOAT;
+            m_VertexInputAttribute[pipelineIdx][6].offset = 16 * 4;
 
             // Color
-            m_VertexInputAttribute[7].binding = INSTANCE_BUFFER_BIND_IDX;
-            m_VertexInputAttribute[7].location = 7;
-            m_VertexInputAttribute[7].format = VK_FORMAT_R32G32B32_SFLOAT;
-            m_VertexInputAttribute[7].offset = 16 * 5;
+            m_VertexInputAttribute[pipelineIdx][7].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[pipelineIdx][7].location = 7;
+            m_VertexInputAttribute[pipelineIdx][7].format = VK_FORMAT_R32G32B32_SFLOAT;
+            m_VertexInputAttribute[pipelineIdx][7].offset = 16 * 5;
 
         }
         else if (pipelineIdx == PIPELINE_OUTLINE)
@@ -654,60 +659,64 @@ void RectangleFactory::CreateVertexBuffer(/*const void * vertexData, uint32_t da
             m_VertexCount[PIPELINE_OUTLINE] = sizeof(rectOutlineVertices) / sizeof(Vertex);
             const uint32_t dataStride = sizeof(rectOutlineVertices[0]);
             VulkanHelper::CreateBuffer(device, memProp, m_VertexBuffer[pipelineIdx], VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, rectOutlineVertices);
+
+            m_VertexInputBinding[pipelineIdx].resize(2);   // 0 for position and 1 for color
+            m_VertexInputAttribute[pipelineIdx].resize(8); // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
+
             // Indicates the rate at which the information will be
             // injected for vertex input.
-            m_VertexInputBinding[0].binding = VERTEX_BUFFER_BIND_IDX;
-            m_VertexInputBinding[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-            m_VertexInputBinding[0].stride = dataStride;
-
-            m_VertexInputBinding[1].binding = INSTANCE_BUFFER_BIND_IDX;
-            m_VertexInputBinding[1].inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
-            m_VertexInputBinding[1].stride = sizeof(InstanceData);
-
+            m_VertexInputBinding[pipelineIdx][0].binding = VERTEX_BUFFER_BIND_IDX;
+            m_VertexInputBinding[pipelineIdx][0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+            m_VertexInputBinding[pipelineIdx][0].stride = dataStride;
+            
+            m_VertexInputBinding[pipelineIdx][1].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputBinding[pipelineIdx][1].inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+            m_VertexInputBinding[pipelineIdx][1].stride = sizeof(InstanceData);
+            
             // The VkVertexInputAttribute interpreting the data.
-            m_VertexInputAttribute[0].binding = 0;
-            m_VertexInputAttribute[0].location = 0;
-            m_VertexInputAttribute[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-            m_VertexInputAttribute[0].offset = offsetof(struct Vertex, m_Position);
+            m_VertexInputAttribute[pipelineIdx][0].binding = 0;
+            m_VertexInputAttribute[pipelineIdx][0].location = 0;
+            m_VertexInputAttribute[pipelineIdx][0].format = VK_FORMAT_R32G32B32_SFLOAT;
+            m_VertexInputAttribute[pipelineIdx][0].offset = offsetof(struct Vertex, m_Position);
 
-            m_VertexInputAttribute[1].binding = 0;
-            m_VertexInputAttribute[1].location = 1;
-            m_VertexInputAttribute[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-            m_VertexInputAttribute[1].offset = offsetof(struct Vertex, m_Color);
+            m_VertexInputAttribute[pipelineIdx][1].binding = 0;
+            m_VertexInputAttribute[pipelineIdx][1].location = 1;
+            m_VertexInputAttribute[pipelineIdx][1].format = VK_FORMAT_R32G32B32_SFLOAT;
+            m_VertexInputAttribute[pipelineIdx][1].offset = offsetof(struct Vertex, m_Color);
             ////////////////////////////////////////////////////////////////////////////////////
 
             // Model Matrix
-            m_VertexInputAttribute[2].binding = INSTANCE_BUFFER_BIND_IDX;
-            m_VertexInputAttribute[2].location = 2;
-            m_VertexInputAttribute[2].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-            m_VertexInputAttribute[2].offset = 0;
+            m_VertexInputAttribute[pipelineIdx][2].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[pipelineIdx][2].location = 2;
+            m_VertexInputAttribute[pipelineIdx][2].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            m_VertexInputAttribute[pipelineIdx][2].offset = 0;
 
-            m_VertexInputAttribute[3].binding = INSTANCE_BUFFER_BIND_IDX;
-            m_VertexInputAttribute[3].location = 3;
-            m_VertexInputAttribute[3].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-            m_VertexInputAttribute[3].offset = 16 * 1;
+            m_VertexInputAttribute[pipelineIdx][3].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[pipelineIdx][3].location = 3;
+            m_VertexInputAttribute[pipelineIdx][3].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            m_VertexInputAttribute[pipelineIdx][3].offset = 16 * 1;
 
-            m_VertexInputAttribute[4].binding = INSTANCE_BUFFER_BIND_IDX;
-            m_VertexInputAttribute[4].location = 4;
-            m_VertexInputAttribute[4].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-            m_VertexInputAttribute[4].offset = 16 * 2;
+            m_VertexInputAttribute[pipelineIdx][4].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[pipelineIdx][4].location = 4;
+            m_VertexInputAttribute[pipelineIdx][4].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            m_VertexInputAttribute[pipelineIdx][4].offset = 16 * 2;
 
-            m_VertexInputAttribute[5].binding = INSTANCE_BUFFER_BIND_IDX;
-            m_VertexInputAttribute[5].location = 5;
-            m_VertexInputAttribute[5].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-            m_VertexInputAttribute[5].offset = 16 * 3;
+            m_VertexInputAttribute[pipelineIdx][5].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[pipelineIdx][5].location = 5;
+            m_VertexInputAttribute[pipelineIdx][5].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            m_VertexInputAttribute[pipelineIdx][5].offset = 16 * 3;
 
             // Dimension
-            m_VertexInputAttribute[6].binding = INSTANCE_BUFFER_BIND_IDX;
-            m_VertexInputAttribute[6].location = 6;
-            m_VertexInputAttribute[6].format = VK_FORMAT_R32G32B32_SFLOAT;
-            m_VertexInputAttribute[6].offset = 16 * 4;
+            m_VertexInputAttribute[pipelineIdx][6].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[pipelineIdx][6].location = 6;
+            m_VertexInputAttribute[pipelineIdx][6].format = VK_FORMAT_R32G32B32_SFLOAT;
+            m_VertexInputAttribute[pipelineIdx][6].offset = 16 * 4;
 
             // Color
-            m_VertexInputAttribute[7].binding = INSTANCE_BUFFER_BIND_IDX;
-            m_VertexInputAttribute[7].location = 7;
-            m_VertexInputAttribute[7].format = VK_FORMAT_R32G32B32_SFLOAT;
-            m_VertexInputAttribute[7].offset = 16 * 5;
+            m_VertexInputAttribute[pipelineIdx][7].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[pipelineIdx][7].location = 7;
+            m_VertexInputAttribute[pipelineIdx][7].format = VK_FORMAT_R32G32B32_SFLOAT;
+            m_VertexInputAttribute[pipelineIdx][7].offset = 16 * 5;
         }
     }
 }
