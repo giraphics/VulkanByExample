@@ -72,8 +72,8 @@ private:
 	VulkanBuffer m_VertexBuffer, m_InstanceBuffer;
 
 	// Vertex buffer specific objects
-	VkVertexInputBindingDescription		m_VertexInputBinding[2];   // 0 for (position and color) 1 for ()
-	VkVertexInputAttributeDescription	m_VertexInputAttribute[7]; // Why 7 = 2(for position and color) + 5 (transform and rotation)
+	VkVertexInputBindingDescription		m_VertexInputBinding[2];      // 0th for vertex buffer binding, 1st for instancing buffer
+	VkVertexInputAttributeDescription	m_VertexInputAttribute[6]; // Why 6 = 2(for position and color) + 4 (transform matrix)
 
     // Store app specific objects
     VkPipelineLayout m_hPipelineLayout;

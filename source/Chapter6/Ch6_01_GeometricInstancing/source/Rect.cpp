@@ -350,12 +350,12 @@ void Rect::CreateVertexBuffer(const void * vertexData, uint32_t dataSize, uint32
 	m_VertexInputAttribute[0].binding = VERTEX_BUFFER_BIND_IDX;
 	m_VertexInputAttribute[0].location = 0;
 	m_VertexInputAttribute[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-	m_VertexInputAttribute[0].offset = offsetof(struct Vertex, m_Position);
+	m_VertexInputAttribute[0].offset = offsetof(Vertex, m_Position);
 
 	m_VertexInputAttribute[1].binding = VERTEX_BUFFER_BIND_IDX;
 	m_VertexInputAttribute[1].location = 1;
 	m_VertexInputAttribute[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-	m_VertexInputAttribute[1].offset = offsetof(struct Vertex, m_Color);
+	m_VertexInputAttribute[1].offset = offsetof(Vertex, m_Color);
 	////////////////////////////////////////////////////////////////////////////////////
 
 	m_VertexInputAttribute[2].binding = INSTANCE_BUFFER_BIND_IDX;
@@ -376,13 +376,7 @@ void Rect::CreateVertexBuffer(const void * vertexData, uint32_t dataSize, uint32
 	m_VertexInputAttribute[5].binding = INSTANCE_BUFFER_BIND_IDX;
 	m_VertexInputAttribute[5].location = 5;
 	m_VertexInputAttribute[5].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-	m_VertexInputAttribute[5].offset = 16 * 3;
-	
-	m_VertexInputAttribute[6].binding = INSTANCE_BUFFER_BIND_IDX;
-	m_VertexInputAttribute[6].location = 6;
-	m_VertexInputAttribute[6].format = VK_FORMAT_R32G32B32_SFLOAT;
-	m_VertexInputAttribute[6].offset = 16 * 4;
-
+	m_VertexInputAttribute[5].offset = 16 * 3;	
 }
 
 void Rect::CreateCommandBuffers()
