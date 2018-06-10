@@ -91,10 +91,10 @@ endif(WIN32)
 # Gather list of header and source files for compilation
 file(GLOB_RECURSE SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/source/*.*)
 file(GLOB_RECURSE COMMON_FILES ${CMAKE_CURRENT_SOURCE_DIR}/source/../../../common/*.*)
+file(GLOB_RECURSE SCENE_GRAPH_FILES ${CMAKE_CURRENT_SOURCE_DIR}/../SceneGraph/*.*)
 
 # Build project, give it a name and includes list of file to be compiled
-add_executable(${Example_Name} ${SOURCE_FILES} ${COMMON_FILES} ${RESOURCE_FILES})
-
+add_executable(${Example_Name} ${SOURCE_FILES} ${COMMON_FILES} ${RESOURCE_FILES} ${SCENE_GRAPH_FILES})
 
 # Link the debug and release libraries to the project
 target_link_libraries( ${Example_Name}  ${ASSIMP_LIBRARIES} vulkan-1)

@@ -1,9 +1,9 @@
 #pragma once
 #include "../../../common/VulkanApp.h"
 
-#include "../../../common/SceneGraph/Transformation3D.h"
-#include "../../../common/SceneGraph/Scene3D.h"
-#include "../../../common/SceneGraph/Model3D.h"
+#include "../SceneGraph/Transformation3D.h"
+#include "../SceneGraph/Scene3D.h"
+#include "../SceneGraph/Model3D.h"
 
 struct Vertex
 {
@@ -166,6 +166,7 @@ public:
 
     VulkanBuffer m_VertexBuffer[PIPELINE_COUNT], m_InstanceBuffer[PIPELINE_COUNT];
     ModelVector m_PipelineTypeModelVector[PIPELINE_COUNT];
+    ModelVector m_PipelineTypeUpdatedModelVector[PIPELINE_COUNT];
     int m_OldInstanceDataSize[PIPELINE_COUNT];
     int m_VertexCount[PIPELINE_COUNT];
 };
@@ -175,3 +176,27 @@ public:
 //a. VertexBuffer should be m_VertexBuffer[PIPELINE_COUNT]
 //b. Address its distruction.
 //c. Assign correct vertex buffer data as per pipeline rectFilledVertices, rectOutlineVertices
+
+class RectangleModel;
+class QMouseEvent;
+class ProgressBar : public Model3D
+{
+public:
+    ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
+    virtual ~ProgressBar() {}
+
+    virtual bool mouseMoveEvent(QMouseEvent* p_Event);
+    RectangleModel* progressIndicator;
+    RectangleModel* bar;
+};
+
+class AudioMixerItem : public Model3D
+{
+public:
+    AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, glm::vec2 p_TopLeftPos, glm::vec2 p_Dim, SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
+    virtual ~AudioMixerItem() {}
+
+    //virtual bool mouseMoveEvent(QMouseEvent* p_Event);
+    //Model3D* progressIndicator;
+};
+

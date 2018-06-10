@@ -105,8 +105,8 @@ void MyFirst3DApp::Configure()
 //	ProgressBar(m_Scene);
 	//Grid(m_Scene);
 
-    ProgressBar* pb = new ProgressBar(m_Scene, NULL, "Progressbar", SHAPE_CUSTOM);
-    pb->SetZOrder(1);
+//    ProgressBar* pb = new ProgressBar(m_Scene, NULL, "Progressbar", SHAPE_CUSTOM);
+//    pb->SetZOrder(1);
     MixerView(m_Scene);
 }
 
