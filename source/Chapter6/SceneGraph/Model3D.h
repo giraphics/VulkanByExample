@@ -23,6 +23,7 @@ public:
     virtual void ResizeWindow(int p_Width, int p_Height) {}
 
 	glm::mat4x4 m_Transform;
+    QList<Model3D*> m_ModelList; // temporarily use only
 };
 
 class Model3D

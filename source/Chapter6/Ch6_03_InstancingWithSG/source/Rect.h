@@ -166,7 +166,7 @@ public:
 
     VulkanBuffer m_VertexBuffer[PIPELINE_COUNT], m_InstanceBuffer[PIPELINE_COUNT];
     ModelVector m_PipelineTypeModelVector[PIPELINE_COUNT];
-    ModelVector m_PipelineTypeUpdatedModelVector[PIPELINE_COUNT];
+    //ModelVector m_PipelineTypeUpdatedModelVector[PIPELINE_COUNT];
     int m_OldInstanceDataSize[PIPELINE_COUNT];
     int m_VertexCount[PIPELINE_COUNT];
 };
