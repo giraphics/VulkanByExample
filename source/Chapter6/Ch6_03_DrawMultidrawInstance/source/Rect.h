@@ -128,40 +128,13 @@ public:
 
 private:
 	void CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap = false);
-	void RecordCommandBuffer();
+    //void CreateRectFillPipeline();
+    //void CreateRectOutlinePipeline();
+    
+    void RecordCommandBuffer();
 	void CreateVertexBuffer();
-	void CreateCommandBuffers(); // Overide the default implementation as per application requirement
-    virtual void UpdateModelList(Model3D* p_Item)
-    {
-        m_ModelList.push_back(p_Item);
-        return;
 
-        /*
-        RectangleModel* rectangle = dynamic_cast<RectangleModel*>(p_Item);
-        assert(rectangle);
-
-        // Note: Based on the draw type push the model in respective pipelines
-        // Keep the draw type loose couple with the pipeline type, 
-        // they may be in one-to-one correspondence but that is not necessary.
-        switch (rectangle->GetDrawType())
-        {
-        case RectangleModel::FILLED:
-            //m_PipelineTypeModelVector[PIPELINE_FILLED].push_back(p_Item);
-            break;
-
-        case RectangleModel::OUTLINE:
-            //m_PipelineTypeModelVector[PIPELINE_OUTLINE].push_back(p_Item);
-            break;
-
-        case RectangleModel::ROUNDED:
-            // TODO
-            break;
-
-        default:
-            break;
-        }
-        */
-    }
+    virtual void UpdateModelList(Model3D* p_Item);
 
 	VulkanBuffer m_VertexBuffer;
 

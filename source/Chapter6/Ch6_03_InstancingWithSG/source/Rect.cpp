@@ -264,11 +264,40 @@ void RectangleFactory::CreateRectOutlinePipeline()
     vkDestroyShaderModule(m_VulkanApplication->m_hDevice, vertShader, nullptr);
 }
 
+void RectangleFactory::UpdateModelList(Model3D *p_Item)
+{
+    //m_ModelList.push_back(p_Item);
+
+    RectangleModel* rectangle = dynamic_cast<RectangleModel*>(p_Item);
+    assert(rectangle);
+
+    // Note: Based on the draw type push the model in respective pipelines
+    // Keep the draw type loose couple with the pipeline type,
+    // they may be in one-to-one correspondence but that is not necessary.
+    switch (rectangle->GetDrawType())
+    {
+    case RectangleModel::FILLED:
+        m_PipelineTypeModelVector[PIPELINE_FILLED].push_back(p_Item);
+        break;
+
+    case RectangleModel::OUTLINE:
+        m_PipelineTypeModelVector[PIPELINE_OUTLINE].push_back(p_Item);
+        break;
+
+    case RectangleModel::ROUNDED:
+        // TODO
+        break;
+
+    default:
+        break;
+    }
+}
+
 void RectangleFactory::CreateRectFillPipeline()
 {
     // Compile the vertex shader
     VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CubeVert.spv"); // Relative path to binary output dir
-                                                                                                                              // Setup the vertex shader stage create info structures
+    // Setup the vertex shader stage create info structures
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -277,7 +306,7 @@ void RectangleFactory::CreateRectFillPipeline()
 
     // Compile the fragment shader
     VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CubeFrag.spv"); // Relative path to binary output dir
-                                                                                                                              // Setup the fragment shader stage create info structures
+    // Setup the fragment shader stage create info structures
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
     fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -560,7 +589,7 @@ void RectangleFactory::RecordCommandBuffer()
     }
 }
 
-void RectangleFactory::CreateVertexBuffer(/*const void * vertexData, uint32_t dataSize, uint32_t dataStride*/)
+void RectangleFactory::CreateVertexBuffer()
 {
     for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
     {

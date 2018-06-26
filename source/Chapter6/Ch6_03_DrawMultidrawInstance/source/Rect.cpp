@@ -225,7 +225,8 @@ void RectangleMultiDrawFactory::Setup()
 	
 	CreateGraphicsPipeline();
 
-	CreateCommandBuffers(); // Create command buffers
+//	CreateCommandBuffers(); // Create command buffers
+    m_VulkanApplication->CreateCommandBuffers(); // Create command buffers
 
 	RecordCommandBuffer();
 }
@@ -243,8 +244,8 @@ void RectangleMultiDrawFactory::ResizeWindow(int width, int height)
 {
     CreateGraphicsPipeline(true);
 
-    // Create command buffers and record commands
-    CreateCommandBuffers();
+    m_VulkanApplication->CreateCommandBuffers(); // Create command buffers
+
     RecordCommandBuffer();
 }
 
@@ -555,36 +556,68 @@ void RectangleMultiDrawFactory::CreateVertexBuffer()
 	m_VertexInputAttribute[1].offset = offsetof(struct Vertex, m_Color);
 }
 
-void RectangleMultiDrawFactory::CreateCommandBuffers()
+void RectangleMultiDrawFactory::UpdateModelList(Model3D *p_Item)
 {
-    m_VulkanApplication->CreateCommandBuffers();
+    m_ModelList.push_back(p_Item);
+    return;
+
+    /*
+        RectangleModel* rectangle = dynamic_cast<RectangleModel*>(p_Item);
+        assert(rectangle);
+
+        // Note: Based on the draw type push the model in respective pipelines
+        // Keep the draw type loose couple with the pipeline type,
+        // they may be in one-to-one correspondence but that is not necessary.
+        switch (rectangle->GetDrawType())
+        {
+        case RectangleModel::FILLED:
+            //m_PipelineTypeModelVector[PIPELINE_FILLED].push_back(p_Item);
+            break;
+
+        case RectangleModel::OUTLINE:
+            //m_PipelineTypeModelVector[PIPELINE_OUTLINE].push_back(p_Item);
+            break;
+
+        case RectangleModel::ROUNDED:
+            // TODO
+            break;
+
+        default:
+            break;
+        }
+        */
 }
+
+//void RectangleMultiDrawFactory::CreateCommandBuffers()
+//{
+//    m_VulkanApplication->CreateCommandBuffers();
+//}
 
 void RectangleMultiDrawFactory::Prepare(Scene3D* p_Scene)
 {
-	// Update the uniform
-	//if (!CDS)
-	//{
-	//	CDS = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
-	//	CDS->CreateDescriptor();
-	//	UniformBuffer = CDS->UniformBuffer;
-	//}
+    // Update the uniform
+    //if (!CDS)
+    //{
+    //	CDS = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
+    //	CDS->CreateDescriptor();
+    //	UniformBuffer = CDS->UniformBuffer;
+    //}
 
-	//VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice,
-	//	UniformBuffer->m_MappedMemory,
-	//	UniformBuffer->m_MappedRange,
-	//	UniformBuffer->m_BufObj.m_MemoryFlags,
-	//	&m_Transform, sizeof(m_Transform));
+    //VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice,
+    //	UniformBuffer->m_MappedMemory,
+    //	UniformBuffer->m_MappedRange,
+    //	UniformBuffer->m_BufObj.m_MemoryFlags,
+    //	&m_Transform, sizeof(m_Transform));
 }
 
 RectangleModel::RectangleModel(VulkanApp *p_VulkanApp, Scene3D *p_Scene, Model3D *p_Parent, const QString &p_Name, SHAPE p_ShapeType, RENDER_SCEHEME_TYPE p_RenderSchemeType)
-	: Model3D(p_Scene, p_Parent, p_Name, p_ShapeType, p_RenderSchemeType)
+    : Model3D(p_Scene, p_Parent, p_Name, p_ShapeType, p_RenderSchemeType)
 {
 }
 
 AbstractModelFactory* RectangleModel::GetRenderScemeFactory()
 {
-	return new RectangleMultiDrawFactory(static_cast<VulkanApp*>(m_Scene->GetApplication()));
+    return new RectangleMultiDrawFactory(static_cast<VulkanApp*>(m_Scene->GetApplication()));
 }
 
 void RectangleModel::CreateVertexBuffer()
