@@ -20,6 +20,26 @@ static char* PIPELINE_RECT_OUTLINE = "RectOutline";
 using namespace std;
 std::shared_ptr<RectangleDescriptorSet> CDS = NULL;// std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
 RectangleDescriptorSet::UniformBufferObj* UniformBuffer = NULL;
+
+static const Vertex rectFilledVertices[] =
+{
+    { glm::vec3(1, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
+    { glm::vec3(0, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
+    { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
+    { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
+    { glm::vec3(0, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
+    { glm::vec3(0, 1, 0),	glm::vec3(1.f, 1.f, 0.f) },
+};
+
+static const Vertex rectOutlineVertices[] =
+{
+    { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
+    { glm::vec3(1, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
+    { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
+    { glm::vec3(0, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
+    { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
+};
+
 RectangleFactory::RectangleFactory(VulkanApp* p_VulkanApp)
 {
 	memset(&UniformBuffer, 0, sizeof(UniformBuffer));
@@ -65,12 +85,7 @@ RectangleFactory::~RectangleFactory()
 
 void RectangleFactory::Setup()
 {
-    //m_VertexCount[PIPELINE_FILLED] = sizeof(rectFilledVertices) / sizeof(Vertex);
-    //m_VertexCount[PIPELINE_OUTLINE] = sizeof(rectOutlineVertices) / sizeof(Vertex);
-
-    //uint32_t dataSize = sizeof(rectFilledVertices);
-    //uint32_t dataStride = sizeof(rectFilledVertices[0]);
-    CreateVertexBuffer(/*rectFilledVertices, dataSize, dataStride*/);
+    CreateVertexBuffer();
     if (!CDS)
     {
         CDS = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
@@ -262,35 +277,6 @@ void RectangleFactory::CreateRectOutlinePipeline()
     // Cleanup
     vkDestroyShaderModule(m_VulkanApplication->m_hDevice, fragShader, nullptr);
     vkDestroyShaderModule(m_VulkanApplication->m_hDevice, vertShader, nullptr);
-}
-
-void RectangleFactory::UpdateModelList(Model3D *p_Item)
-{
-    //m_ModelList.push_back(p_Item);
-
-    RectangleModel* rectangle = dynamic_cast<RectangleModel*>(p_Item);
-    assert(rectangle);
-
-    // Note: Based on the draw type push the model in respective pipelines
-    // Keep the draw type loose couple with the pipeline type,
-    // they may be in one-to-one correspondence but that is not necessary.
-    switch (rectangle->GetDrawType())
-    {
-    case RectangleModel::FILLED:
-        m_PipelineTypeModelVector[PIPELINE_FILLED].push_back(p_Item);
-        break;
-
-    case RectangleModel::OUTLINE:
-        m_PipelineTypeModelVector[PIPELINE_OUTLINE].push_back(p_Item);
-        break;
-
-    case RectangleModel::ROUNDED:
-        // TODO
-        break;
-
-    default:
-        break;
-    }
 }
 
 void RectangleFactory::CreateRectFillPipeline()
@@ -599,16 +585,6 @@ void RectangleFactory::CreateVertexBuffer()
         const VkDevice& device = m_VulkanApplication->m_hDevice;
         if (pipelineIdx == PIPELINE_FILLED)
         {
-            static const Vertex rectFilledVertices[] =
-            {
-                { glm::vec3(1, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
-                { glm::vec3(0, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
-                { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
-                { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
-                { glm::vec3(0, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
-                { glm::vec3(0, 1, 0),	glm::vec3(1.f, 1.f, 0.f) },
-            };
-
             m_VertexBuffer[pipelineIdx].m_DataSize = sizeof(rectFilledVertices);
             m_VertexCount[PIPELINE_FILLED] = sizeof(rectFilledVertices) / sizeof(Vertex);
 
@@ -676,15 +652,6 @@ void RectangleFactory::CreateVertexBuffer()
         }
         else if (pipelineIdx == PIPELINE_OUTLINE)
         {
-            static const Vertex rectOutlineVertices[] =
-            {
-                { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
-                { glm::vec3(1, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
-                { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
-                { glm::vec3(0, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
-                { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
-            };
-
             m_VertexBuffer[pipelineIdx].m_DataSize = sizeof(rectOutlineVertices);
             m_VertexCount[PIPELINE_OUTLINE] = sizeof(rectOutlineVertices) / sizeof(Vertex);
             const uint32_t dataStride = sizeof(rectOutlineVertices[0]);
@@ -750,6 +717,37 @@ void RectangleFactory::CreateVertexBuffer()
         }
     }
 }
+
+void RectangleFactory::UpdateModelList(Model3D *p_Item)
+{
+    //m_ModelList.push_back(p_Item);
+
+    RectangleModel* rectangle = dynamic_cast<RectangleModel*>(p_Item);
+    assert(rectangle);
+
+    // Note: Based on the draw type push the model in respective pipelines
+    // Keep the draw type loose couple with the pipeline type,
+    // they may be in one-to-one correspondence but that is not necessary.
+    switch (rectangle->GetDrawType())
+    {
+    case RectangleModel::FILLED:
+        m_PipelineTypeModelVector[PIPELINE_FILLED].push_back(p_Item);
+        break;
+
+    case RectangleModel::OUTLINE:
+        m_PipelineTypeModelVector[PIPELINE_OUTLINE].push_back(p_Item);
+        break;
+
+    case RectangleModel::ROUNDED:
+        // TODO
+        break;
+
+    default:
+        break;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 void RectangleDescriptorSet::CreateUniformBuffer()
 {
