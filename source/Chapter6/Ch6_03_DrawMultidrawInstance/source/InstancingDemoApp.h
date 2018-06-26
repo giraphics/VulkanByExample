@@ -16,6 +16,7 @@ public:
     void ResizeWindow(int width, int height);
 private:
 	void Grid(Scene3D* m_Scene);
+    void MixerView(Scene3D* m_Scene);
 
 private:
 //	RectangleMultiDrawFactory* m_CubeFactory;

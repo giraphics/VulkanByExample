@@ -30,10 +30,17 @@ InstancingDemoApp::InstancingDemoApp()
     m_Scene = new Scene3D(this);
 
 	//m_Cube = new RectangleModel(this, m_Scene, NULL, "Rectangle 1", SHAPE_RECTANGLE, RENDER_SCEHEME_MULTIDRAW);
- //   m_Cube->Rectangle(0, 0 , 10, 10);
+ //   m_Cube->Rectangle(100, 100 , 100, 100);
  //   m_Cube->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
  //   m_Cube->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
-	Grid(m_Scene);
+
+ //   m_Cube = new RectangleModel(this, m_Scene, m_Cube, "Rectangle 2", SHAPE_RECTANGLE, RENDER_SCEHEME_MULTIDRAW);
+ //   m_Cube->Rectangle(100, 100, 50, 50);
+ //   m_Cube->SetColor(glm::vec4(0.0, 0.0, 1.0, 1.0));
+ //   m_Cube->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+
+//	Grid(m_Scene);
+    MixerView(m_Scene);
 }
 
 InstancingDemoApp::~InstancingDemoApp()
@@ -76,6 +83,24 @@ void InstancingDemoApp::Grid(Scene3D* m_Scene)
 	}
 }
 
+void InstancingDemoApp::MixerView(Scene3D* m_Scene)
+{
+    const float mixerPanelWidth = m_windowDim.width;
+    const float mixerPanelHeight = m_windowDim.height;
+
+    const float mixerWidth = 100;
+    const int numberOfMixers = mixerPanelWidth / mixerWidth;
+
+    for (int i = 0; i < numberOfMixers; i++)
+    {
+        glm::vec2 p_TopLeftPos((i * mixerWidth), 0);
+        glm::vec2 p_Dim(mixerWidth, mixerPanelHeight);
+        AudioMixerItem* m_MixerItem = new AudioMixerItem(m_Scene, NULL, "Mixer Item 1", p_TopLeftPos, p_Dim, SHAPE_CUSTOM);
+        m_MixerItem->SetColor(glm::vec4(1.1, 0.2, 0.20, 1.0));
+        m_MixerItem->SetDefaultColor(glm::vec4(1.0, 0.15, 0.60, 1.0));
+    }
+}
+
 void InstancingDemoApp::Configure()
 {
     SetApplicationName("Instancing Demo");
@@ -92,11 +117,20 @@ void InstancingDemoApp::Configure()
 
 void InstancingDemoApp::Setup()
 {
-	static glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-	m_Scene->SetProjection(&Projection);
+	//static glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+	//m_Scene->SetProjection(&Projection);
 
-	static glm::mat4 View = glm::lookAt(glm::vec3(100, -200, 300), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-	m_Scene->SetView(&View);
+	//static glm::mat4 View = glm::lookAt(glm::vec3(100, -200, 300), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	//m_Scene->SetView(&View);
+    static glm::mat4 Projection = glm::ortho(0.0f, static_cast<float>(m_windowDim.width), 0.0f, static_cast<float>(m_windowDim.height));
+    m_Scene->SetProjection(&Projection);
+
+    //static glm::mat4 View = glm::lookAt(glm::vec3(0, 0, 1500), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+    //View = glm::translate(View, glm::vec3(-1000, -500, 0));
+    static glm::mat4 View;
+    m_Scene->SetView(&View);
+
+    m_Scene->SetUpProjection(); // For some reason the ViewMatrix is not working properly, this setupensure model matrix is set properly.
 
 	m_Scene->Setup(); // Create the object's vertex buffer
 }
@@ -104,7 +138,9 @@ void InstancingDemoApp::Setup()
 void InstancingDemoApp::Update()
 {
     static float phi = 0.0f;
-    glm::mat4 View = glm::lookAt(glm::vec3(500, 500, 500) * sin(phi += 0.01), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+    //glm::mat4 View = glm::lookAt(glm::vec3(500, 500, 500) * sin(phi += 0.01), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+    //m_Scene->SetView(&View);
+    static glm::mat4 View;
     m_Scene->SetView(&View);
 
 	// TODO: Add dirty flag check to avoid constant update
