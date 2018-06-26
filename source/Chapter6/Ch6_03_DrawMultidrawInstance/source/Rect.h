@@ -112,13 +112,12 @@ public:
     void ResizeWindow(int width, int height);
 	virtual void Prepare(Scene3D* p_Scene);
 
-	// Pipeline
-	QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
+    QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
 
 private:
 	void CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap = false);
-    //void CreateRectFillPipeline();
-    //void CreateRectOutlinePipeline();
+    void CreateRectFillPipeline();
+    void CreateRectOutlinePipeline();
     
     void RecordCommandBuffer();
     void CreateVertexBuffer();
@@ -130,15 +129,17 @@ private:
     enum RECTANGLE_GRAPHICS_PIPELINES
     {
         PIPELINE_FILLED = 0,
-        PIPELINE_OUTLINE,
+//        PIPELINE_OUTLINE,
         PIPELINE_COUNT,
     };
 
 	// Vertex buffer specific objects
-	VkVertexInputBindingDescription		m_VertexInputBinding[1];   // 0 for (position and color)
-	VkVertexInputAttributeDescription	m_VertexInputAttribute[2]; // Why 2 = 2(for position and color)
+	//VkVertexInputBindingDescription		m_VertexInputBinding[1];   // 0 for (position and color)
+	//VkVertexInputAttributeDescription	m_VertexInputAttribute[2]; // Why 2 = 2(for position and color)
+    std::vector<VkVertexInputBindingDescription>   m_VertexInputBinding[PIPELINE_COUNT];   // 0 for (position and color) 1 for ()
+    std::vector<VkVertexInputAttributeDescription> m_VertexInputAttribute[PIPELINE_COUNT]; // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
 
-//    typedef std::vector<Model3D*> ModelVector;
+    //    typedef std::vector<Model3D*> ModelVector;
 
     //VulkanBuffer m_VertexBuffer[PIPELINE_COUNT], m_InstanceBuffer[PIPELINE_COUNT];
     //ModelVector m_PipelineTypeModelVector[PIPELINE_COUNT];

@@ -110,6 +110,8 @@ private:
 
     virtual void UpdateModelList(Model3D* p_Item);
 
+    QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
+
 public:
     void PrepareInstanceData();
 
@@ -123,9 +125,6 @@ public:
     std::vector<VkVertexInputBindingDescription>   m_VertexInputBinding[PIPELINE_COUNT];   // 0 for (position and color) 1 for ()
     std::vector<VkVertexInputAttributeDescription> m_VertexInputAttribute[PIPELINE_COUNT]; // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
 
-    VulkanApp* m_VulkanApplication;
-
-    QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
     // Per-instance data block
     struct InstanceData {
         glm::mat4 m_Model;
@@ -143,6 +142,8 @@ public:
     //ModelVector m_PipelineTypeUpdatedModelVector[PIPELINE_COUNT];
     int m_OldInstanceDataSize[PIPELINE_COUNT];
     int m_VertexCount[PIPELINE_COUNT];
+
+    VulkanApp* m_VulkanApplication;
 };
 
 
