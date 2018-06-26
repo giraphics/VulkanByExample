@@ -18,8 +18,8 @@ static char* PIPELINE_RECT_FILLED = "RectFilled";
 static char* PIPELINE_RECT_OUTLINE = "RectOutline";
 
 using namespace std;
-std::shared_ptr<CubeDescriptorSet> CDS = NULL;// std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
-CubeDescriptorSet::UniformBufferObj* UniformBuffer = NULL;
+std::shared_ptr<RectangleDescriptorSet> CDS = NULL;// std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
+RectangleDescriptorSet::UniformBufferObj* UniformBuffer = NULL;
 RectangleFactory::RectangleFactory(VulkanApp* p_VulkanApp)
 {
 	memset(&UniformBuffer, 0, sizeof(UniformBuffer));
@@ -73,7 +73,7 @@ void RectangleFactory::Setup()
     CreateVertexBuffer(/*rectFilledVertices, dataSize, dataStride*/);
     if (!CDS)
     {
-        CDS = std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
+        CDS = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
         CDS->CreateDescriptor();
         UniformBuffer = CDS->UniformBuffer;
     }
@@ -124,9 +124,9 @@ void RectangleFactory::CreateRectOutlinePipeline()
     VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     // Check the size where every necessrry
-    vertexInputInfo.vertexBindingDescriptionCount = m_VertexInputBinding[PIPELINE_OUTLINE].size();// sizeof(m_VertexInputBinding[PIPELINE_OUTLINE]) / sizeof(VkVertexInputBindingDescription);
+    vertexInputInfo.vertexBindingDescriptionCount = m_VertexInputBinding[PIPELINE_OUTLINE].size();
     vertexInputInfo.pVertexBindingDescriptions = m_VertexInputBinding[PIPELINE_OUTLINE].data();
-    vertexInputInfo.vertexAttributeDescriptionCount = m_VertexInputAttribute[PIPELINE_OUTLINE].size();// sizeof(m_VertexInputAttribute[PIPELINE_OUTLINE]) / sizeof(VkVertexInputAttributeDescription);
+    vertexInputInfo.vertexAttributeDescriptionCount = m_VertexInputAttribute[PIPELINE_OUTLINE].size();
     vertexInputInfo.pVertexAttributeDescriptions = m_VertexInputAttribute[PIPELINE_OUTLINE].data();
     
     // Setup input assembly
@@ -751,7 +751,7 @@ void RectangleFactory::CreateVertexBuffer()
     }
 }
 
-void CubeDescriptorSet::CreateUniformBuffer()
+void RectangleDescriptorSet::CreateUniformBuffer()
 {
     UniformBuffer->m_BufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     UniformBuffer->m_BufObj.m_DataSize = sizeof(glm::mat4);
@@ -777,14 +777,14 @@ void CubeDescriptorSet::CreateUniformBuffer()
     UniformBuffer->m_DescriptorBufInfo.range = UniformBuffer->m_BufObj.m_DataSize;
 }
 
-void CubeDescriptorSet::DestroyUniformBuffer()
+void RectangleDescriptorSet::DestroyUniformBuffer()
 {
     vkUnmapMemory(m_VulkanApplication->m_hDevice, UniformBuffer->m_BufObj.m_Memory);
     vkDestroyBuffer(m_VulkanApplication->m_hDevice, UniformBuffer->m_BufObj.m_Buffer, NULL);
     vkFreeMemory(m_VulkanApplication->m_hDevice, UniformBuffer->m_BufObj.m_Memory, NULL);
 }
 
-void CubeDescriptorSet::CreateDescriptorSetLayout()
+void RectangleDescriptorSet::CreateDescriptorSetLayout()
 {
     // Define the layout binding information for the descriptor set(before creating it)
     // Specify binding point, shader type(like vertex shader below), count etc.
@@ -811,7 +811,7 @@ void CubeDescriptorSet::CreateDescriptorSetLayout()
     assert(result == VK_SUCCESS);
 }
 
-void CubeDescriptorSet::DestroyDescriptorLayout()
+void RectangleDescriptorSet::DestroyDescriptorLayout()
 {
     for (int i = 0; i < descLayout.size(); i++) {
         vkDestroyDescriptorSetLayout(m_VulkanApplication->m_hDevice, descLayout[i], NULL);
@@ -819,7 +819,7 @@ void CubeDescriptorSet::DestroyDescriptorLayout()
     descLayout.clear();
 }
 
-void CubeDescriptorSet::CreateDescriptor()
+void RectangleDescriptorSet::CreateDescriptor()
 {
     CreateDescriptorSetLayout();
     CreateUniformBuffer();
@@ -827,7 +827,7 @@ void CubeDescriptorSet::CreateDescriptor()
     CreateDescriptorSet();
 }
 
-void CubeDescriptorSet::CreateDescriptorPool()
+void RectangleDescriptorSet::CreateDescriptorPool()
 {
     VkResult  result;
     // Define the size of descriptor pool based on the
@@ -853,7 +853,7 @@ void CubeDescriptorSet::CreateDescriptorPool()
     assert(result == VK_SUCCESS);
 }
 
-void CubeDescriptorSet::CreateDescriptorSet()
+void RectangleDescriptorSet::CreateDescriptorSet()
 {
     VkResult  result;
 

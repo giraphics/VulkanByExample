@@ -30,9 +30,9 @@ public:
     virtual AbstractModelFactory* GetRenderScemeFactory();
 };
 
-struct CubeDescriptorSet
+struct RectangleDescriptorSet
 {
-    struct  UniformBufferObj {
+    struct UniformBufferObj {
         UniformBufferObj()
         {
             memset(this, 0, sizeof(UniformBufferObj));
@@ -45,13 +45,13 @@ struct CubeDescriptorSet
         size_t							m_DataSize;			// Data size.
     };
 
-    CubeDescriptorSet(VulkanApp* p_VulkanApplication)
+    RectangleDescriptorSet(VulkanApp* p_VulkanApplication)
     {
         m_VulkanApplication = p_VulkanApplication;
 
         UniformBuffer = new UniformBufferObj;
     }
-    ~CubeDescriptorSet()
+    ~RectangleDescriptorSet()
     {
         //// Destroy descriptors
         //for (int i = 0; i < descLayout.size(); i++) {

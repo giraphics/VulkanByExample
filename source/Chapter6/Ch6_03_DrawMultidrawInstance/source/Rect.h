@@ -11,31 +11,21 @@ struct Vertex
     glm::vec3 m_Color;    // Color format => r, g, b
 };
 
-//const float dimension = 10.0f;
-//static const Vertex rectVertices[] =
-//{
-//    { glm::vec3( dimension, -dimension, -dimension), glm::vec3(0.f, 0.f, 0.f) },
-//    { glm::vec3(-dimension, -dimension, -dimension), glm::vec3(1.f, 0.f, 0.f) },
-//    { glm::vec3( dimension,  dimension, -dimension), glm::vec3(0.f, 1.f, 0.f) },
-//    { glm::vec3( dimension,  dimension, -dimension), glm::vec3(0.f, 1.f, 0.f) },
-//    { glm::vec3(-dimension, -dimension, -dimension), glm::vec3(1.f, 0.f, 0.f) },
-//    { glm::vec3(-dimension,  dimension, -dimension), glm::vec3(1.f, 1.f, 0.f) },
-//};
-
-
 class RectangleModel : public Model3D
 {
 public:
-    //enum DRAW_TYPE
-    //{
-    //    FILLED = 0,
-    //    OUTLINE,
-    //    ROUNDED,
-    //    DRAW_TYPE_COUNT
-    //};
+    /*
+    enum DRAW_TYPE
+    {
+        FILLED = 0,
+        OUTLINE, 
+        ROUNDED,
+        DRAW_TYPE_COUNT
+    };
+     */
 
 public:
-    RectangleModel(VulkanApp* p_VulkanApp, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_MULTIDRAW);
+    RectangleModel(VulkanApp* p_VulkanApp/*REMOVE ME*/, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_MULTIDRAW);
     virtual ~RectangleModel() {}
     //GETSET(DRAW_TYPE, DrawType)
 
@@ -51,63 +41,62 @@ public:
 
 struct RectangleDescriptorSet
 {
-	struct UniformBufferObj {
-		UniformBufferObj()
-		{
-			memset(this, 0, sizeof(UniformBufferObj));
-		}
+    struct UniformBufferObj {
+        UniformBufferObj()
+        {
+            memset(this, 0, sizeof(UniformBufferObj));
+        }
 
-		VulkanBuffer					m_BufObj;
-		VkDescriptorBufferInfo			m_DescriptorBufInfo;// Descriptor buffer info that need to supplied into write descriptor set (VkWriteDescriptorSet)
-		std::vector<VkMappedMemoryRange>m_MappedRange;		// Metadata of memory mapped objects
-		uint8_t*						m_MappedMemory;  	// Host pointer containing the mapped device address which is used to write data into.
-		size_t							m_DataSize;			// Data size.
-	};
+        VulkanBuffer					m_BufObj;
+        VkDescriptorBufferInfo			m_DescriptorBufInfo;// Descriptor buffer info that need to supplied into write descriptor set (VkWriteDescriptorSet)
+        std::vector<VkMappedMemoryRange>m_MappedRange;		// Metadata of memory mapped objects
+        uint8_t*						m_MappedMemory;  	// Host pointer containing the mapped device address which is used to write data into.
+        size_t							m_DataSize;			// Data size.
+    };
 
     RectangleDescriptorSet(VulkanApp* p_VulkanApplication)
-	{
-		m_VulkanApplication = p_VulkanApplication;
+    {
+        m_VulkanApplication = p_VulkanApplication;
 
-		UniformBuffer = new UniformBufferObj;
-	}
-
+        UniformBuffer = new UniformBufferObj;
+    }
     ~RectangleDescriptorSet()
-	{
-		//// Destroy descriptors
-		//for (int i = 0; i < descLayout.size(); i++) {
-		//	vkDestroyDescriptorSetLayout(m_VulkanApplication->m_hDevice, descLayout[i], NULL);
-		//}
-		//descLayout.clear();
+    {
+        //// Destroy descriptors
+        //for (int i = 0; i < descLayout.size(); i++) {
+        //	vkDestroyDescriptorSetLayout(m_VulkanApplication->m_hDevice, descLayout[i], NULL);
+        //}
+        //descLayout.clear();
 
-		//vkFreeDescriptorSets(m_VulkanApplication->m_hDevice, descriptorPool, (uint32_t)descriptorSet.size(), &descriptorSet[0]);
-		//vkDestroyDescriptorPool(m_VulkanApplication->m_hDevice, descriptorPool, NULL);
-	}
+        //vkFreeDescriptorSets(m_VulkanApplication->m_hDevice, descriptorPool, (uint32_t)descriptorSet.size(), &descriptorSet[0]);
+        //vkDestroyDescriptorPool(m_VulkanApplication->m_hDevice, descriptorPool, NULL);
+    }
 
-	void CreateUniformBuffer();
-	void DestroyUniformBuffer();
+    void CreateUniformBuffer();
+    void DestroyUniformBuffer();
 
-	void CreateDescriptorSetLayout();
-	void DestroyDescriptorLayout();
+    void CreateDescriptorSetLayout();
+    void DestroyDescriptorLayout();
 
-	void CreateDescriptor();
+    void CreateDescriptor();
 
-	// Creates the descriptor pool, this function depends on - 
-	void CreateDescriptorPool();
-	// Creates the descriptor sets using descriptor pool.
-	// This function depend on the createDescriptorPool() and createUniformBuffer().
-	void CreateDescriptorSet();
+    // Creates the descriptor pool, this function depends on - 
+    void CreateDescriptorPool();
+    // Creates the descriptor sets using descriptor pool.
+    // This function depend on the createDescriptorPool() and createUniformBuffer().
+    void CreateDescriptorSet();
 
-	// List of all the VkDescriptorSetLayouts 
-	std::vector<VkDescriptorSetLayout> descLayout;
+    // List of all the VkDescriptorSetLayouts 
+    std::vector<VkDescriptorSetLayout> descLayout;
 
-	// Decriptor pool object that will be used for allocating VkDescriptorSet object
-	VkDescriptorPool descriptorPool;
+    // Decriptor pool object that will be used for allocating VkDescriptorSet object
+    VkDescriptorPool descriptorPool;
 
-	// List of all created VkDescriptorSet
-	std::vector<VkDescriptorSet> descriptorSet;
+    // List of all created VkDescriptorSet
+    std::vector<VkDescriptorSet> descriptorSet;
 
-	VulkanApp*		 m_VulkanApplication;
-	UniformBufferObj* UniformBuffer;
+    VulkanApp*		 m_VulkanApplication;
+    UniformBufferObj* UniformBuffer;
 };
 
 class RectangleMultiDrawFactory : public AbstractModelFactory
@@ -132,7 +121,7 @@ private:
     //void CreateRectOutlinePipeline();
     
     void RecordCommandBuffer();
-	void CreateVertexBuffer();
+    void CreateVertexBuffer();
 
     virtual void UpdateModelList(Model3D* p_Item);
 
@@ -181,3 +170,4 @@ public:
     //virtual bool mouseMoveEvent(QMouseEvent* p_Event);
     //Model3D* progressIndicator;
 };
+
