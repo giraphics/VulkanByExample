@@ -19,6 +19,24 @@ RectangleDescriptorSet::UniformBufferObj* UniformBuffer = NULL;
 //RectangleMultiDrawFactory* RectangleMultiDrawFactory::m_Singleton = NULL;
 
 ////////////////////////////////////////////////////////////////////////////////////
+static const Vertex rectFilledVertices[] =
+{
+    { glm::vec3(1, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
+    { glm::vec3(0, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
+    { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
+    { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
+    { glm::vec3(0, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
+    { glm::vec3(0, 1, 0),	glm::vec3(1.f, 1.f, 0.f) },
+};
+
+static const Vertex rectOutlineVertices[] =
+{
+    { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
+    { glm::vec3(1, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
+    { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
+    { glm::vec3(0, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
+    { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
+};
 
 void RectangleDescriptorSet::CreateUniformBuffer()
 {
@@ -203,9 +221,7 @@ void RectangleMultiDrawFactory::Setup()
 		UniformBuffer = CDS->UniformBuffer;
 	}
 
-    uint32_t dataSize = sizeof(rectVertices);
-    uint32_t dataStride = sizeof(rectVertices[0]);
-    CreateVertexBuffer(rectVertices, dataSize, dataStride);
+    CreateVertexBuffer();
 	
 	CreateGraphicsPipeline();
 
@@ -519,20 +535,13 @@ void RectangleMultiDrawFactory::RecordCommandBuffer()
 	}
 }
 
-void RectangleMultiDrawFactory::CreateVertexBuffer(const void * vertexData, uint32_t dataSize, uint32_t dataStride)
+void RectangleMultiDrawFactory::CreateVertexBuffer()
 {
-	//m_VertexBuffer.m_DataSize = dataSize;
-	//m_VertexBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-
-	//const VkPhysicalDeviceMemoryProperties& memProp = m_VulkanApplication->m_physicalDeviceInfo.memProp;
-	//const VkDevice& device = m_VulkanApplication->m_hDevice;
-	//VulkanHelper::CreateBuffer(device, memProp, m_VertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexData);
-
 	// Indicates the rate at which the information will be
 	// injected for vertex input.
 	m_VertexInputBinding[0].binding = VERTEX_BUFFER_BIND_IDX;
 	m_VertexInputBinding[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-	m_VertexInputBinding[0].stride = dataStride;
+	m_VertexInputBinding[0].stride = sizeof(Vertex);
 
 	// The VkVertexInputAttribute interpreting the data.
 	m_VertexInputAttribute[0].binding = VERTEX_BUFFER_BIND_IDX;
@@ -578,44 +587,18 @@ AbstractModelFactory* RectangleModel::GetRenderScemeFactory()
 	return new RectangleMultiDrawFactory(static_cast<VulkanApp*>(m_Scene->GetApplication()));
 }
 
-void RectangleModel::CreateVertexBuffer(const void *vertexData, uint32_t dataSize, uint32_t dataStride)
+void RectangleModel::CreateVertexBuffer()
 {
-	m_VertexBuffer.m_DataSize = dataSize;
-	m_VertexBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-
-	VulkanApp* app = static_cast<VulkanApp*>(m_Scene->GetApplication());
-	const VkPhysicalDeviceMemoryProperties& memProp = app->m_physicalDeviceInfo.memProp;
-	const VkDevice& device = app->m_hDevice;
-	VulkanHelper::CreateBuffer(device, memProp, m_VertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexData);
-}
-
-void RectangleModel::Setup()
-{
-	const float dimension = 1.0f;
-	Vertex rectVertices[] =
-	{
-		//{ glm::vec3(dimension, -dimension, -dimension), glm::vec3(0.f, 0.f, 0.f) },
-		//{ glm::vec3(-dimension, -dimension, -dimension), glm::vec3(1.f, 0.f, 0.f) },
-		//{ glm::vec3(dimension,  dimension, -dimension), glm::vec3(0.f, 1.f, 0.f) },
-		//{ glm::vec3(dimension,  dimension, -dimension), glm::vec3(0.f, 1.f, 0.f) },
-		//{ glm::vec3(-dimension, -dimension, -dimension), glm::vec3(1.f, 0.f, 0.f) },
-		//{ glm::vec3(-dimension,  dimension, -dimension), glm::vec3(1.f, 1.f, 0.f) },
-        { glm::vec3(1, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
-        { glm::vec3(0, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
-        { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
-        { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
-        { glm::vec3(0, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
-        { glm::vec3(0, 1, 0),	glm::vec3(1.f, 1.f, 0.f) },
-    };
-
     glm::mat4 parentTransform = m_Model * GetParentsTransformation(GetParent());
 
-	uint32_t dataSize = sizeof(rectVertices);
-	uint32_t dataStride = sizeof(rectVertices[0]);
+    Vertex rectVertices[6];
+    memcpy(rectVertices, rectFilledVertices, sizeof(Vertex) * 6);
+    uint32_t dataSize = sizeof(rectVertices);
+    uint32_t dataStride = sizeof(rectVertices[0]);
     const int vertexCount = dataSize / dataStride;
     for (int i = 0; i < vertexCount; ++i)
     {
-        glm::vec4 pos(rectVertices[i].m_Position, 1.0);
+        glm::vec4 pos(rectFilledVertices[i].m_Position, 1.0);
         pos.x = pos.x * m_Dimension.x;
         pos.y = pos.y * m_Dimension.y;
 
@@ -625,7 +608,18 @@ void RectangleModel::Setup()
         rectVertices[i].m_Position.z = pos.z;
     }
 
-    CreateVertexBuffer(rectVertices, dataSize, dataStride);
+    m_VertexBuffer.m_DataSize = dataSize;
+	m_VertexBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+
+	VulkanApp* app = static_cast<VulkanApp*>(m_Scene->GetApplication());
+	const VkPhysicalDeviceMemoryProperties& memProp = app->m_physicalDeviceInfo.memProp;
+	const VkDevice& device = app->m_hDevice;
+	VulkanHelper::CreateBuffer(device, memProp, m_VertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, rectVertices);
+}
+
+void RectangleModel::Setup()
+{
+    CreateVertexBuffer();
 	Model3D::Setup();
 }
 
@@ -645,7 +639,7 @@ void RectangleModel::Render(VkCommandBuffer& p_CmdBuffer)
 	vkCmdBindVertexBuffers(p_CmdBuffer, VERTEX_BUFFER_BIND_IDX, 1, &m_VertexBuffer.m_Buffer, offsets);
 
 	// Draw the Cube 
-	const int vertexCount = sizeof(rectVertices) / sizeof(Vertex);
+	const int vertexCount = sizeof(rectFilledVertices) / sizeof(Vertex);
 	vkCmdDraw(p_CmdBuffer, vertexCount, /*INSTANCE_COUNT*/1, 0, 0);
 }
 

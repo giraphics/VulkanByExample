@@ -11,16 +11,17 @@ struct Vertex
     glm::vec3 m_Color;    // Color format => r, g, b
 };
 
-const float dimension = 10.0f;
-static const Vertex rectVertices[] =
-{
-    { glm::vec3( dimension, -dimension, -dimension), glm::vec3(0.f, 0.f, 0.f) },
-    { glm::vec3(-dimension, -dimension, -dimension), glm::vec3(1.f, 0.f, 0.f) },
-    { glm::vec3( dimension,  dimension, -dimension), glm::vec3(0.f, 1.f, 0.f) },
-    { glm::vec3( dimension,  dimension, -dimension), glm::vec3(0.f, 1.f, 0.f) },
-    { glm::vec3(-dimension, -dimension, -dimension), glm::vec3(1.f, 0.f, 0.f) },
-    { glm::vec3(-dimension,  dimension, -dimension), glm::vec3(1.f, 1.f, 0.f) },
-};
+//const float dimension = 10.0f;
+//static const Vertex rectVertices[] =
+//{
+//    { glm::vec3( dimension, -dimension, -dimension), glm::vec3(0.f, 0.f, 0.f) },
+//    { glm::vec3(-dimension, -dimension, -dimension), glm::vec3(1.f, 0.f, 0.f) },
+//    { glm::vec3( dimension,  dimension, -dimension), glm::vec3(0.f, 1.f, 0.f) },
+//    { glm::vec3( dimension,  dimension, -dimension), glm::vec3(0.f, 1.f, 0.f) },
+//    { glm::vec3(-dimension, -dimension, -dimension), glm::vec3(1.f, 0.f, 0.f) },
+//    { glm::vec3(-dimension,  dimension, -dimension), glm::vec3(1.f, 1.f, 0.f) },
+//};
+
 
 class RectangleModel : public Model3D
 {
@@ -42,7 +43,7 @@ public:
 
 	virtual void Setup();
 
-    void CreateVertexBuffer(const void * vertexData, uint32_t dataSize, uint32_t dataStride);
+    void CreateVertexBuffer();
     void Render(VkCommandBuffer& p_CmdBuffer);
 
 	VulkanBuffer m_VertexBuffer;
@@ -115,26 +116,12 @@ public:
     RectangleMultiDrawFactory(VulkanApp* p_VulkanApp);
     virtual ~RectangleMultiDrawFactory();
 
-	//RectangleModel* GetModel(VulkanApp* p_VulkanApp, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE)
-	//{
-	//	m_ModelList.push_back(new RectangleModel(p_VulkanApp, p_Scene, p_Parent, p_Name, p_ShapeType)); // consider using shared ptr/smart pointers
-	//	
-	//	// Todo: Is it good to introduce another parameter as into RectangleModel
-	//	RectangleModel* rectangleModel = static_cast<RectangleModel*>(m_ModelList.back());
-	//	rectangleModel->m_AbstractFactory = this;
-
-	//	return rectangleModel;
-	//}
-
+public:
 	virtual void Setup();
-	void Update();
+    void Update();
+
     void ResizeWindow(int width, int height);
-
 	virtual void Prepare(Scene3D* p_Scene);
-
-	// Parminder: Is it possible to remove the parameter from SingleTon, it looks wierd
-    //static RectangleMultiDrawFactory* SingleTon(VulkanApp* p_VulkanApp = NULL) { return m_Singleton ? m_Singleton : (m_Singleton = new RectangleMultiDrawFactory(p_VulkanApp)); }
-    //static RectangleMultiDrawFactory* m_Singleton;
 
 	// Pipeline
 	QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
@@ -142,36 +129,38 @@ public:
 private:
 	void CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap = false);
 	void RecordCommandBuffer();
-	void CreateVertexBuffer(const void *vertexData, uint32_t dataSize, uint32_t dataStride);
+	void CreateVertexBuffer();
 	void CreateCommandBuffers(); // Overide the default implementation as per application requirement
     virtual void UpdateModelList(Model3D* p_Item)
     {
         m_ModelList.push_back(p_Item);
         return;
 
-        //RectangleModel* rectangle = dynamic_cast<RectangleModel*>(p_Item);
-        //assert(rectangle);
+        /*
+        RectangleModel* rectangle = dynamic_cast<RectangleModel*>(p_Item);
+        assert(rectangle);
 
-        //// Note: Based on the draw type push the model in respective pipelines
-        //// Keep the draw type loose couple with the pipeline type, 
-        //// they may be in one-to-one correspondence but that is not necessary.
-        //switch (rectangle->GetDrawType())
-        //{
-        //case RectangleModel::FILLED:
-        //    //m_PipelineTypeModelVector[PIPELINE_FILLED].push_back(p_Item);
-        //    break;
+        // Note: Based on the draw type push the model in respective pipelines
+        // Keep the draw type loose couple with the pipeline type, 
+        // they may be in one-to-one correspondence but that is not necessary.
+        switch (rectangle->GetDrawType())
+        {
+        case RectangleModel::FILLED:
+            //m_PipelineTypeModelVector[PIPELINE_FILLED].push_back(p_Item);
+            break;
 
-        //case RectangleModel::OUTLINE:
-        //    //m_PipelineTypeModelVector[PIPELINE_OUTLINE].push_back(p_Item);
-        //    break;
+        case RectangleModel::OUTLINE:
+            //m_PipelineTypeModelVector[PIPELINE_OUTLINE].push_back(p_Item);
+            break;
 
-        //case RectangleModel::ROUNDED:
-        //    // TODO
-        //    break;
+        case RectangleModel::ROUNDED:
+            // TODO
+            break;
 
-        //default:
-        //    break;
-        //}
+        default:
+            break;
+        }
+        */
     }
 
 	VulkanBuffer m_VertexBuffer;
