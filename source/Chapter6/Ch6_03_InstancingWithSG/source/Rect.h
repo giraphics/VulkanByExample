@@ -108,6 +108,8 @@ private:
     void RecordCommandBuffer();
     void CreateVertexBuffer();
 
+    void Render(VkCommandBuffer& p_CmdBuffer);
+
     virtual void UpdateModelList(Model3D* p_Item);
 
     QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
@@ -133,8 +135,6 @@ public:
     };
 
 
-    std::set<RECTANGLE_GRAPHICS_PIPELINES> m_ActivePipelines;
-    
     typedef std::vector<Model3D*> ModelVector;
 
     VulkanBuffer m_VertexBuffer[PIPELINE_COUNT], m_InstanceBuffer[PIPELINE_COUNT];
