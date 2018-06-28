@@ -34,7 +34,6 @@ public:
 	virtual void Setup();
 
     void CreateVertexBuffer();
-    void Render(VkCommandBuffer& p_CmdBuffer);
 
 	VulkanBuffer m_VertexBuffer;
 };
@@ -112,19 +111,20 @@ public:
     void ResizeWindow(int width, int height);
 	virtual void Prepare(Scene3D* p_Scene);
 
-    QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
-
 private:
-	void CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap = false);
+    void CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap = false);
     void CreateRectFillPipeline();
     void CreateRectOutlinePipeline();
-    
+
     void RecordCommandBuffer();
     void CreateVertexBuffer();
 
+    void Render(VkCommandBuffer& p_CmdBuffer);
+
     virtual void UpdateModelList(Model3D* p_Item);
 
-	VulkanBuffer m_VertexBuffer;
+//	VulkanBuffer m_VertexBuffer;
+    QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
 
     enum RECTANGLE_GRAPHICS_PIPELINES
     {
@@ -133,9 +133,6 @@ private:
         PIPELINE_COUNT,
     };
 
-	// Vertex buffer specific objects
-	//VkVertexInputBindingDescription		m_VertexInputBinding[1];   // 0 for (position and color)
-	//VkVertexInputAttributeDescription	m_VertexInputAttribute[2]; // Why 2 = 2(for position and color)
     std::vector<VkVertexInputBindingDescription>   m_VertexInputBinding[PIPELINE_COUNT];   // 0 for (position and color) 1 for ()
     std::vector<VkVertexInputAttributeDescription> m_VertexInputAttribute[PIPELINE_COUNT]; // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
 
@@ -150,17 +147,17 @@ private:
 };
 
 class RectangleModel;
-//class QMouseEvent;
-//class ProgressBar : public Model3D
-//{
-//public:
-//    ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
-//    virtual ~ProgressBar() {}
-//
-//    virtual bool mouseMoveEvent(QMouseEvent* p_Event);
-//    RectangleModel* progressIndicator;
-//    RectangleModel* bar;
-//};
+class QMouseEvent;
+class ProgressBar : public Model3D
+{
+public:
+    ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
+    virtual ~ProgressBar() {}
+
+    virtual bool mouseMoveEvent(QMouseEvent* p_Event);
+    RectangleModel* progressIndicator;
+    RectangleModel* bar;
+};
 
 class AudioMixerItem : public Model3D
 {

@@ -42,7 +42,7 @@ RectangleMultiDrawFactory::RectangleMultiDrawFactory(VulkanApp* p_VulkanApp)
 	assert(p_VulkanApp);
 
 	memset(&UniformBuffer, 0, sizeof(UniformBuffer));
-	memset(&m_VertexBuffer, 0, sizeof(VulkanBuffer));
+////	memset(&m_VertexBuffer, 0, sizeof(VulkanBuffer));
 	
     m_VulkanApplication = p_VulkanApp;
 }
@@ -50,8 +50,8 @@ RectangleMultiDrawFactory::RectangleMultiDrawFactory(VulkanApp* p_VulkanApp)
 RectangleMultiDrawFactory::~RectangleMultiDrawFactory()
 {
 	// Destroy Vertex Buffer
-    vkDestroyBuffer(m_VulkanApplication->m_hDevice, m_VertexBuffer.m_Buffer, NULL);
-    vkFreeMemory(m_VulkanApplication->m_hDevice, m_VertexBuffer.m_Memory, NULL);
+////    vkDestroyBuffer(m_VulkanApplication->m_hDevice, m_VertexBuffer.m_Buffer, NULL);
+////    vkFreeMemory(m_VulkanApplication->m_hDevice, m_VertexBuffer.m_Memory, NULL);
 
 	//// Destroy descriptors
 	//for (int i = 0; i < descLayout.size(); i++) {
@@ -508,51 +508,7 @@ void RectangleMultiDrawFactory::RecordCommandBuffer()
 		// Begin render pass
         vkCmdBeginRenderPass(m_VulkanApplication->m_hCommandBufferList[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        VkPipelineLayout graphicsPipelineLayout = VK_NULL_HANDLE;
-        VkPipeline       graphicsPipeline = VK_NULL_HANDLE;
-        if (m_GraphicsPipelineMap.contains(PIPELINE_RECT_FILLED))
-		{
-            graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].first;
-            graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].second;
-		}
-
-		// Bind graphics pipeline
-        //vkCmdBindPipeline(m_VulkanApplication->m_hCommandBufferList[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-
-        vkCmdBindDescriptorSets(m_VulkanApplication->m_hCommandBufferList[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineLayout,
-			0, 1, CDS->descriptorSet.data(), 0, NULL);
-
-		// Specify vertex buffer information
-		//const VkDeviceSize offsets[1] = { 0 };
-        //vkCmdBindVertexBuffers(m_VulkanApplication->m_hCommandBufferList[i], VERTEX_BUFFER_BIND_IDX, 1, &m_VertexBuffer.m_Buffer, offsets);
-
-		// Draw the Cube 
-		//const int vertexCount = sizeof(rectVertices) / sizeof(Vertex);
-		//vkCmdDraw(m_VulkanApplication->m_hCommandBufferList[i], vertexCount, /*INSTANCE_COUNT*/1, 0, 0);
-
-		const int modelSize = m_ModelList.size();
-		for (int j = 0; j < modelSize; j++)
-		{
-			if (m_ModelList.at(j)->GetRefShapeType() == SHAPE_RECTANGLE)
-			{
-				RectangleModel* m = ((RectangleModel*)m_ModelList.at(j));
-				m->Render(m_VulkanApplication->m_hCommandBufferList[i]); // consider using shared ptr/smart pointers
-			}
-		}
-
-		// For each model in the scene
-		// Bind Pipeline
-		// Bind Verter Buffers
-		// Bind index buffers
-		// Draw model - vkDrawIndexed
-		//void draw(VkCommandBuffer cmdBuffer)
-		//{
-		//	VkDeviceSize offsets[1] = { 0 };
-		//	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline);
-		//	vkCmdBindVertexBuffers(cmdBuffer, VERTEX_BUFFER_BIND_ID, 1, &model.vertices.buffer, offsets);
-		//	vkCmdBindIndexBuffer(cmdBuffer, model.indices.buffer, 0, VK_INDEX_TYPE_UINT32);
-		//	vkCmdDrawIndexed(cmdBuffer, model.indexCount, 1, 0, 0, 0);
-		//}
+        Render(m_VulkanApplication->m_hCommandBufferList[i]); // consider using shared ptr/smart pointers
 
 		// End the Render pass
         vkCmdEndRenderPass(m_VulkanApplication->m_hCommandBufferList[i]);
@@ -634,11 +590,6 @@ void RectangleMultiDrawFactory::UpdateModelList(Model3D *p_Item)
     */
 }
 
-//void RectangleMultiDrawFactory::CreateCommandBuffers()
-//{
-//    m_VulkanApplication->CreateCommandBuffers();
-//}
-
 void RectangleMultiDrawFactory::Prepare(Scene3D* p_Scene)
 {
     // Update the uniform
@@ -654,6 +605,59 @@ void RectangleMultiDrawFactory::Prepare(Scene3D* p_Scene)
     //	UniformBuffer->m_MappedRange,
     //	UniformBuffer->m_BufObj.m_MemoryFlags,
     //	&m_Transform, sizeof(m_Transform));
+}
+
+void RectangleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
+{
+    for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
+    {
+        VkPipelineLayout graphicsPipelineLayout = VK_NULL_HANDLE;
+        VkPipeline       graphicsPipeline = VK_NULL_HANDLE;
+        if (pipelineIdx == PIPELINE_FILLED)
+        {
+            if (m_GraphicsPipelineMap.contains(PIPELINE_RECT_FILLED))
+            {
+                graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].first;
+                graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].second;
+            }
+        }
+        /*
+        else if (pipelineIdx == PIPELINE_OUTLINE)
+        {
+            if (m_GraphicsPipelineMap.contains(PIPELINE_RECT_OUTLINE))
+            {
+                graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_RECT_OUTLINE].first;
+                graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_RECT_OUTLINE].second;
+            }
+        }
+        */
+        else
+        {
+            assert(false);
+        }
+
+        vkCmdBindDescriptorSets(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineLayout, 0, 1, CDS->descriptorSet.data(), 0, NULL);
+
+        const int modelSize = m_ModelList.size();
+        for (int j = 0; j < modelSize; j++)
+        {
+            if (m_ModelList.at(j)->GetRefShapeType() == SHAPE_RECTANGLE)
+            {
+                RectangleModel* model = (static_cast<RectangleModel*>(m_ModelList.at(j)));
+                if (!model) return;
+
+                vkCmdBindPipeline(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+
+                // Specify vertex buffer information
+                const VkDeviceSize offsets[1] = { 0 };
+                vkCmdBindVertexBuffers(p_CmdBuffer, VERTEX_BUFFER_BIND_IDX, 1, &model->m_VertexBuffer.m_Buffer, offsets);
+
+                // Draw the Cube 
+                const int vertexCount = sizeof(rectFilledVertices) / sizeof(Vertex);
+                vkCmdDraw(p_CmdBuffer, vertexCount, /*INSTANCE_COUNT*/1, 0, 0);
+            }
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -846,26 +850,6 @@ void RectangleModel::Setup()
 {
     CreateVertexBuffer();
 	Model3D::Setup();
-}
-
-
-void RectangleModel::Render(VkCommandBuffer& p_CmdBuffer)
-{
-//	RectangleMultiDrawFactory* cubeFactory = RectangleMultiDrawFactory::SingleTon();
-	RectangleMultiDrawFactory* cubeFactory = static_cast<RectangleMultiDrawFactory*>(m_Scene->GetFactory(this));// RectangleFactory::SingleTon();
-	if (!cubeFactory->m_GraphicsPipelineMap.contains(PIPELINE_RECT_FILLED)) return;
-
-	VkPipeline graphicsPipeline = graphicsPipeline = cubeFactory->m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].first;
-
-	vkCmdBindPipeline(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-
-	// Specify vertex buffer information
-	const VkDeviceSize offsets[1] = { 0 };
-	vkCmdBindVertexBuffers(p_CmdBuffer, VERTEX_BUFFER_BIND_IDX, 1, &m_VertexBuffer.m_Buffer, offsets);
-
-	// Draw the Cube 
-	const int vertexCount = sizeof(rectFilledVertices) / sizeof(Vertex);
-	vkCmdDraw(p_CmdBuffer, vertexCount, /*INSTANCE_COUNT*/1, 0, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
