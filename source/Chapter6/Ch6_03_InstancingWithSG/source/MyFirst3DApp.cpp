@@ -155,3 +155,10 @@ void MyFirst3DApp::mouseMoveEvent(QMouseEvent* p_Event)
 { 
 	m_Scene->mouseMoveEvent(p_Event);
 }
+
+void MyFirst3DApp::ResizeWindow(int width, int height)
+{
+    VulkanApp::ResizeWindow(width, height);
+
+    m_Scene->Resize(width, height);
+}

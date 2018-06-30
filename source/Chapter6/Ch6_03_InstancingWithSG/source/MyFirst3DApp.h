@@ -13,6 +13,7 @@ public:
     virtual void Configure();
     virtual void Setup();
     virtual void Update();
+    void ResizeWindow(int width, int height);
 
 	virtual void mousePressEvent(QMouseEvent* p_Event);
 	virtual void mouseReleaseEvent(QMouseEvent* p_Event);
@@ -27,3 +28,4 @@ private:
 	Scene3D* m_Scene;
 };
 
+    

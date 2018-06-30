@@ -17,7 +17,6 @@ using namespace std;
 static char* PIPELINE_RECT_FILLED = "RectFilled";
 static char* PIPELINE_RECT_OUTLINE = "RectOutline";
 
-using namespace std;
 std::shared_ptr<RectangleDescriptorSet> CDS = NULL;// std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
 RectangleDescriptorSet::UniformBufferObj* UniformBuffer = NULL;
 
@@ -42,12 +41,13 @@ static const Vertex rectOutlineVertices[] =
 
 RectangleFactory::RectangleFactory(VulkanApp* p_VulkanApp)
 {
+	assert(p_VulkanApp);
+    m_VulkanApplication = p_VulkanApp;
+
 	memset(&UniformBuffer, 0, sizeof(UniformBuffer));
 	memset(&m_VertexBuffer, 0, sizeof(VulkanBuffer) * PIPELINE_COUNT);
     memset(&m_InstanceBuffer, 0, sizeof(VulkanBuffer) * PIPELINE_COUNT);
     memset(&m_OldInstanceDataSize, 0, sizeof(int) * PIPELINE_COUNT);
-
-    m_VulkanApplication = p_VulkanApp;
 }
 
 RectangleFactory::~RectangleFactory()
@@ -85,7 +85,6 @@ RectangleFactory::~RectangleFactory()
 
 void RectangleFactory::Setup()
 {
-    CreateVertexBuffer();
     if (!CDS)
     {
         CDS = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
@@ -93,11 +92,13 @@ void RectangleFactory::Setup()
         UniformBuffer = CDS->UniformBuffer;
     }
 
+    CreateVertexBuffer();
+
     CreateGraphicsPipeline();
 
     m_VulkanApplication->CreateCommandBuffers(); // Create command buffers
 
-    PrepareInstanceData();
+    PrepareInstanceData(); // Todo check how to remove this from Setup
 
     RecordCommandBuffer();
 }
@@ -111,6 +112,15 @@ void RectangleFactory::Update()
         &m_Transform, sizeof(m_Transform));
 
     PrepareInstanceData();
+}
+
+void RectangleFactory::ResizeWindow(int width, int height)
+{
+    CreateGraphicsPipeline(true);
+
+    m_VulkanApplication->CreateCommandBuffers(); // Create command buffers
+
+    RecordCommandBuffer();
 }
 
 void RectangleFactory::CreateRectOutlinePipeline()
