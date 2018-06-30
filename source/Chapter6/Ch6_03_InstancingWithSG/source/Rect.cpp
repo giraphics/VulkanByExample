@@ -523,7 +523,7 @@ void RectangleFactory::RecordCommandBuffer()
         // Begin render pass
         vkCmdBeginRenderPass(m_VulkanApplication->m_hCommandBufferList[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        Render(m_VulkanApplication->m_hCommandBufferList[i]);
+        Render(m_VulkanApplication->m_hCommandBufferList[i]); // consider using shared ptr/smart pointers
 
         // End the Render pass
         vkCmdEndRenderPass(m_VulkanApplication->m_hCommandBufferList[i]);
@@ -634,12 +634,12 @@ void RectangleFactory::CreateVertexBuffer()
             m_VertexInputBinding[pipelineIdx][1].stride = sizeof(InstanceData);
             
             // The VkVertexInputAttribute interpreting the data.
-            m_VertexInputAttribute[pipelineIdx][0].binding = 0;
+            m_VertexInputAttribute[pipelineIdx][0].binding = VERTEX_BUFFER_BIND_IDX;
             m_VertexInputAttribute[pipelineIdx][0].location = 0;
             m_VertexInputAttribute[pipelineIdx][0].format = VK_FORMAT_R32G32B32_SFLOAT;
             m_VertexInputAttribute[pipelineIdx][0].offset = offsetof(struct Vertex, m_Position);
 
-            m_VertexInputAttribute[pipelineIdx][1].binding = 0;
+            m_VertexInputAttribute[pipelineIdx][1].binding = VERTEX_BUFFER_BIND_IDX;
             m_VertexInputAttribute[pipelineIdx][1].location = 1;
             m_VertexInputAttribute[pipelineIdx][1].format = VK_FORMAT_R32G32B32_SFLOAT;
             m_VertexInputAttribute[pipelineIdx][1].offset = offsetof(struct Vertex, m_Color);
@@ -707,6 +707,106 @@ void RectangleFactory::UpdateModelList(Model3D *p_Item)
 
     default:
         break;
+    }
+}
+
+
+void RectangleFactory::PrepareInstanceData()
+{
+    bool update = false;
+    for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
+    {
+        ModelVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
+        const int modelSize = m_ModelList.size();
+        if (!modelSize) continue;
+
+        //int oldInstanceDataSize = m_InstanceData.size();
+        std::vector<InstanceData> m_InstanceData;
+        //m_InstanceData.clear();
+        m_InstanceData.resize(modelSize);
+
+        for (int i = 0; i < modelSize; i++)
+        {
+            m_InstanceData[i].m_Model = m_ModelList.at(i)->GetTransformedModel();
+            m_InstanceData[i].m_Rect.x = m_ModelList.at(i)->GetDimension().x;
+            m_InstanceData[i].m_Rect.y = m_ModelList.at(i)->GetDimension().y;
+            m_InstanceData[i].m_Color = m_ModelList.at(i)->GetColor();
+            m_ModelList.at(i)->SetGpuMemOffset(i * sizeof(InstanceData));
+        }
+
+        if (modelSize != 0)
+        {
+            VkMemoryPropertyFlags memoryProperty = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+            m_InstanceBuffer[pipelineIdx].m_MemoryFlags = memoryProperty;
+            m_InstanceBuffer[pipelineIdx].m_DataSize = modelSize * sizeof(InstanceData);
+            // Re-Create instance buffer if size not same.
+
+            VulkanHelper::CreateStagingBuffer(m_VulkanApplication->m_hDevice,
+                m_VulkanApplication->m_physicalDeviceInfo.memProp,
+                m_VulkanApplication->m_hCommandPool,
+                m_VulkanApplication->m_hGraphicsQueue,
+                m_InstanceBuffer[pipelineIdx],
+                VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                m_InstanceData.data());
+
+            if (modelSize != m_OldInstanceDataSize[pipelineIdx] && modelSize != 0)
+            {
+                update = true;
+                //RecordCommandBuffer();
+            }
+        }
+
+        m_OldInstanceDataSize[pipelineIdx] = modelSize;
+    }
+
+    if (update)
+    {
+        RecordCommandBuffer();
+    }
+}
+
+void RectangleFactory::Render(VkCommandBuffer& p_CmdBuffer)
+{
+    for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
+    {
+        ModelVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
+        if (!m_ModelList.size()) continue;
+
+        VkPipelineLayout graphicsPipelineLayout = VK_NULL_HANDLE;
+        VkPipeline       graphicsPipeline = VK_NULL_HANDLE;
+        if (pipelineIdx == PIPELINE_FILLED)
+        {
+            if (m_GraphicsPipelineMap.contains(PIPELINE_RECT_FILLED))
+            {
+                graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].first;
+                graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].second;
+            }
+        }
+        else if (pipelineIdx == PIPELINE_OUTLINE)
+        {
+            if (m_GraphicsPipelineMap.contains(PIPELINE_RECT_OUTLINE))
+            {
+                graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_RECT_OUTLINE].first;
+                graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_RECT_OUTLINE].second;
+            }
+        }
+        else
+        {
+            assert(false);
+        }
+
+        // Bind graphics pipeline
+        vkCmdBindPipeline(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+        vkCmdBindDescriptorSets(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineLayout,
+            0, 1, CDS->descriptorSet.data(), 0, NULL);
+
+        // Specify vertex buffer information
+        const VkDeviceSize offsets[1] = { 0 };
+        vkCmdBindVertexBuffers(p_CmdBuffer, VERTEX_BUFFER_BIND_IDX, 1, &m_VertexBuffer[pipelineIdx].m_Buffer, offsets);
+        vkCmdBindVertexBuffers(p_CmdBuffer, INSTANCE_BUFFER_BIND_IDX, 1, &m_InstanceBuffer[pipelineIdx].m_Buffer, offsets);
+
+        // Draw the Rectangle
+        vkCmdDraw(p_CmdBuffer, m_VertexCount[pipelineIdx], m_ModelList.size(), 0, 0);
     }
 }
 
@@ -854,104 +954,7 @@ void RectangleDescriptorSet::CreateDescriptorSet()
     vkUpdateDescriptorSets(m_VulkanApplication->m_hDevice, 1, writes, 0, NULL);
 }
 
-void RectangleFactory::PrepareInstanceData()
-{
-    bool update = false;
-    for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
-    {
-        ModelVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
-        const int modelSize = m_ModelList.size();
-        if (!modelSize) continue;
-
-        //int oldInstanceDataSize = m_InstanceData.size();
-        std::vector<InstanceData> m_InstanceData;
-        //m_InstanceData.clear();
-        m_InstanceData.resize(modelSize);
-
-        for (int i = 0; i < modelSize; i++)
-        {
-            m_InstanceData[i].m_Model = m_ModelList.at(i)->GetTransformedModel();
-            m_InstanceData[i].m_Rect.x = m_ModelList.at(i)->GetDimension().x;
-            m_InstanceData[i].m_Rect.y = m_ModelList.at(i)->GetDimension().y;
-            m_InstanceData[i].m_Color = m_ModelList.at(i)->GetColor();
-            m_ModelList.at(i)->SetGpuMemOffset(i * sizeof(InstanceData));
-        }
-
-        if (modelSize != 0)
-        {
-            VkMemoryPropertyFlags memoryProperty = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-            m_InstanceBuffer[pipelineIdx].m_MemoryFlags = memoryProperty;
-            m_InstanceBuffer[pipelineIdx].m_DataSize = modelSize * sizeof(InstanceData);
-            // Re-Create instance buffer if size not same.
-
-            VulkanHelper::CreateStagingBuffer(m_VulkanApplication->m_hDevice,
-                m_VulkanApplication->m_physicalDeviceInfo.memProp,
-                m_VulkanApplication->m_hCommandPool,
-                m_VulkanApplication->m_hGraphicsQueue,
-                m_InstanceBuffer[pipelineIdx],
-                VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                m_InstanceData.data());
-
-            if (modelSize != m_OldInstanceDataSize[pipelineIdx] && modelSize != 0)
-            {
-                update = true;
-                //RecordCommandBuffer();
-            }
-        }
-
-        m_OldInstanceDataSize[pipelineIdx] = modelSize;
-    }
-
-    if (update)
-    {
-        RecordCommandBuffer();
-    }
-}
-
-void RectangleFactory::Render(VkCommandBuffer& p_CmdBuffer)
-{
-    for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
-    {
-        ModelVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
-        if (!m_ModelList.size()) continue;
-
-        VkPipelineLayout graphicsPipelineLayout = VK_NULL_HANDLE;
-        VkPipeline       graphicsPipeline = VK_NULL_HANDLE;
-        if (pipelineIdx == PIPELINE_FILLED)
-        {
-            if (m_GraphicsPipelineMap.contains(PIPELINE_RECT_FILLED))
-            {
-                graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].first;
-                graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].second;
-            }
-        }
-        else if (pipelineIdx == PIPELINE_OUTLINE)
-        {
-            if (m_GraphicsPipelineMap.contains(PIPELINE_RECT_OUTLINE))
-            {
-                graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_RECT_OUTLINE].first;
-                graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_RECT_OUTLINE].second;
-            }
-        }
-        else
-        {
-            assert(false);
-        }
-
-        // Bind graphics pipeline
-        vkCmdBindPipeline(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-        vkCmdBindDescriptorSets(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineLayout,
-            0, 1, CDS->descriptorSet.data(), 0, NULL);
-
-        // Specify vertex buffer information
-        const VkDeviceSize offsets[1] = { 0 };
-        vkCmdBindVertexBuffers(p_CmdBuffer, VERTEX_BUFFER_BIND_IDX, 1, &m_VertexBuffer[pipelineIdx].m_Buffer, offsets);
-        vkCmdBindVertexBuffers(p_CmdBuffer, INSTANCE_BUFFER_BIND_IDX, 1, &m_InstanceBuffer[pipelineIdx].m_Buffer, offsets);
-
-        // Draw the Rectangle
-        vkCmdDraw(p_CmdBuffer, m_VertexCount[pipelineIdx], m_ModelList.size(), 0, 0);
-    }
-}
+////////////////////////////////////////////////////////////////////////////////////
 
 RectangleModel::RectangleModel(VulkanApp *p_VulkanApp/*REMOVE ME*/, Scene3D *p_Scene, Model3D *p_Parent, const QString &p_Name, SHAPE p_ShapeType, RENDER_SCEHEME_TYPE p_RenderSchemeType)
 	: Model3D(p_Scene, p_Parent, p_Name, p_ShapeType, p_RenderSchemeType)
@@ -1058,8 +1061,3 @@ AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QStrin
 		}
 	}
 }
-
-//bool AudioMixerItem::mouseMoveEvent(QMouseEvent* p_Event)
-//{
-//    return false;
-//}

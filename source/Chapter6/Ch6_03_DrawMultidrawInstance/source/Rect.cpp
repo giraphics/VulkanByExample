@@ -438,247 +438,85 @@ void RectangleMultiDrawFactory::CreateRectFillPipeline()
 
 void RectangleMultiDrawFactory::CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap)
 {
-	if (p_ClearGraphicsPipelineMap)
-	{
-		const VkDevice& device = m_VulkanApplication->m_hDevice;
-		QMap<QString, QPair<VkPipeline, VkPipelineLayout> >::iterator i;
-		for (i = m_GraphicsPipelineMap.begin(); i != m_GraphicsPipelineMap.end(); ++i)
-		{
-			vkDestroyPipeline(m_VulkanApplication->m_hDevice, i.value().first, nullptr);
-			vkDestroyPipelineLayout(device, i.value().second, nullptr);
-		}
+    if (p_ClearGraphicsPipelineMap)
+    {
+        const VkDevice& device = m_VulkanApplication->m_hDevice;
+        QMap<QString, QPair<VkPipeline, VkPipelineLayout> >::iterator i;
+        for (i = m_GraphicsPipelineMap.begin(); i != m_GraphicsPipelineMap.end(); ++i)
+        {
+            vkDestroyPipeline(m_VulkanApplication->m_hDevice, i.value().first, nullptr);
+            vkDestroyPipelineLayout(device, i.value().second, nullptr);
+        }
 
-		m_GraphicsPipelineMap.clear();
-	}
+        m_GraphicsPipelineMap.clear();
+    }
 
-	VkPipelineLayout graphicsPipelineLayout = VK_NULL_HANDLE;
-	VkPipeline       graphicsPipeline = VK_NULL_HANDLE;
-	if (m_GraphicsPipelineMap.contains(PIPELINE_RECT_FILLED))
-	{
+    VkPipelineLayout graphicsPipelineLayout = VK_NULL_HANDLE;
+    VkPipeline       graphicsPipeline = VK_NULL_HANDLE;
+    if (m_GraphicsPipelineMap.contains(PIPELINE_RECT_FILLED))
+    {
         graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].first;
         graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].second;
-		return;
-	}
+        return;
+    }
 
     CreateRectFillPipeline();
-
- //   // Compile the vertex shader
- //   VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/RectInstanceVert.spv"); // Relative path to binary output dir
-
-	//// Setup the vertex shader stage create info structures
- //   VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
- //   vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
- //   vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
- //   vertShaderStageInfo.module = vertShader;
- //   vertShaderStageInfo.pName = "main";
-
- //   // Compile the fragment shader
- //   VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/RectInstanceFrag.spv"); // Relative path to binary output dir
-
-	//// Setup the fragment shader stage create info structures
- //   VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
- //   fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
- //   fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
- //   fragShaderStageInfo.module = fragShader;
- //   fragShaderStageInfo.pName = "main";
-
- //   VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
-
- //   // Setup the vertex input
- //   VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
- //   vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	//vertexInputInfo.vertexBindingDescriptionCount = sizeof(m_VertexInputBinding) / sizeof(VkVertexInputBindingDescription);
-	//vertexInputInfo.pVertexBindingDescriptions = m_VertexInputBinding;
-	//vertexInputInfo.vertexAttributeDescriptionCount = sizeof(m_VertexInputAttribute) / sizeof(VkVertexInputAttributeDescription);
-	//vertexInputInfo.pVertexAttributeDescriptions = m_VertexInputAttribute;
-
- //   // Setup input assembly
- //   // We will be rendering 1 triangle using triangle strip topology
- //   VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
- //   inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
- //   inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
- //   inputAssembly.primitiveRestartEnable = VK_FALSE;
-
-	//// Setup viewport to the maximum widht and height of the window
-	//VkViewport viewport = {};
-	//viewport.x = 0.0f;
-	//viewport.y = 0.0f;
- //   viewport.width = (float)m_VulkanApplication->m_swapChainExtent.width;
- //   viewport.height = (float)m_VulkanApplication->m_swapChainExtent.height;
-	//viewport.minDepth = 0.0f;
-	//viewport.maxDepth = 1.0f;
-
-	//// Setup scissor rect
-	//VkRect2D scissor = {};
-	//scissor.offset = { 0, 0 };
- //   scissor.extent = m_VulkanApplication->m_swapChainExtent;
-
-	//// Setup view port state
-	//VkPipelineViewportStateCreateInfo viewportState = {};
-	//viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-	//viewportState.viewportCount = 1;
-	//viewportState.pViewports = &viewport;
-	//viewportState.scissorCount = 1;
-	//viewportState.pScissors = &scissor;
-
-	//// Setup the rasterizer state
-	//VkPipelineRasterizationStateCreateInfo rasterizer = {};
-	//rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-	//rasterizer.depthClampEnable = VK_FALSE;
-	//rasterizer.rasterizerDiscardEnable = VK_FALSE;
-	//rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
-	//rasterizer.lineWidth = 1.0f;
-	//rasterizer.cullMode = VK_CULL_MODE_NONE/*VK_CULL_MODE_BACK_BIT*/;
-	//rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
-	//rasterizer.depthBiasEnable = VK_FALSE;
-	//rasterizer.depthClampEnable = true;
-
-	//VkPipelineDepthStencilStateCreateInfo depthStencilStateInfo = {};
-	//depthStencilStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	//depthStencilStateInfo.pNext = NULL;
-	//depthStencilStateInfo.flags = 0;
-	//depthStencilStateInfo.depthTestEnable = true;
-	//depthStencilStateInfo.depthWriteEnable = true;
-	//depthStencilStateInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
-	//depthStencilStateInfo.depthBoundsTestEnable = VK_FALSE;
-	//depthStencilStateInfo.stencilTestEnable = VK_FALSE;
-	//depthStencilStateInfo.back.failOp = VK_STENCIL_OP_KEEP;
-	//depthStencilStateInfo.back.passOp = VK_STENCIL_OP_KEEP;
-	//depthStencilStateInfo.back.compareOp = VK_COMPARE_OP_ALWAYS;
-	//depthStencilStateInfo.back.compareMask = 0;
-	//depthStencilStateInfo.back.reference = 0;
-	//depthStencilStateInfo.back.depthFailOp = VK_STENCIL_OP_KEEP;
-	//depthStencilStateInfo.back.writeMask = 0;
-	//depthStencilStateInfo.minDepthBounds = 0;
-	//depthStencilStateInfo.maxDepthBounds = 0;
-	//depthStencilStateInfo.stencilTestEnable = VK_FALSE;
-	//depthStencilStateInfo.front = depthStencilStateInfo.back;
-
-	//// Setup multi sampling. In our first example we will be using single sampling mode
-	//VkPipelineMultisampleStateCreateInfo multisampling = {};
-	//multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-	//multisampling.sampleShadingEnable = VK_FALSE;
-	//multisampling.rasterizationSamples = NUM_SAMPLES;
-
-	//// Setup color output masks.
-	//// Set to write out RGBA components
-	//VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
-	//colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	//colorBlendAttachment.blendEnable = VK_FALSE;
-
-	//// Setup color blending
-	//VkPipelineColorBlendStateCreateInfo colorBlending = {};
-	//colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-	//colorBlending.logicOpEnable = VK_FALSE;
-	//colorBlending.logicOp = VK_LOGIC_OP_COPY;
-	//colorBlending.attachmentCount = 1;
-	//colorBlending.pAttachments = &colorBlendAttachment;
-	//colorBlending.blendConstants[0] = 0.0f;
-	//colorBlending.blendConstants[1] = 0.0f;
-	//colorBlending.blendConstants[2] = 0.0f;
-	//colorBlending.blendConstants[3] = 0.0f;
-
-	//// Create pipeline layout
-	//VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
-	//pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	//pipelineLayoutInfo.setLayoutCount = 0;
-	//pipelineLayoutInfo.pushConstantRangeCount = 0;
-	//pipelineLayoutInfo.setLayoutCount = (uint32_t)CDS->descLayout.size();
-	//pipelineLayoutInfo.pSetLayouts = CDS->descLayout.data();
-
- //   VkResult vkResult = vkCreatePipelineLayout(m_VulkanApplication->m_hDevice, &pipelineLayoutInfo, nullptr, &graphicsPipelineLayout);
-
-	//if (vkResult != VK_SUCCESS)
-	//{
-	//	VulkanHelper::LogError("vkCreatePipelineLayout() failed!");
-	//	assert(false);
-	//}
-
-	//// Create graphics pipeline
-	//VkGraphicsPipelineCreateInfo pipelineInfo = {};
-	//pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-	//pipelineInfo.stageCount = 2;
-	//pipelineInfo.pStages = shaderStages;
-	//pipelineInfo.pVertexInputState = &vertexInputInfo;
-	//pipelineInfo.pInputAssemblyState = &inputAssembly;
-	//pipelineInfo.pViewportState = &viewportState;
-	//pipelineInfo.pRasterizationState = &rasterizer;
-	//pipelineInfo.pMultisampleState = &multisampling;
-	//pipelineInfo.pColorBlendState = &colorBlending;
- //   pipelineInfo.layout = graphicsPipelineLayout;
- //   pipelineInfo.renderPass = m_VulkanApplication->m_hRenderPass;
-	//pipelineInfo.subpass = 0;
-	//pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-	//pipelineInfo.pDepthStencilState = &depthStencilStateInfo;
-
- //   vkResult = vkCreateGraphicsPipelines(m_VulkanApplication->m_hDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline);
-	//if (vkResult != VK_SUCCESS)
-	//{
-	//	VulkanHelper::LogError("vkCreateGraphicsPipelines() failed!");
-	//	assert(false);
-	//}
-
- //   m_GraphicsPipelineMap["RectGraphicsPipeline"] = qMakePair(graphicsPipeline, graphicsPipelineLayout);
-
-	//// Cleanup
- //   vkDestroyShaderModule(m_VulkanApplication->m_hDevice, fragShader, nullptr);
- //   vkDestroyShaderModule(m_VulkanApplication->m_hDevice, vertShader, nullptr);
 }
 
 void RectangleMultiDrawFactory::RecordCommandBuffer()
 {
-	// Specify the clear color value
-	VkClearValue clearColor[2];
-	clearColor[0].color.float32[0] = 0.0f;
-	clearColor[0].color.float32[1] = 0.0f;
-	clearColor[0].color.float32[2] = 0.0f;
-	clearColor[0].color.float32[3] = 0.0f;
+    // Specify the clear color value
+    VkClearValue clearColor[2];
+    clearColor[0].color.float32[0] = 0.0f;
+    clearColor[0].color.float32[1] = 0.0f;
+    clearColor[0].color.float32[2] = 0.0f;
+    clearColor[0].color.float32[3] = 0.0f;
 
-	// Specify the depth/stencil clear value
-	clearColor[1].depthStencil.depth = 1.0f;
-	clearColor[1].depthStencil.stencil = 0;
+    // Specify the depth/stencil clear value
+    clearColor[1].depthStencil.depth = 1.0f;
+    clearColor[1].depthStencil.stencil = 0;
 
-	// Offset to render in the frame buffer
-	VkOffset2D   renderOffset = { 0, 0 };
-	// Width & Height to render in the frame buffer
+    // Offset to render in the frame buffer
+    VkOffset2D   renderOffset = { 0, 0 };
+    // Width & Height to render in the frame buffer
     VkExtent2D   renderExtent = m_VulkanApplication->m_swapChainExtent;
 
-	// For each command buffers in the command buffer list
+    // For each command buffers in the command buffer list
     for (size_t i = 0; i < m_VulkanApplication->m_hCommandBufferList.size(); i++)
-	{
-		VkCommandBufferBeginInfo beginInfo = {};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		// Indicate that the command buffer can be resubmitted to the queue
-		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+    {
+        VkCommandBufferBeginInfo beginInfo = {};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        // Indicate that the command buffer can be resubmitted to the queue
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 
-		// Begin command buffer
+        // Begin command buffer
         vkBeginCommandBuffer(m_VulkanApplication->m_hCommandBufferList[i], &beginInfo);
 
-		VkRenderPassBeginInfo renderPassInfo = {};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        VkRenderPassBeginInfo renderPassInfo = {};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = m_VulkanApplication->m_hRenderPass;
         renderPassInfo.framebuffer = m_VulkanApplication->m_hFramebuffers[i];
-		renderPassInfo.renderArea.offset = renderOffset;
-		renderPassInfo.renderArea.extent = renderExtent;
-		renderPassInfo.clearValueCount = 2;
-		renderPassInfo.pClearValues = clearColor;
+        renderPassInfo.renderArea.offset = renderOffset;
+        renderPassInfo.renderArea.extent = renderExtent;
+        renderPassInfo.clearValueCount = 2;
+        renderPassInfo.pClearValues = clearColor;
 
-		// Begin render pass
+        // Begin render pass
         vkCmdBeginRenderPass(m_VulkanApplication->m_hCommandBufferList[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         Render(m_VulkanApplication->m_hCommandBufferList[i]); // consider using shared ptr/smart pointers
 
-		// End the Render pass
+        // End the Render pass
         vkCmdEndRenderPass(m_VulkanApplication->m_hCommandBufferList[i]);
 
-		// End the Command buffer
+        // End the Command buffer
         VkResult vkResult = vkEndCommandBuffer(m_VulkanApplication->m_hCommandBufferList[i]);
-		if (vkResult != VK_SUCCESS)
-		{
-			VulkanHelper::LogError("vkEndCommandBuffer() failed!");
-			assert(false);
-		}
-	}
+        if (vkResult != VK_SUCCESS)
+        {
+            VulkanHelper::LogError("vkEndCommandBuffer() failed!");
+            assert(false);
+        }
+    }
 }
 
 void RectangleMultiDrawFactory::CreateVertexBuffer()
@@ -739,11 +577,11 @@ void RectangleMultiDrawFactory::UpdateModelList(Model3D *p_Item)
     break;
 
     case RectangleModel::ROUNDED:
-    // TODO
-    break;
+        // TODO
+        break;
 
     default:
-    break;
+        break;
     }
     */
 }
@@ -818,7 +656,7 @@ void RectangleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
 
 void RectangleDescriptorSet::CreateUniformBuffer()
 {
@@ -873,7 +711,7 @@ void RectangleDescriptorSet::CreateDescriptorSetLayout()
     descriptorLayout.pBindings = layoutBindings;
 
     VkResult  result;
-    // Allocate required number of descriptor layout objects and  
+    // Allocate required number of descriptor layout objects and
     // create them using vkCreateDescriptorSetLayout()
     descLayout.resize(1);
     result = vkCreateDescriptorSetLayout(m_VulkanApplication->m_hDevice, &descriptorLayout, NULL, descLayout.data());
@@ -916,7 +754,7 @@ void RectangleDescriptorSet::CreateDescriptorPool()
     descriptorPoolCreateInfo.poolSizeCount = (uint32_t)descriptorTypePool.size();
     descriptorPoolCreateInfo.pPoolSizes = descriptorTypePool.data();
 
-    // Create the descriptor pool using the descriptor 
+    // Create the descriptor pool using the descriptor
     // pool create info structure
     result = vkCreateDescriptorPool(m_VulkanApplication->m_hDevice, &descriptorPoolCreateInfo, NULL, &descriptorPool);
     assert(result == VK_SUCCESS);
@@ -926,7 +764,7 @@ void RectangleDescriptorSet::CreateDescriptorSet()
 {
     VkResult  result;
 
-    // Create the descriptor allocation structure and specify the descriptor 
+    // Create the descriptor allocation structure and specify the descriptor
     // pool and descriptor layout
     VkDescriptorSetAllocateInfo dsAllocInfo[1];
     dsAllocInfo[0].sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -946,7 +784,7 @@ void RectangleDescriptorSet::CreateDescriptorSet()
     VkWriteDescriptorSet writes[1];
     memset(&writes, 0, sizeof(writes));
 
-    // Specify the uniform buffer related 
+    // Specify the uniform buffer related
     // information into first write descriptor
     writes[0] = {};
     writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -958,7 +796,7 @@ void RectangleDescriptorSet::CreateDescriptorSet()
     writes[0].dstArrayElement = 0;
     writes[0].dstBinding = 0; // DESCRIPTOR_SET_BINDING_INDEX
 
-                              // Update the uniform buffer into the allocated descriptor set
+    // Update the uniform buffer into the allocated descriptor set
     vkUpdateDescriptorSets(m_VulkanApplication->m_hDevice, 1, writes, 0, NULL);
 }
 
@@ -1011,98 +849,97 @@ void RectangleModel::Setup()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-//#include "../Chapter5/Ch5_03_UI_Shapes/source/Cube.h"
-//#include "../Chapter6/Ch6_02_DrawingMultipleObjects/source/Rect.h"
-//#include <QMouseEvent>
-//ProgressBar::ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, SHAPE p_ShapeType)
-//    : Model3D(p_Scene, p_Parent, p_Name, p_ShapeType)
-//{
-//    RectangleModel* background = new RectangleModel(NULL, m_Scene, this, "Rectangle 1", SHAPE_RECTANGLE);
-//    background->Rectangle(10, 10, 400, 50);
-//    background->SetColor(glm::vec4(0.6, 01.0, 0.0, 1.0));
-//    background->SetDefaultColor(glm::vec4(0.42, 0.65, 0.60, 1.0));
-//    //background->SetDrawType(RectangleModel::OUTLINE);
-//
-//    bar = new RectangleModel(NULL, m_Scene, background, "Bar", SHAPE_RECTANGLE);
-//    bar->Rectangle(0, (background->GetDimension().y * 0.25f), 400, 25);
-//    bar->SetColor(glm::vec4(0.6, 0.52, 0.320, 1.0));
-//    bar->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
-//    bar->SetDrawType(RectangleModel::OUTLINE);
-//
-//    progressIndicator = new RectangleModel(NULL, m_Scene, bar, "ProgressIndicator", SHAPE_RECTANGLE);
-//    progressIndicator->Rectangle(0, 0, 20, background->GetDimension().y);
-//    progressIndicator->Translate(0, -(background->GetDimension().y * 0.25f), 0);
-//    progressIndicator->SetColor(glm::vec4(0.1, 0.52, 0.320, 1.0));
-//    progressIndicator->SetDefaultColor(glm::vec4(0.2, 0.15, 0.60, 1.0));
-//    progressIndicator->SetDrawType(RectangleModel::OUTLINE);
-//}
-//
-//bool ProgressBar::mouseMoveEvent(QMouseEvent* p_Event)
-//{
-//    if (bar->mouseMoveEvent(p_Event))
-//    {
-//        //progressIndicator->Translate(p_Event->x(), 0.0, 0.0);
-//        //progressIndicator->SetPosition(p_Event->x(),  GetPosition().y());
-//        progressIndicator->SetPosition(p_Event->x(), progressIndicator->GetPosition().y);
-//        return true;
-//    }
-//
-//    return false;
-//}
+/*
+ProgressBar::ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, SHAPE p_ShapeType)
+	: Model3D(p_Scene, p_Parent, p_Name, p_ShapeType)
+{
+    RectangleModel* background = new RectangleModel(NULL, m_Scene, this, "Rectangle 1", SHAPE_RECTANGLE);
+	background->Rectangle(10, 10, 400, 50);
+	background->SetColor(glm::vec4(0.6, 01.0, 0.0, 1.0));
+	background->SetDefaultColor(glm::vec4(0.42, 0.65, 0.60, 1.0));
+    //background->SetDrawType(RectangleModel::OUTLINE);
+
+    bar = new RectangleModel(NULL, m_Scene, background, "Bar", SHAPE_RECTANGLE);
+    bar->Rectangle(0, (background->GetDimension().y * 0.25f), 400, 25);
+	bar->SetColor(glm::vec4(0.6, 0.52, 0.320, 1.0));
+	bar->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+    bar->SetDrawType(RectangleModel::OUTLINE);
+
+    progressIndicator = new RectangleModel(NULL, m_Scene, bar, "ProgressIndicator", SHAPE_RECTANGLE);
+    progressIndicator->Rectangle(0, 0, 20, background->GetDimension().y);
+	progressIndicator->Translate(0, -(background->GetDimension().y * 0.25f), 0);
+	progressIndicator->SetColor(glm::vec4(0.1, 0.52, 0.320, 1.0));
+	progressIndicator->SetDefaultColor(glm::vec4(0.2, 0.15, 0.60, 1.0));
+    progressIndicator->SetDrawType(RectangleModel::OUTLINE);
+}
+
+bool ProgressBar::mouseMoveEvent(QMouseEvent* p_Event)
+{
+    if (bar->mouseMoveEvent(p_Event))
+    {
+        //progressIndicator->Translate(p_Event->x(), 0.0, 0.0);
+        //progressIndicator->SetPosition(p_Event->x(),  GetPosition().y());
+        progressIndicator->SetPosition(p_Event->x(), progressIndicator->GetPosition().y);
+        return true;
+    }
+
+    return false;
+}
+*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, glm::vec2 p_TopLeftPos, glm::vec2 p_Dim, SHAPE p_ShapeType)
     : Model3D(p_Scene, p_Parent, p_Name, p_ShapeType)
 {
-    Rectangle(p_TopLeftPos.x, p_TopLeftPos.y, p_Dim.x, p_Dim.y);
+	Rectangle(p_TopLeftPos.x, p_TopLeftPos.y, p_Dim.x, p_Dim.y);
 
-    Model3D* background = new RectangleModel(NULL, m_Scene, this, "Audio Mixer Background", SHAPE_RECTANGLE);
-    background->Rectangle(0, 0, p_Dim.x, p_Dim.y);
-    background->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
-    background->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
+	Model3D* background = new RectangleModel(NULL, m_Scene, this, "Audio Mixer Background", SHAPE_RECTANGLE);
+	background->Rectangle(0, 0, p_Dim.x, p_Dim.y);
+	background->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
+	background->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
 
-    bool isActiveTrack = true;
-    const int activeIndicatorWidth = 7;
-    const int activeTrackIndicatorTopMargin = 5.0;
-    const int activeTrackIndicatorTopMarginLeftMargin = 4.0;
-    Model3D* activeTrackIndicator = new RectangleModel(NULL, m_Scene, background, "Active Track Indicator", SHAPE_RECTANGLE);
-    activeTrackIndicator->Rectangle(activeTrackIndicatorTopMarginLeftMargin, activeTrackIndicatorTopMargin, p_Dim.x - (5 * activeTrackIndicatorTopMarginLeftMargin), activeIndicatorWidth);
-    activeTrackIndicator->SetColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
-    activeTrackIndicator->SetDefaultColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
-
+	bool isActiveTrack = true;
+	const int activeIndicatorWidth = 7;
+	const int activeTrackIndicatorTopMargin = 5.0;
+	const int activeTrackIndicatorTopMarginLeftMargin = 4.0;
+	Model3D* activeTrackIndicator = new RectangleModel(NULL, m_Scene, background, "Active Track Indicator", SHAPE_RECTANGLE);
+	activeTrackIndicator->Rectangle(activeTrackIndicatorTopMarginLeftMargin, activeTrackIndicatorTopMargin, p_Dim.x - (5 * activeTrackIndicatorTopMarginLeftMargin), activeIndicatorWidth);
+	activeTrackIndicator->SetColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
+	activeTrackIndicator->SetDefaultColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
+	
     static int cnt = 0;
-    const int formatType = 7;
-    const int channelTopMargin = activeTrackIndicatorTopMargin + 15.0;
-    const int channelLeftMargin = 4.0;
-    const int channelWidth = (p_Dim.x / formatType) / 2;
-    for (int i = 0; i < formatType; i++)
-    {
-        Model3D* channelBackground = new RectangleModel(NULL, m_Scene, background, "Channel", SHAPE_RECTANGLE);
-        channelBackground->Rectangle((i * channelWidth) + channelLeftMargin, channelTopMargin, ((i == (formatType - 1)) ? 2 : 0) + channelWidth, p_Dim.y - channelTopMargin - 5.0);
-        channelBackground->SetColor(glm::vec4(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0));
-        channelBackground->SetDefaultColor(glm::vec4(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0));
+	const int formatType = 7;
+	const int channelTopMargin = activeTrackIndicatorTopMargin + 15.0;
+	const int channelLeftMargin = 4.0;
+	const int channelWidth = (p_Dim.x / formatType)/2;
+	for (int i = 0; i < formatType; i++)
+	{
+		Model3D* channelBackground = new RectangleModel(NULL, m_Scene, background, "Channel", SHAPE_RECTANGLE);
+		channelBackground->Rectangle((i * channelWidth) + channelLeftMargin, channelTopMargin, ((i == (formatType - 1)) ? 2 : 0) + channelWidth, p_Dim.y - channelTopMargin - 5.0);
+		channelBackground->SetColor(glm::vec4(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0));
+		channelBackground->SetDefaultColor(glm::vec4(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0));
 
-        Model3D* channel = new RectangleModel(NULL, m_Scene, channelBackground, "Channel", SHAPE_RECTANGLE);
-        channel->Rectangle(2, 2, channelWidth - 2, p_Dim.y - channelTopMargin - 5.0 - 4);
-        channel->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
-        channel->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
+		Model3D* channel = new RectangleModel(NULL, m_Scene, channelBackground, "Channel", SHAPE_RECTANGLE);
+		channel->Rectangle(2, 2, channelWidth - 2, p_Dim.y - channelTopMargin - 5.0 - 4);
+		channel->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
+		channel->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
+		
+		glm::vec4 red(246.0 / 255.0f, 24.0 / 255.0f, 39.0f / 255.0f, 1.0);
+		glm::vec4 yellow(226.0 / 255.0f, 208.0 / 255.0f, 4.0f / 255.0f, 1.0);
+		glm::vec4 green(29.0 / 255.0f, 148.0 / 255.0f, 56.0f / 255.0f, 1.0);
+		const int totalRangeIndicator = channel->GetRefDimension().y / 4;
+		const int redIndicatorRange = totalRangeIndicator * 0.05;
+		const int yellowIndicatorRange = totalRangeIndicator * 0.20;
+		for (int j = 0; j < totalRangeIndicator; j++)
+		{
+			Model3D* levelIndicator = new RectangleModel(NULL, m_Scene, channel, "Channel", SHAPE_RECTANGLE);
+			levelIndicator->Rectangle(2, j * 4, channelWidth - 4.0, 2.0);
 
-        glm::vec4 red(246.0 / 255.0f, 24.0 / 255.0f, 39.0f / 255.0f, 1.0);
-        glm::vec4 yellow(226.0 / 255.0f, 208.0 / 255.0f, 4.0f / 255.0f, 1.0);
-        glm::vec4 green(29.0 / 255.0f, 148.0 / 255.0f, 56.0f / 255.0f, 1.0);
-        const int totalRangeIndicator = channel->GetRefDimension().y / 4;
-        const int redIndicatorRange = totalRangeIndicator * 0.05;
-        const int yellowIndicatorRange = totalRangeIndicator * 0.20;
-        for (int j = 0; j < totalRangeIndicator; j++)
-        {
-            Model3D* levelIndicator = new RectangleModel(NULL, m_Scene, channel, "Channel", SHAPE_RECTANGLE);
-            levelIndicator->Rectangle(2, j * 4, channelWidth - 4.0, 2.0);
-
-            const glm::vec4 color = (j <= redIndicatorRange) ? red : ((j <= yellowIndicatorRange) ? yellow : green);
-            levelIndicator->SetColor(color);
-            levelIndicator->SetDefaultColor(color);
+			const glm::vec4 color = (j <= redIndicatorRange) ? red : ((j <= yellowIndicatorRange) ? yellow : green);
+			levelIndicator->SetColor(color);
+			levelIndicator->SetDefaultColor(color);
             cnt++;
-        }
-    }
+		}
+	}
 }
