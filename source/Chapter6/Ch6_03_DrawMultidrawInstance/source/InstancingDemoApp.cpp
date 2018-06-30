@@ -155,6 +155,21 @@ void InstancingDemoApp::Update()
 	}
 }
 
+void InstancingDemoApp::mousePressEvent(QMouseEvent* p_Event)
+{
+    m_Scene->mousePressEvent(p_Event);
+}
+
+void InstancingDemoApp::mouseReleaseEvent(QMouseEvent* p_Event)
+{
+    m_Scene->mouseReleaseEvent(p_Event);
+}
+
+void InstancingDemoApp::mouseMoveEvent(QMouseEvent* p_Event)
+{
+    m_Scene->mouseMoveEvent(p_Event);
+}
+
 void InstancingDemoApp::ResizeWindow(int width, int height)
 {
     VulkanApp::ResizeWindow(width, height);

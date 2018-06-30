@@ -32,9 +32,7 @@ public:
 	AbstractModelFactory* GetRenderScemeFactory();
 
 	virtual void Setup();
-
     void CreateVertexBuffer();
-
 	VulkanBuffer m_VertexBuffer;
 };
 
@@ -123,7 +121,6 @@ private:
 
     virtual void UpdateModelList(Model3D* p_Item);
 
-//	VulkanBuffer m_VertexBuffer;
     QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
 
     enum RECTANGLE_GRAPHICS_PIPELINES
@@ -136,13 +133,6 @@ private:
     std::vector<VkVertexInputBindingDescription>   m_VertexInputBinding[PIPELINE_COUNT];   // 0 for (position and color) 1 for ()
     std::vector<VkVertexInputAttributeDescription> m_VertexInputAttribute[PIPELINE_COUNT]; // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
 
-    //    typedef std::vector<Model3D*> ModelVector;
-
-    //VulkanBuffer m_VertexBuffer[PIPELINE_COUNT], m_InstanceBuffer[PIPELINE_COUNT];
-    //ModelVector m_PipelineTypeModelVector[PIPELINE_COUNT];
-
-
-    // Store app specific objects
     VulkanApp* m_VulkanApplication;
 };
 
