@@ -153,7 +153,6 @@ void MyFirst3DApp::Update()
 bool MyFirst3DApp::Render()
 {
     // Important: Unlike non-instaced jobs the instanced jobs are more efficient in terms of performance
-
     m_Scene->Render();
 
     return VulkanApp::Render();

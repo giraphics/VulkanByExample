@@ -6,11 +6,12 @@ mat4 mvp;
 } myBufferVals;
 
 layout (location = 0) in vec4 inPosition;
-layout (location = 1) in vec4 inColor;
+layout (location = 1) in vec4 inColor; // Not being in use
+
 // Instanced attributes
 layout (location = 2) in mat4 instancePos;
-layout (location = 6) in vec4 instanceRot;
-layout (location = 7) in vec4 instanceCol;
+layout (location = 6) in vec4 dimension;
+layout (location = 7) in vec4 color;
 layout(location = 0) out vec4 fragColor;
 layout(location = 1) out vec4 texCoord;
 
@@ -20,14 +21,13 @@ out gl_PerVertex {
 
 void main() 
 {
-    //gl_Position = myBufferVals.mvp * inPosition;
     vec4 inPositionNew = inPosition;
 //	fragColor = inColor;
-	fragColor = instanceCol;
+	fragColor = color;
 	texCoord = inPosition;
-	inPositionNew.x = inPosition.x * instanceRot.x;
-	inPositionNew.y = inPosition.y * instanceRot.y;
-    gl_Position   = myBufferVals.mvp * instancePos * (inPositionNew /*+ instanceRot*/);
+	inPositionNew.x = inPosition.x * dimension.x;
+	inPositionNew.y = inPosition.y * dimension.y;
+    gl_Position   = myBufferVals.mvp * instancePos * (inPositionNew /*+ dimension*/);
 	gl_Position.z = (gl_Position.z + gl_Position.w) / 2.0;
 
 }
