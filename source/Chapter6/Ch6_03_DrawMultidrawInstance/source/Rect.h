@@ -104,7 +104,8 @@ public:
 
 public:
 	virtual void Setup();
-    void Update();
+    virtual void Update();
+    virtual void Render() { RecordCommandBuffer(); }
 
     void ResizeWindow(int width, int height);
 	virtual void Prepare(Scene3D* p_Scene);
