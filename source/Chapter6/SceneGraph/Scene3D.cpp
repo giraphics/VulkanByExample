@@ -92,6 +92,14 @@ void Scene3D::Update()
 //	m_CubeFactory->prepareInstanceData(m_Scene);
 }
 
+void Scene3D::Render()
+{
+    foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+    {
+        currentModelFactory->Render();
+    }
+}
+
 void Scene3D::GatherFlatList()
 {
     m_FlatList.clear();

@@ -17,8 +17,9 @@ public:
 
 	virtual Model3D* GetModel(VulkanApp* p_VulkanApp, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE) { return NULL; }
 	virtual void Setup() {}
-	virtual void Update() {}
-	virtual void Prepare(Scene3D* p_Scene) {}
+    virtual void Update() {}
+    virtual void Render() {}
+    virtual void Prepare(Scene3D* p_Scene) {}
     virtual void UpdateModelList(Model3D* p_Parent) {}
     virtual void ResizeWindow(int p_Width, int p_Height) {}
 

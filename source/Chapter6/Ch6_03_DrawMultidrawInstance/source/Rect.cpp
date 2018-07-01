@@ -633,6 +633,7 @@ void RectangleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
         }
 
         vkCmdBindDescriptorSets(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineLayout, 0, 1, CDS->descriptorSet.data(), 0, NULL);
+        vkCmdBindPipeline(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
         const int modelSize = m_ModelList.size();
         for (int j = 0; j < modelSize; j++)
@@ -641,8 +642,6 @@ void RectangleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
             {
                 RectangleModel* model = (static_cast<RectangleModel*>(m_ModelList.at(j)));
                 if (!model) return;
-
-                vkCmdBindPipeline(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
                 // Specify vertex buffer information
                 const VkDeviceSize offsets[1] = { 0 };

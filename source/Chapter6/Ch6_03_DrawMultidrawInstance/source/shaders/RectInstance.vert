@@ -5,6 +5,10 @@ layout (std140, binding = 0) uniform TransformBufferStruct {
 	mat4 mvp;
 } TransformBuffer;
 
+layout(push_constant) uniform colorBlock {
+    vec4 inNewColor;
+} pushConstantsColorBlock;
+
 // Vextex attributes
 layout (location = 0) in vec4 inPosition;
 layout (location = 1) in vec4 inColor;

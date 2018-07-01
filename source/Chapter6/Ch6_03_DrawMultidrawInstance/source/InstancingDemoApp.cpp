@@ -45,7 +45,6 @@ InstancingDemoApp::InstancingDemoApp()
 
 InstancingDemoApp::~InstancingDemoApp()
 {
-    delete m_Cube;
 }
 
 void InstancingDemoApp::Grid(Scene3D* m_Scene)
@@ -117,6 +116,15 @@ void InstancingDemoApp::Configure()
 
 void InstancingDemoApp::Setup()
 {
+    // Note: We are overidding the default Create Command pool with VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+    // because we need to re-record the command buffer when the instance data size changes. 
+    // This need to recreate the command buffer. 
+    VkCommandPoolCreateInfo poolInfo = {};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    poolInfo.queueFamilyIndex = m_physicalDeviceInfo.graphicsFamilyIndex;
+    VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo, &poolInfo);
+
 	//static glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 	//m_Scene->SetProjection(&Projection);
 
@@ -154,6 +162,17 @@ void InstancingDemoApp::Update()
 		m_Scene->Update();
 	}
 }
+
+bool InstancingDemoApp::Render()
+{
+    // Important: Uncomment below line only if there are updates for model expected in the Model
+    // 1. It has been observed that the re-recording of command buffer in case of non-instance drawing is expensive
+    
+    // m_Scene->Render(); //Read the note before uncommenting
+
+    return VulkanApp::Render();
+}
+
 
 void InstancingDemoApp::mousePressEvent(QMouseEvent* p_Event)
 {

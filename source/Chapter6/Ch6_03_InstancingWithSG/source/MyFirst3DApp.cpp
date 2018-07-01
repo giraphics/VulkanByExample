@@ -112,6 +112,15 @@ void MyFirst3DApp::Configure()
 
 void MyFirst3DApp::Setup()
 {
+    // Note: We are overidding the default Create Command pool with VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+    // because we need to re-record the command buffer when the instance data size changes. 
+    // This need to recreate the command buffer. 
+    VkCommandPoolCreateInfo poolInfo = {};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    poolInfo.queueFamilyIndex = m_physicalDeviceInfo.graphicsFamilyIndex;
+    VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo, &poolInfo);
+
 	//static glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 	static glm::mat4 Projection = glm::ortho(0.0f, static_cast<float>(m_windowDim.width), 0.0f, static_cast<float>(m_windowDim.height));
 	m_Scene->SetProjection(&Projection);
@@ -139,6 +148,15 @@ void MyFirst3DApp::Update()
 	m_Scene->Update();
 
 	isDirty = false;
+}
+
+bool MyFirst3DApp::Render()
+{
+    // Important: Unlike non-instaced jobs the instanced jobs are more efficient in terms of performance
+
+    m_Scene->Render();
+
+    return VulkanApp::Render();
 }
 
 void MyFirst3DApp::mousePressEvent(QMouseEvent* p_Event)

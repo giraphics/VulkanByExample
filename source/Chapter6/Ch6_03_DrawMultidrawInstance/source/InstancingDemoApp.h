@@ -13,20 +13,19 @@ public:
     virtual void Configure();
     virtual void Setup();
     virtual void Update();
+    virtual bool Render();
     void ResizeWindow(int width, int height);
 
-    virtual void mousePressEvent(QMouseEvent* p_Event);
-    virtual void mouseReleaseEvent(QMouseEvent* p_Event);
-    virtual void mouseMoveEvent(QMouseEvent* p_Event);
+	virtual void mousePressEvent(QMouseEvent* p_Event);
+	virtual void mouseReleaseEvent(QMouseEvent* p_Event);
+	virtual void mouseMoveEvent(QMouseEvent* p_Event);
 
 private:
 	void Grid(Scene3D* m_Scene);
-    void MixerView(Scene3D* m_Scene);
+	void MixerView(Scene3D* m_Scene);
+//	void ProgressBarFunc(Scene3D* m_Scene);
 
 private:
-//	RectangleMultiDrawFactory* m_CubeFactory;
-    //Rect* m_Cube;
 	Scene3D* m_Scene;
-	Model3D* m_Cube;
 };
-
+    

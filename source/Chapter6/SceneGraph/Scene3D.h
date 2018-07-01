@@ -21,6 +21,7 @@ public:
 
     void Setup();
     void Update();
+    void Render();
 
     void AddModel(Model3D* p_Model);
     void RemoveModel(Model3D *p_Model);
