@@ -57,16 +57,17 @@ struct RectangleDescriptorSet
 
         UniformBuffer = new UniformBufferObj;
     }
+
     ~RectangleDescriptorSet()
     {
-        //// Destroy descriptors
-        //for (int i = 0; i < descLayout.size(); i++) {
-        //	vkDestroyDescriptorSetLayout(m_VulkanApplication->m_hDevice, descLayout[i], NULL);
-        //}
-        //descLayout.clear();
+        // Destroy descriptors
+        for (int i = 0; i < descLayout.size(); i++) {
+        	vkDestroyDescriptorSetLayout(m_VulkanApplication->m_hDevice, descLayout[i], NULL);
+        }
+        descLayout.clear();
 
-        //vkFreeDescriptorSets(m_VulkanApplication->m_hDevice, descriptorPool, (uint32_t)descriptorSet.size(), &descriptorSet[0]);
-        //vkDestroyDescriptorPool(m_VulkanApplication->m_hDevice, descriptorPool, NULL);
+        vkFreeDescriptorSets(m_VulkanApplication->m_hDevice, descriptorPool, (uint32_t)descriptorSet.size(), &descriptorSet[0]);
+        vkDestroyDescriptorPool(m_VulkanApplication->m_hDevice, descriptorPool, NULL);
     }
 
     void CreateUniformBuffer();

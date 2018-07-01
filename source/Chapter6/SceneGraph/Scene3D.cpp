@@ -18,6 +18,21 @@ Scene3D::Scene3D(AbstractApp* p_Application)
 
 Scene3D::~Scene3D()
 {
+    RenderSchemeTypeMap* m_FactoryMap = NULL;
+    std::map<SHAPE, RenderSchemeTypeMap*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
+
+    while (itSRST != m_ShapeRenderSchemeTypeMap.end())
+    {
+        m_FactoryMap = itSRST->second;
+        std::map<RENDER_SCEHEME_TYPE, AbstractModelFactory*>::iterator it = m_FactoryMap->begin();
+        if (it != m_FactoryMap->end())
+        {
+            delete it->second;
+        }
+
+        ++itSRST;
+    }
+
     foreach (Model3D* currentModel, m_ModelList)
     {
         delete currentModel;

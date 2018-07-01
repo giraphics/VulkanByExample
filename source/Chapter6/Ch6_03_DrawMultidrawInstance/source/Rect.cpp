@@ -15,7 +15,8 @@ using namespace std;
 static char* PIPELINE_RECT_FILLED = "RectFilled";
 static char* PIPELINE_RECT_OUTLINE = "RectOutline";
 
-std::shared_ptr<RectangleDescriptorSet> CDS = NULL;// std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
+//std::shared_ptr<RectangleDescriptorSet> CDS = NULL;// std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
+RectangleDescriptorSet* CDS = NULL;// std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
 RectangleDescriptorSet::UniformBufferObj* UniformBuffer = NULL;
 
 static const Vertex rectFilledVertices[] =
@@ -50,9 +51,20 @@ RectangleMultiDrawFactory::RectangleMultiDrawFactory(VulkanApp* p_VulkanApp)
 RectangleMultiDrawFactory::~RectangleMultiDrawFactory()
 {
 	// Destroy Vertex Buffer
-////    vkDestroyBuffer(m_VulkanApplication->m_hDevice, m_VertexBuffer.m_Buffer, NULL);
-////    vkFreeMemory(m_VulkanApplication->m_hDevice, m_VertexBuffer.m_Memory, NULL);
+    const int modelSize = m_ModelList.size();
+    for (int j = 0; j < modelSize; j++)
+    {
+        if (m_ModelList.at(j)->GetRefShapeType() == SHAPE_RECTANGLE)
+        {
+            RectangleModel* model = (static_cast<RectangleModel*>(m_ModelList.at(j)));
+            if (!model) return;
 
+            vkDestroyBuffer(m_VulkanApplication->m_hDevice, model->m_VertexBuffer.m_Buffer, NULL);
+            vkFreeMemory(m_VulkanApplication->m_hDevice, model->m_VertexBuffer.m_Memory, NULL);
+        }
+    }
+
+    delete CDS;
 	//// Destroy descriptors
 	//for (int i = 0; i < descLayout.size(); i++) {
  //       vkDestroyDescriptorSetLayout(m_VulkanApplication->m_hDevice, descLayout[i], NULL);
@@ -71,7 +83,8 @@ void RectangleMultiDrawFactory::Setup()
 {
     if (!CDS)
     {
-        CDS = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
+        //CDS = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
+        CDS = new RectangleDescriptorSet(m_VulkanApplication);
         CDS->CreateDescriptor();
         UniformBuffer = CDS->UniformBuffer;
     }

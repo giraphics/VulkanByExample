@@ -45,6 +45,7 @@ InstancingDemoApp::InstancingDemoApp()
 
 InstancingDemoApp::~InstancingDemoApp()
 {
+    delete m_Scene;
 }
 
 void InstancingDemoApp::Grid(Scene3D* m_Scene)
