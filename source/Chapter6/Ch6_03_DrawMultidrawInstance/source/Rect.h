@@ -14,7 +14,6 @@ struct Vertex
 class RectangleModel : public Model3D
 {
 public:
-    /*
     enum DRAW_TYPE
     {
         FILLED = 0,
@@ -22,12 +21,11 @@ public:
         ROUNDED,
         DRAW_TYPE_COUNT
     };
-     */
 
 public:
     RectangleModel(VulkanApp* p_VulkanApp/*REMOVE ME*/, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_MULTIDRAW);
     virtual ~RectangleModel() {}
-    //GETSET(DRAW_TYPE, DrawType)
+    GETSET(DRAW_TYPE, DrawType)
 
 	AbstractModelFactory* GetRenderScemeFactory();
 
@@ -128,12 +126,15 @@ private:
     enum RECTANGLE_GRAPHICS_PIPELINES
     {
         PIPELINE_FILLED = 0,
-//        PIPELINE_OUTLINE,
+        PIPELINE_OUTLINE,
         PIPELINE_COUNT,
     };
 
     std::vector<VkVertexInputBindingDescription>   m_VertexInputBinding[PIPELINE_COUNT];   // 0 for (position and color) 1 for ()
     std::vector<VkVertexInputAttributeDescription> m_VertexInputAttribute[PIPELINE_COUNT]; // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
+
+    typedef std::vector<Model3D*> ModelVector;
+    ModelVector m_PipelineTypeModelVector[PIPELINE_COUNT];
 
     VulkanApp* m_VulkanApplication;
 };
