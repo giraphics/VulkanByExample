@@ -1,9 +1,9 @@
 #pragma once
 #include "../../../common/VulkanApp.h"
 
-#include "../SceneGraph/Transformation3D.h"
-#include "../SceneGraph/Scene3D.h"
-#include "../SceneGraph/Model3D.h"
+#include "../TempEx2_SceneGraph/Transformation3D.h"
+#include "../TempEx2_SceneGraph/Scene3D.h"
+#include "../TempEx2_SceneGraph/Model3D.h"
 
 struct Vertex
 {
