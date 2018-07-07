@@ -41,7 +41,7 @@ Scene3D::~Scene3D()
 
 void Scene3D::Setup()
 {
-    GatherFlatList(); // Assuming all nodes are added into the scenes by now
+    GatherFlatModelList(); // Assuming all nodes are added into the scenes by now
 
     foreach (Model3D* currentModel, m_ModelList)
     {
@@ -72,12 +72,6 @@ void Scene3D::Setup()
         itSRST++;
     }
 
-    ///////////////////////////////////////////////
-    foreach(Model3D* currentModel, m_FlatList)
-    {
-//        m_ModelFactories.insert(currentModel->m_AbstractFactory);
-    }
-
 	assert(m_ModelFactories.size());
 	foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
     {
@@ -103,8 +97,6 @@ void Scene3D::Update()
 	{
 		currentModelFactory->Update();
 	}
-
-//	m_CubeFactory->prepareInstanceData(m_Scene);
 }
 
 void Scene3D::Render()
@@ -115,7 +107,7 @@ void Scene3D::Render()
     }
 }
 
-void Scene3D::GatherFlatList()
+void Scene3D::GatherFlatModelList()
 {
     m_FlatList.clear();
 
@@ -123,7 +115,7 @@ void Scene3D::GatherFlatList()
     {
         assert(item);
 
-        item->GatherFlatList();
+        item->GatherFlatModelList();
     }
 }
 
@@ -151,10 +143,10 @@ void Scene3D::Resize(int p_Width, int p_Height)
     m_ScreenWidth = p_Width;
     m_ScreenHeight = p_Height;
 
-	foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
-	{
-		currentModelFactory->ResizeWindow(p_Width, p_Height);
-	}
+    foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+    {
+        currentModelFactory->ResizeWindow(p_Width, p_Height);
+    }
 }
 
 void Scene3D::SetUpProjection()
@@ -197,29 +189,11 @@ void Scene3D::mouseReleaseEvent(QMouseEvent* p_Event)
 
 void Scene3D::mouseMoveEvent(QMouseEvent* p_Event)
 {
-    Model3D* oldModelItem = GetCurrentHoverItem();
-    for (int i = m_ModelList.size() - 1; i >= 0; i--)
+    foreach (Model3D* item, m_ModelList)
     {
-        Model3D* item = m_ModelList.at(i);
         assert(item);
 
-        if (item->mouseMoveEvent(p_Event))
-        {
-            Model3D* currentModel = GetCurrentHoverItem();
-            if (oldModelItem && oldModelItem != currentModel)
-            {
-                oldModelItem->SetColor(oldModelItem->GetDefaultColor());
-            }
-
-            currentModel->SetColor(glm::vec4(1.0, 1.0, 0.3, 1.0));
-            isDirty = true;
-            return;
-        }
-    }
-
-    if (oldModelItem)
-    {
-        oldModelItem->SetColor(oldModelItem->GetDefaultColor());
+        item->mouseMoveEvent(p_Event);
     }
 }
 

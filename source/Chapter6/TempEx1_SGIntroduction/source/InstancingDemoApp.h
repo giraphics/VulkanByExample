@@ -16,15 +16,6 @@ public:
     virtual bool Render();
     void ResizeWindow(int width, int height);
 
-	virtual void mousePressEvent(QMouseEvent* p_Event);
-	virtual void mouseReleaseEvent(QMouseEvent* p_Event);
-	virtual void mouseMoveEvent(QMouseEvent* p_Event);
-
-private:
-	void Grid(Scene3D* m_Scene);
-	void MixerView(Scene3D* m_Scene);
-//	void ProgressBarFunc(Scene3D* m_Scene);
-
 private:
 	Scene3D* m_Scene;
 };

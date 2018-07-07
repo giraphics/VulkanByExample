@@ -38,15 +38,15 @@ public:
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
     virtual void mouseMoveEvent(QMouseEvent* p_Event);
 
-    GETSET(glm::mat4*, Projection)	    // Not owned by Scene, double check this can be owned. TODO: PS
-    GETSET(glm::mat4*, View)		    // Not owned by Scene
-    GETSET(Model3D*, CurrentHoverItem)	// Not owned by Scene
+    GETSET(glm::mat4*, Projection)      // Not owned by Scene, double check this can be owned. TODO: PS
+    GETSET(glm::mat4*, View)            // Not owned by Scene
+    GETSET(Model3D*, CurrentHoverItem)  // Not owned by Scene
     GETSET(AbstractApp*, Application)
-    
+
     AbstractModelFactory* GetFactory(Model3D* p_Model);
 
 private:
-    void GatherFlatList();
+    void GatherFlatModelList();
 
 public:
     int m_ScreenHeight;

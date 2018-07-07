@@ -148,9 +148,9 @@ void RectangleMultiDrawFactory::CreateRectOutlinePipeline()
     VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     // Check the size where every necessrry
-    vertexInputInfo.vertexBindingDescriptionCount = m_VertexInputBinding[PIPELINE_OUTLINE].size();
+    vertexInputInfo.vertexBindingDescriptionCount = (uint32_t)m_VertexInputBinding[PIPELINE_OUTLINE].size();
     vertexInputInfo.pVertexBindingDescriptions = m_VertexInputBinding[PIPELINE_OUTLINE].data();
-    vertexInputInfo.vertexAttributeDescriptionCount = m_VertexInputAttribute[PIPELINE_OUTLINE].size();
+    vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)m_VertexInputAttribute[PIPELINE_OUTLINE].size();
     vertexInputInfo.pVertexAttributeDescriptions = m_VertexInputAttribute[PIPELINE_OUTLINE].data();
     
     // Setup input assembly
@@ -225,12 +225,12 @@ void RectangleMultiDrawFactory::CreateRectOutlinePipeline()
     // Set to write out RGBA components
     VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
     colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-    colorBlendAttachment.blendEnable = VK_TRUE;
+    colorBlendAttachment.blendEnable = VK_FALSE;
 
     // Setup color blending
     VkPipelineColorBlendStateCreateInfo colorBlending = {};
     colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-    colorBlending.logicOpEnable = VK_TRUE;
+    colorBlending.logicOpEnable = VK_FALSE;
     colorBlending.logicOp = VK_LOGIC_OP_COPY;
     colorBlending.attachmentCount = 1;
     colorBlending.pAttachments = &colorBlendAttachment;
@@ -313,9 +313,9 @@ void RectangleMultiDrawFactory::CreateRectFillPipeline()
     // Setup the vertex input
     VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount = m_VertexInputBinding[PIPELINE_FILLED].size();// sizeof(m_VertexInputBinding[PIPELINE_FILLED]) / sizeof(VkVertexInputBindingDescription);
+    vertexInputInfo.vertexBindingDescriptionCount = (uint32_t)m_VertexInputBinding[PIPELINE_FILLED].size();// sizeof(m_VertexInputBinding[PIPELINE_FILLED]) / sizeof(VkVertexInputBindingDescription);
     vertexInputInfo.pVertexBindingDescriptions = m_VertexInputBinding[PIPELINE_FILLED].data();
-    vertexInputInfo.vertexAttributeDescriptionCount = m_VertexInputAttribute[PIPELINE_FILLED].size();// sizeof(m_VertexInputAttribute[PIPELINE_FILLED]) / sizeof(VkVertexInputAttributeDescription);
+    vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)m_VertexInputAttribute[PIPELINE_FILLED].size();// sizeof(m_VertexInputAttribute[PIPELINE_FILLED]) / sizeof(VkVertexInputAttributeDescription);
     vertexInputInfo.pVertexAttributeDescriptions = m_VertexInputAttribute[PIPELINE_FILLED].data();
 
     // Setup input assembly
@@ -950,101 +950,34 @@ void RectangleModel::CreateVertexBuffer()
 void RectangleModel::Setup()
 {
     CreateVertexBuffer();
+
 	Model3D::Setup();
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////
-/*
-ProgressBar::ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, SHAPE p_ShapeType)
-	: Model3D(p_Scene, p_Parent, p_Name, p_ShapeType)
+void RectangleModel::Rectangle(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder/*=0*/)
 {
-    RectangleModel* background = new RectangleModel(NULL, m_Scene, this, "Rectangle 1", SHAPE_RECTANGLE);
-	background->Rectangle(10, 10, 400, 50);
-	background->SetColor(glm::vec4(0.6, 01.0, 0.0, 1.0));
-	background->SetDefaultColor(glm::vec4(0.42, 0.65, 0.60, 1.0));
-    //background->SetDrawType(RectangleModel::OUTLINE);
+    Translate(p_X, p_Y, p_ZOrder);
 
-    bar = new RectangleModel(NULL, m_Scene, background, "Bar", SHAPE_RECTANGLE);
-    bar->Rectangle(0, (background->GetDimension().y * 0.25f), 400, 25);
-	bar->SetColor(glm::vec4(0.6, 0.52, 0.320, 1.0));
-	bar->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
-    bar->SetDrawType(RectangleModel::OUTLINE);
+    m_Position.x = p_X;
+    m_Position.y = p_Y;
+    m_Position.z = p_ZOrder;
 
-    progressIndicator = new RectangleModel(NULL, m_Scene, bar, "ProgressIndicator", SHAPE_RECTANGLE);
-    progressIndicator->Rectangle(0, 0, 20, background->GetDimension().y);
-	progressIndicator->Translate(0, -(background->GetDimension().y * 0.25f), 0);
-	progressIndicator->SetColor(glm::vec4(0.1, 0.52, 0.320, 1.0));
-	progressIndicator->SetDefaultColor(glm::vec4(0.2, 0.15, 0.60, 1.0));
-    progressIndicator->SetDrawType(RectangleModel::OUTLINE);
+    m_Dimension.x = p_Width;
+    m_Dimension.y = p_Height;
 }
 
-bool ProgressBar::mouseMoveEvent(QMouseEvent* p_Event)
+void Model3D::SetPosition(float p_X, float p_Y)
 {
-    if (bar->mouseMoveEvent(p_Event))
-    {
-        //progressIndicator->Translate(p_Event->x(), 0.0, 0.0);
-        //progressIndicator->SetPosition(p_Event->x(),  GetPosition().y());
-        progressIndicator->SetPosition(p_Event->x(), progressIndicator->GetPosition().y);
-        return true;
-    }
+    glm::vec4 posStart((0 * m_Dimension.x), (0 * m_Dimension.y), 0.0, 1.0);
+    glm::vec4 posStartResult = /*GetParentsTransformation(GetParent()) **/ m_TransformedModel * posStart;
 
-    return false;
-}
-*/
+    glm::vec4 posEnd((m_Dimension.x), (m_Dimension.y), 0.0, 1.0);
+    glm::vec4 posEndResult = /*GetParentsTransformation(GetParent()) **/ m_TransformedModel * posEnd;
 
-////////////////////////////////////////////////////////////////////////////////////////////
+    m_Position.x = p_X;
+    m_Position.y = p_Y;
 
-AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, glm::vec2 p_TopLeftPos, glm::vec2 p_Dim, SHAPE p_ShapeType)
-    : Model3D(p_Scene, p_Parent, p_Name, p_ShapeType)
-{
-	Rectangle(p_TopLeftPos.x, p_TopLeftPos.y, p_Dim.x, p_Dim.y);
-
-	Model3D* background = new RectangleModel(NULL, m_Scene, this, "Audio Mixer Background", SHAPE_RECTANGLE);
-	background->Rectangle(0, 0, p_Dim.x, p_Dim.y);
-	background->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
-	background->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
-
-	bool isActiveTrack = true;
-	const int activeIndicatorWidth = 7;
-	const int activeTrackIndicatorTopMargin = 5.0;
-	const int activeTrackIndicatorTopMarginLeftMargin = 4.0;
-	Model3D* activeTrackIndicator = new RectangleModel(NULL, m_Scene, background, "Active Track Indicator", SHAPE_RECTANGLE);
-	activeTrackIndicator->Rectangle(activeTrackIndicatorTopMarginLeftMargin, activeTrackIndicatorTopMargin, p_Dim.x - (5 * activeTrackIndicatorTopMarginLeftMargin), activeIndicatorWidth);
-	activeTrackIndicator->SetColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
-	activeTrackIndicator->SetDefaultColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
-	
-    static int cnt = 0;
-	const int formatType = 7;
-	const int channelTopMargin = activeTrackIndicatorTopMargin + 15.0;
-	const int channelLeftMargin = 4.0;
-	const int channelWidth = (p_Dim.x / formatType)/2;
-	for (int i = 0; i < formatType; i++)
-	{
-		Model3D* channelBackground = new RectangleModel(NULL, m_Scene, background, "Channel", SHAPE_RECTANGLE);
-		channelBackground->Rectangle((i * channelWidth) + channelLeftMargin, channelTopMargin, ((i == (formatType - 1)) ? 2 : 0) + channelWidth, p_Dim.y - channelTopMargin - 5.0);
-		channelBackground->SetColor(glm::vec4(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0));
-		channelBackground->SetDefaultColor(glm::vec4(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0));
-
-		Model3D* channel = new RectangleModel(NULL, m_Scene, channelBackground, "Channel", SHAPE_RECTANGLE);
-		channel->Rectangle(2, 2, channelWidth - 2, p_Dim.y - channelTopMargin - 5.0 - 4);
-		channel->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
-		channel->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
-		
-		glm::vec4 red(246.0 / 255.0f, 24.0 / 255.0f, 39.0f / 255.0f, 1.0);
-		glm::vec4 yellow(226.0 / 255.0f, 208.0 / 255.0f, 4.0f / 255.0f, 1.0);
-		glm::vec4 green(29.0 / 255.0f, 148.0 / 255.0f, 56.0f / 255.0f, 1.0);
-		const int totalRangeIndicator = channel->GetRefDimension().y / 4;
-		const int redIndicatorRange = totalRangeIndicator * 0.05;
-		const int yellowIndicatorRange = totalRangeIndicator * 0.20;
-		for (int j = 0; j < totalRangeIndicator; j++)
-		{
-			Model3D* levelIndicator = new RectangleModel(NULL, m_Scene, channel, "Channel", SHAPE_RECTANGLE);
-			levelIndicator->Rectangle(2, j * 4, channelWidth - 4.0, 2.0);
-
-			const glm::vec4 color = (j <= redIndicatorRange) ? red : ((j <= yellowIndicatorRange) ? yellow : green);
-			levelIndicator->SetColor(color);
-			levelIndicator->SetDefaultColor(color);
-            cnt++;
-		}
-	}
+    Reset();
+    Translate(m_Position.x, m_Position.y, m_Position.z);
+    m_TransformedModel = m_Model * GetParentsTransformation(GetParent());
 }

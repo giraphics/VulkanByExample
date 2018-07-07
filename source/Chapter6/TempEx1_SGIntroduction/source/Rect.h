@@ -27,11 +27,14 @@ public:
     virtual ~RectangleModel() {}
     GETSET(DRAW_TYPE, DrawType)
 
-	AbstractModelFactory* GetRenderScemeFactory();
+    void Rectangle(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder = 0.0f);
+    void SetPosition(float p_X, float p_Y);
 
-	virtual void Setup();
+    AbstractModelFactory* GetRenderScemeFactory();
+
+    virtual void Setup();
     void CreateVertexBuffer();
-	VulkanBuffer m_VertexBuffer;
+    VulkanBuffer m_VertexBuffer;
 };
 
 struct RectangleDescriptorSet
@@ -138,27 +141,3 @@ private:
 
     VulkanApp* m_VulkanApplication;
 };
-
-class RectangleModel;
-class QMouseEvent;
-class ProgressBar : public Model3D
-{
-public:
-    ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
-    virtual ~ProgressBar() {}
-
-    virtual bool mouseMoveEvent(QMouseEvent* p_Event);
-    RectangleModel* progressIndicator;
-    RectangleModel* bar;
-};
-
-class AudioMixerItem : public Model3D
-{
-public:
-    AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, glm::vec2 p_TopLeftPos, glm::vec2 p_Dim, SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
-    virtual ~AudioMixerItem() {}
-
-    //virtual bool mouseMoveEvent(QMouseEvent* p_Event);
-    //Model3D* progressIndicator;
-};
-
