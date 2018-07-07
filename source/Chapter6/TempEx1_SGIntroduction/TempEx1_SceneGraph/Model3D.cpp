@@ -43,7 +43,7 @@ void Model3D::mouseReleaseEvent(QMouseEvent* p_Event)
     }
 }
 
-bool Model3D::mouseMoveEvent(QMouseEvent* p_Event)
+void Model3D::mouseMoveEvent(QMouseEvent* p_Event)
 {
     foreach(Model3D* item, m_ChildList)
     {
@@ -51,8 +51,6 @@ bool Model3D::mouseMoveEvent(QMouseEvent* p_Event)
 
         item->mouseMoveEvent(p_Event);
     }
-
-    return false;
 }
 
 void Model3D::Update()

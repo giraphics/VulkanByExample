@@ -27,7 +27,7 @@ public:
     void RemoveModel(Model3D *p_Model);
 
     void Resize(int p_Width, int p_Height);
-    void SetUpProjection();
+    virtual void SetUpProjection();
     inline Transformation3D& Transform() { return m_Transform; }
 
     void PushMatrix() { m_Transform.PushMatrix(); }
@@ -38,8 +38,6 @@ public:
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
     virtual void mouseMoveEvent(QMouseEvent* p_Event);
 
-    GETSET(glm::mat4*, Projection)      // Not owned by Scene, double check this can be owned. TODO: PS
-    GETSET(glm::mat4*, View)            // Not owned by Scene
     GETSET(Model3D*, CurrentHoverItem)  // Not owned by Scene
     GETSET(AbstractApp*, Application)
 

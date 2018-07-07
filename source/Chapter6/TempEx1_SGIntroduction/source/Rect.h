@@ -1,9 +1,9 @@
 #pragma once
 #include "../../../common/VulkanApp.h"
 
-#include "../SceneGraph/Transformation3D.h"
-#include "../SceneGraph/Scene3D.h"
-#include "../SceneGraph/Model3D.h"
+#include "../TempEx1_SceneGraph/Transformation3D.h"
+#include "../TempEx1_SceneGraph/Scene3D.h"
+#include "../TempEx1_SceneGraph/Model3D.h"
 
 struct Vertex
 {
@@ -23,11 +23,13 @@ public:
     };
 
 public:
-    RectangleModel(VulkanApp* p_VulkanApp/*REMOVE ME*/, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_MULTIDRAW);
+    RectangleModel(Scene3D* p_Scene, Model3D* p_Parent, float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder = 0.0f, const QString& p_Name = "", RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_MULTIDRAW);
     virtual ~RectangleModel() {}
+
+    GETSET(glm::vec2, Dimension)
+    GETSET(glm::vec4, Color)
     GETSET(DRAW_TYPE, DrawType)
 
-    void Rectangle(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder = 0.0f);
     void SetPosition(float p_X, float p_Y);
 
     AbstractModelFactory* GetRenderScemeFactory();
@@ -35,6 +37,8 @@ public:
     virtual void Setup();
     void CreateVertexBuffer();
     VulkanBuffer m_VertexBuffer;
+private:
+    void SetGeometry(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder = 0.0f);
 };
 
 struct RectangleDescriptorSet

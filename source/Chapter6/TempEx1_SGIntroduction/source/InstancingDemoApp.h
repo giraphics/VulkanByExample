@@ -1,6 +1,6 @@
 #pragma once
 #include "../../../common/VulkanApp.h"
-#include "../SceneGraph/Scene3D.h"
+#include "../TempEx1_SceneGraph/Scene3D.h"
 
 class RectangleMultiDrawFactory;
 class InstancingDemoApp : public VulkanApp

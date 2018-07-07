@@ -568,17 +568,13 @@ void Transformation3D::Ortho( float left, float right, float bottom, float top, 
 
 		case PROJECTION_MATRIX:
 		{
-			glm::mat4	*matProjection = GetProjectionMatrix();
 			*GetProjectionMatrix() = glm::ortho(left, right, bottom, top, clip_start, clip_end);
-			*matProjection = glm::ortho(left, right, bottom, top, clip_start, clip_end);
-
 			break;
 		}
 
 		case TEXTURE_MATRIX:
 		{
 			*GetTextureMatrix() = glm::ortho(left, right, bottom, top, clip_start, clip_end);
-
 			break;
 		}
 	}

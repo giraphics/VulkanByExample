@@ -25,15 +25,8 @@ InstancingDemoApp::InstancingDemoApp()
 
     m_Scene = new Scene3D(this);
 
-	RectangleModel* m_Cube = new RectangleModel(this, m_Scene, NULL, "Rectangle 1", SHAPE_RECTANGLE, RENDER_SCEHEME_MULTIDRAW);
-    m_Cube->Rectangle(100, 100 , 100, 100);
-    m_Cube->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
-    m_Cube->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
-
-    m_Cube = new RectangleModel(this, m_Scene, m_Cube, "Rectangle 2", SHAPE_RECTANGLE, RENDER_SCEHEME_MULTIDRAW);
-    m_Cube->Rectangle(100, 100, 50, 50);
-    m_Cube->SetColor(glm::vec4(0.0, 0.0, 1.0, 1.0));
-    m_Cube->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+	RectangleModel* m_Cube = new RectangleModel(m_Scene, NULL, 100, 100, 100, 100);
+    m_Cube = new RectangleModel(m_Scene, m_Cube, 100, 100, 50, 50);
 }
 
 InstancingDemoApp::~InstancingDemoApp()
@@ -66,43 +59,19 @@ void InstancingDemoApp::Setup()
     poolInfo.queueFamilyIndex = m_physicalDeviceInfo.graphicsFamilyIndex;
     VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo, &poolInfo);
 
-    static glm::mat4 Projection = glm::ortho(0.0f, static_cast<float>(m_windowDim.width), 0.0f, static_cast<float>(m_windowDim.height));
-    m_Scene->SetProjection(&Projection);
+    m_Scene->SetUpProjection();
 
-    static glm::mat4 View;
-    m_Scene->SetView(&View);
-
-    m_Scene->SetUpProjection(); // For some reason the ViewMatrix is not working properly, this setupensure model matrix is set properly.
-
-	m_Scene->Setup(); // Create the object's vertex buffer
+	m_Scene->Setup();
 }
 
 void InstancingDemoApp::Update()
 {
-    static float phi = 0.0f;
-    //glm::mat4 View = glm::lookAt(glm::vec3(500, 500, 500) * sin(phi += 0.01), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-    //m_Scene->SetView(&View);
-    static glm::mat4 View;
-    m_Scene->SetView(&View);
-
-	// TODO: Add dirty flag check to avoid constant update
-
-	static int i = 0;
-	i++;
-	// This is a test check to see the perform
-	if (i < 20)
-	{
-		printf("\n Update: %d......", i);
-		m_Scene->Update();
-	}
+ 	m_Scene->Update();
 }
 
 bool InstancingDemoApp::Render()
 {
-    // Important: Uncomment below line only if there are updates for model expected in the Model
-    // 1. It has been observed that the re-recording of command buffer in case of non-instance drawing is expensive
-    
-    // m_Scene->Render(); //Read the note before uncommenting
+    m_Scene->Render();
 
     return VulkanApp::Render();
 }

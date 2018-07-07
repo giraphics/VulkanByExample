@@ -905,11 +905,11 @@ void RectangleDescriptorSet::CreateDescriptorSet()
 
 /////////////////////////////////////////////////////////////////////////////////
 
-RectangleModel::RectangleModel(VulkanApp *p_VulkanApp, Scene3D *p_Scene, Model3D *p_Parent, const QString &p_Name, SHAPE p_ShapeType, RENDER_SCEHEME_TYPE p_RenderSchemeType)
-    : Model3D(p_Scene, p_Parent, p_Name, p_ShapeType, p_RenderSchemeType)
-//    , m_DrawType(OUTLINE)
+RectangleModel::RectangleModel(Scene3D *p_Scene, Model3D *p_Parent, float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder, const QString& p_Name, RENDER_SCEHEME_TYPE p_RenderSchemeType)
+    : Model3D(p_Scene, p_Parent, p_Name, SHAPE_RECTANGLE, p_RenderSchemeType)
     , m_DrawType(FILLED)
 {
+    SetGeometry(p_X, p_Y, p_Width, p_Height, p_ZOrder);
 }
 
 AbstractModelFactory* RectangleModel::GetRenderScemeFactory()
@@ -954,7 +954,7 @@ void RectangleModel::Setup()
 	Model3D::Setup();
 }
 
-void RectangleModel::Rectangle(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder/*=0*/)
+void RectangleModel::SetGeometry(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder/*=0*/)
 {
     Translate(p_X, p_Y, p_ZOrder);
 
@@ -966,13 +966,13 @@ void RectangleModel::Rectangle(float p_X, float p_Y, float p_Width, float p_Heig
     m_Dimension.y = p_Height;
 }
 
-void Model3D::SetPosition(float p_X, float p_Y)
+void RectangleModel::SetPosition(float p_X, float p_Y)
 {
     glm::vec4 posStart((0 * m_Dimension.x), (0 * m_Dimension.y), 0.0, 1.0);
-    glm::vec4 posStartResult = /*GetParentsTransformation(GetParent()) **/ m_TransformedModel * posStart;
+    glm::vec4 posStartResult = m_TransformedModel * posStart;
 
     glm::vec4 posEnd((m_Dimension.x), (m_Dimension.y), 0.0, 1.0);
-    glm::vec4 posEndResult = /*GetParentsTransformation(GetParent()) **/ m_TransformedModel * posEnd;
+    glm::vec4 posEndResult = m_TransformedModel * posEnd;
 
     m_Position.x = p_X;
     m_Position.y = p_Y;

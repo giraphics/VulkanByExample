@@ -42,9 +42,6 @@ public:
 	GETSET(SHAPE, ShapeType);
 	GETSET(RENDER_SCEHEME_TYPE, RenderSchemeType);
 	GETSET(glm::vec3, Position)
-	GETSET(glm::vec2, Dimension)
-	GETSET(glm::vec4, Color)
-	GETSET(glm::vec4, DefaultColor)
 	GETSET(glm::mat4, Model)		// Owned by drawable item
 	GETSET(Scene3D*, Scene)
 	GETSET(Model3D*, Parent)
@@ -52,7 +49,7 @@ public:
 
     virtual void mousePressEvent(QMouseEvent* p_Event);
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
-    virtual bool mouseMoveEvent(QMouseEvent* p_Event);
+    virtual void mouseMoveEvent(QMouseEvent* p_Event);
 
     // Key interaction: Dummy interface for now.
     virtual void keyPressEvent() UNIMPLEMENTED_INTEFACE
