@@ -29,18 +29,18 @@ InstancingDemoApp::InstancingDemoApp()
 
     m_Scene = new Scene3D(this);
 
-	//m_Cube = new RectangleModel(this, m_Scene, NULL, "Rectangle 1", SHAPE_RECTANGLE, RENDER_SCEHEME_MULTIDRAW);
- //   m_Cube->Rectangle(100, 100 , 100, 100);
- //   m_Cube->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
- //   m_Cube->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+    m_Cube1 = new RectangleModel(this, m_Scene, NULL, "Rectangle 1", SHAPE_RECTANGLE, RENDER_SCEHEME_MULTIDRAW);
+    m_Cube1->Rectangle(200, 200 , 100, 100);
+    m_Cube1->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
+    m_Cube1->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
 
- //   m_Cube = new RectangleModel(this, m_Scene, m_Cube, "Rectangle 2", SHAPE_RECTANGLE, RENDER_SCEHEME_MULTIDRAW);
- //   m_Cube->Rectangle(100, 100, 50, 50);
- //   m_Cube->SetColor(glm::vec4(0.0, 0.0, 1.0, 1.0));
- //   m_Cube->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+    m_Cube2 = new RectangleModel(this, m_Scene, m_Cube1, "Rectangle 2", SHAPE_RECTANGLE, RENDER_SCEHEME_MULTIDRAW);
+    m_Cube2->Rectangle(100, 100, 50, 50);
+    m_Cube2->SetColor(glm::vec4(0.0, 0.0, 1.0, 1.0));
+    m_Cube2->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
 
 //	Grid(m_Scene);
-    MixerView(m_Scene);
+//    MixerView(m_Scene);
 }
 
 InstancingDemoApp::~InstancingDemoApp()
@@ -142,6 +142,8 @@ void InstancingDemoApp::Setup()
     m_Scene->SetUpProjection(); // For some reason the ViewMatrix is not working properly, this setupensure model matrix is set properly.
 
 	m_Scene->Setup(); // Create the object's vertex buffer
+
+    m_Scene->Update();
 }
 
 void InstancingDemoApp::Update()
@@ -153,15 +155,20 @@ void InstancingDemoApp::Update()
     m_Scene->SetView(&View);
 
 	// TODO: Add dirty flag check to avoid constant update
+    static float rot = 0.0;
+    m_Cube1->Rotate(rot = .0001, 0.0, 0.0, 1.0);
+   m_Cube2->Rotate(rot = .003, 0.0, 0.0, 1.0);
+   m_Cube1->UpdateMeAndMyChildren();
+   //m_Scene->Update();
 
-	static int i = 0;
-	i++;
+    static int i = 0;
 	// This is a test check to see the perform
-	if (i < 20)
+	if (i < 1)
 	{
-		printf("\n Update: %d......", i);
-		m_Scene->Update();
+//		printf("\n Update: %d......", i);
 	}
+
+    i++;
 }
 
 bool InstancingDemoApp::Render()

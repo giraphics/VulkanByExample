@@ -32,10 +32,11 @@ public:
     Model3D(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_INSTANCED);
 
     virtual void Setup();
-    void Update();
+    virtual void UpdateXX();
+    virtual void Update(Model3D* p_Item = NULL);
     virtual AbstractModelFactory* GetRenderScemeFactory() { return NULL; } // Custom model class do not need to implement it as they are made of basic model classes.
 
-	void Rotate(float p_Angle, float p_X, float p_Y, float p_Z) { m_Model = glm::rotate(m_Model, p_Angle, glm::vec3(p_X, p_Y, p_Z)); }
+	virtual void Rotate(float p_Angle, float p_X, float p_Y, float p_Z) { m_Model = glm::rotate(m_Model, p_Angle, glm::vec3(p_X, p_Y, p_Z)); }
 	void Translate(float p_X, float p_Y, float p_Z) { m_Model = glm::translate(m_Model, glm::vec3(p_X, p_Y, p_Z)); }
     void Scale(float p_X, float p_Y, float p_Z) { m_Model = glm::scale(m_Model, glm::vec3(p_X, p_Y, p_Z)); }
 	void Reset() { m_TransformedModel = glm::mat4(); }
@@ -76,7 +77,8 @@ public:
 	void GatherFlatList();
 
 	AbstractModelFactory* m_AbstractFactory; // REMOVE ME
-private:
+protected:
+public:
     QList<Model3D*> m_ChildList;
 };
 

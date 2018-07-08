@@ -7,6 +7,7 @@ layout (std140, binding = 0) uniform TransformBufferStruct {
 
 layout(push_constant) uniform colorBlock {
     vec4 inNewColor;
+    mat4 modelMatrix;
 } pushConstantsColorBlock;
 
 // Vextex attributes
@@ -20,7 +21,7 @@ out gl_PerVertex {
 
 void main() 
 {
-	gl_Position   = TransformBuffer.mvp * inPosition;
+	gl_Position   = TransformBuffer.mvp * pushConstantsColorBlock.modelMatrix * inPosition;
     fragColor = pushConstantsColorBlock.inNewColor;
 	gl_Position.z = (gl_Position.z + gl_Position.w) / 2.0;
 }

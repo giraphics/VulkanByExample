@@ -26,6 +26,46 @@ public:
     RectangleModel(VulkanApp* p_VulkanApp/*REMOVE ME*/, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_MULTIDRAW);
     virtual ~RectangleModel() {}
     GETSET(DRAW_TYPE, DrawType)
+        
+protected:
+    virtual void Update(Model3D* p_Item = NULL)
+    {
+        Model3D::Update(p_Item);
+
+        CreateVertexBuffer();
+    }
+
+public:
+    virtual void UpdateMeAndMyChildren()
+    {
+        Update(this);
+    }
+
+    //virtual void Update(Model3D* p_Item = NULL)
+    //{
+    //    Model3D::Update(p_Item);
+
+    //    CreateVertexBuffer();
+    //}
+
+    //void Update()
+    //{
+    //    m_Scene->PushMatrix();
+    //        m_Scene->ApplyTransformation(GetParentsTransformation(GetParent())); // This retrives all the transformation from the parent
+
+    //        Model3D::Update(); // This update applied transformation on this model to below children
+    //    m_Scene->PopMatrix();
+
+    //    CreateVertexBuffer();
+    //}
+    
+    //virtual void Rotate(float p_Angle, float p_X, float p_Y, float p_Z)
+    //{
+    //    Model3D::Rotate(p_Angle, p_X, p_Y, p_Z);
+
+    //    Update(); // If instancing example also support 
+    //}
+
 
 	AbstractModelFactory* GetRenderScemeFactory();
 

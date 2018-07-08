@@ -89,7 +89,7 @@ bool Model3D::mouseMoveEvent(QMouseEvent* p_Event)
 	return false;
 }
 
-void Model3D::Update()
+void Model3D::UpdateXX()
 {
     m_Scene->PushMatrix();
     m_Scene->ApplyTransformation(m_Model);
@@ -97,6 +97,29 @@ void Model3D::Update()
     m_TransformedModel = *m_Scene->m_Transform.GetModelMatrix();
 
     Q_FOREACH(Model3D* child, m_ChildList)
+    {
+        assert(child);
+        child->Update();
+    }
+
+    m_Scene->PopMatrix();
+}
+
+void Model3D::Update(Model3D* p_Item)
+{
+    m_Scene->PushMatrix();
+    if (p_Item)
+    {
+        m_Scene->ApplyTransformation(p_Item->GetParentsTransformation(GetParent()) * m_Model); // This retrives all the transformation from the parent
+    }
+    else
+    {
+        m_Scene->ApplyTransformation(m_Model);
+    }
+
+    m_TransformedModel = *m_Scene->m_Transform.GetModelMatrix();
+    
+    Q_FOREACH(Model3D* child, p_Item ? p_Item->m_ChildList : m_ChildList )
     {
         assert(child);
         child->Update();

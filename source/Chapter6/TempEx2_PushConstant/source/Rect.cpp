@@ -412,7 +412,10 @@ void RectangleMultiDrawFactory::CreateRectFillPipeline()
     VkPushConstantRange pushConstantRanges[pushConstantRangeCount] = {};
     pushConstantRanges[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     pushConstantRanges[0].offset = 0;
-    pushConstantRanges[0].size = 16;
+    pushConstantRanges[0].size = 16 + sizeof(glm::mat4);
+    //pushConstantRanges[1].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    //pushConstantRanges[1].offset = 16;
+    //pushConstantRanges[1].size = sizeof(glm::mat4);
 
     // Create pipeline layout
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
@@ -494,6 +497,7 @@ void RectangleMultiDrawFactory::CreateGraphicsPipeline(bool p_ClearGraphicsPipel
 
 void RectangleMultiDrawFactory::createPushConstants()
 {
+    return;
     VkCommandBuffer copyCmd;
     VulkanHelper::AllocateCommandBuffer(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_hCommandPool, &copyCmd);
     VulkanHelper::BeginCommandBuffer(copyCmd);
@@ -782,6 +786,7 @@ void RectangleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
 
         vkCmdBindDescriptorSets(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineLayout, 0, 1, CDS->descriptorSet.data(), 0, NULL);
         vkCmdBindPipeline(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+         
 
         for (int j = 0; j < modelSize; j++)
         {
@@ -789,17 +794,24 @@ void RectangleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
             if (!model) continue;
 
             //////////////////////////////////////////////////////////////////////////////////
-            glm::vec4 inColor = model->GetColor();
+            struct pushConst
+            {
+                glm::vec4 inColor;
+                glm::mat4 modelMatrix;
+            }PC;
+
+            PC.inColor = model->GetColor();
+            //PC.modelMatrix = /*(*model->GetScene()->GetProjection()) * (*model->GetScene()->GetView()) */ model->GetTransformedModel();
+            //PC.modelMatrix = (*GetProjection()) * (*GetView()) model->GetModel();// GetTransformedModel();
 
             // Check if number of push constants does not exceed the allowed size
             int maxPushContantSize = m_VulkanApplication->m_physicalDeviceInfo.prop.limits.maxPushConstantsSize;
-            if (sizeof(inColor) > maxPushContantSize) {
+            if (sizeof(PC) > maxPushContantSize) {
                 printf("Push constand size is greater than expected, max allow size is %d", maxPushContantSize);
                 assert(0);
             }
 
-            vkCmdPushConstants(p_CmdBuffer, graphicsPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(inColor), &inColor);
-
+            vkCmdPushConstants(p_CmdBuffer, graphicsPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PC), &PC);
             ////////////////////////////////////////////////////////////////////////////////
 
             if (model->GetDrawType() == RectangleModel::FILLED)
@@ -1063,7 +1075,7 @@ AbstractModelFactory* RectangleModel::GetRenderScemeFactory()
 
 void RectangleModel::CreateVertexBuffer()
 {
-    glm::mat4 parentTransform = m_Model * GetParentsTransformation(GetParent());
+    glm::mat4 parentTransform = GetTransformedModel();//m_Model * GetParentsTransformation(GetParent());
 
     Vertex rectVertices[6];
     memcpy(rectVertices, rectFilledVertices, sizeof(Vertex) * 6);
@@ -1081,13 +1093,19 @@ void RectangleModel::CreateVertexBuffer()
         rectVertices[i].m_Position.y = pos.y;
         rectVertices[i].m_Position.z = pos.z;
     }
+    VulkanApp* app = static_cast<VulkanApp*>(m_Scene->GetApplication());
+    const VkDevice& device = app->m_hDevice;
+
+    if (m_VertexBuffer.m_Buffer != VK_NULL_HANDLE)
+    {
+        vkDestroyBuffer(device, m_VertexBuffer.m_Buffer, NULL);
+        vkFreeMemory(device, m_VertexBuffer.m_Memory, NULL);
+    }
 
     m_VertexBuffer.m_DataSize = dataSize;
 	m_VertexBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 
-	VulkanApp* app = static_cast<VulkanApp*>(m_Scene->GetApplication());
 	const VkPhysicalDeviceMemoryProperties& memProp = app->m_physicalDeviceInfo.memProp;
-	const VkDevice& device = app->m_hDevice;
 	VulkanHelper::CreateBuffer(device, memProp, m_VertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, rectVertices);
 }
 
