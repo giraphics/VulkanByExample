@@ -110,7 +110,7 @@ void RectangleMultiDrawFactory::Update()
         UniformBuffer->m_MappedMemory,
         UniformBuffer->m_MappedRange,
         UniformBuffer->m_BufObj.m_MemoryFlags,
-        &m_Transform, sizeof(m_Transform));
+        &m_ProjectViewMatrix, sizeof(m_ProjectViewMatrix));
 }
 
 void RectangleMultiDrawFactory::ResizeWindow(int width, int height)
@@ -905,11 +905,10 @@ void RectangleDescriptorSet::CreateDescriptorSet()
 
 /////////////////////////////////////////////////////////////////////////////////
 
-RectangleModel::RectangleModel(Scene3D *p_Scene, Model3D *p_Parent, float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder, const QString& p_Name, RENDER_SCEHEME_TYPE p_RenderSchemeType)
-    : Model3D(p_Scene, p_Parent, p_Name, SHAPE_RECTANGLE, p_RenderSchemeType)
+RectangleModel::RectangleModel(Scene3D *p_Scene, Model3D *p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, RENDER_SCEHEME_TYPE p_RenderSchemeType)
+    : Model3D(p_Scene, p_Parent, p_BoundedRegion, p_Name, SHAPE_RECTANGLE, p_RenderSchemeType)
     , m_DrawType(FILLED)
 {
-    SetGeometry(p_X, p_Y, p_Width, p_Height, p_ZOrder);
 }
 
 AbstractModelFactory* RectangleModel::GetRenderScemeFactory()
@@ -929,8 +928,8 @@ void RectangleModel::CreateVertexBuffer()
     for (int i = 0; i < vertexCount; ++i)
     {
         glm::vec4 pos(rectFilledVertices[i].m_Position, 1.0);
-        pos.x = pos.x * m_Dimension.x;
-        pos.y = pos.y * m_Dimension.y;
+        pos.x = pos.x * m_BoundedRegion.m_Dimension.x;
+        pos.y = pos.y * m_BoundedRegion.m_Dimension.y;
 
         pos = parentTransform * pos;
         rectVertices[i].m_Position.x = pos.x;
@@ -952,32 +951,4 @@ void RectangleModel::Setup()
     CreateVertexBuffer();
 
 	Model3D::Setup();
-}
-
-void RectangleModel::SetGeometry(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder/*=0*/)
-{
-    Translate(p_X, p_Y, p_ZOrder);
-
-    m_Position.x = p_X;
-    m_Position.y = p_Y;
-    m_Position.z = p_ZOrder;
-
-    m_Dimension.x = p_Width;
-    m_Dimension.y = p_Height;
-}
-
-void RectangleModel::SetPosition(float p_X, float p_Y)
-{
-    glm::vec4 posStart((0 * m_Dimension.x), (0 * m_Dimension.y), 0.0, 1.0);
-    glm::vec4 posStartResult = m_TransformedModel * posStart;
-
-    glm::vec4 posEnd((m_Dimension.x), (m_Dimension.y), 0.0, 1.0);
-    glm::vec4 posEndResult = m_TransformedModel * posEnd;
-
-    m_Position.x = p_X;
-    m_Position.y = p_Y;
-
-    Reset();
-    Translate(m_Position.x, m_Position.y, m_Position.z);
-    m_TransformedModel = m_Model * GetParentsTransformation(GetParent());
 }

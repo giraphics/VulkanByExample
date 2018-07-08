@@ -25,8 +25,8 @@ InstancingDemoApp::InstancingDemoApp()
 
     m_Scene = new Scene3D(this);
 
-	RectangleModel* m_Cube = new RectangleModel(m_Scene, NULL, 100, 100, 100, 100);
-    m_Cube = new RectangleModel(m_Scene, m_Cube, 100, 100, 50, 50);
+	m_Cube = new RectangleModel(m_Scene, NULL, BoundingRegion(100, 100, 100, 100));
+    m_Cube = new RectangleModel(m_Scene, m_Cube, BoundingRegion(100, 100, 50, 50));
 }
 
 InstancingDemoApp::~InstancingDemoApp()
@@ -66,6 +66,8 @@ void InstancingDemoApp::Setup()
 
 void InstancingDemoApp::Update()
 {
+    static float rot = 0.0;
+    m_Cube->Rotate(rot++, 0.0, 0.0, 1.0);
  	m_Scene->Update();
 }
 

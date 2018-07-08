@@ -54,7 +54,6 @@ void Scene3D::Setup()
         factory->UpdateModelList(currentModel);
     }
 
-    ////////////////////////////////////////////////
     RenderSchemeTypeMap* m_FactoryMap = NULL;
     std::map<SHAPE, RenderSchemeTypeMap*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
     if (itSRST != m_ShapeRenderSchemeTypeMap.end())
@@ -81,8 +80,7 @@ void Scene3D::Update()
 {
     foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
     {
-//        currentModelFactory->m_Transform = (*GetProjection()) * (*GetView());
-        currentModelFactory->m_Transform = *m_Transform.GetProjectionMatrix() * *m_Transform.GetViewMatrix();
+        currentModelFactory->m_ProjectViewMatrix = *m_Transform.GetProjectionMatrix() * *m_Transform.GetViewMatrix();
     }
 
     foreach (Model3D* item, m_ModelList)

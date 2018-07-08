@@ -2,7 +2,7 @@
 #include "../../../common/VulkanApp.h"
 #include "../TempEx1_SceneGraph/Scene3D.h"
 
-class RectangleMultiDrawFactory;
+class RectangleModel;
 class InstancingDemoApp : public VulkanApp
 {
 public:
@@ -18,5 +18,6 @@ public:
 
 private:
 	Scene3D* m_Scene;
+    RectangleModel* m_Cube;
 };
     

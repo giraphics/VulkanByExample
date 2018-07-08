@@ -20,13 +20,31 @@ public:
     virtual void UpdateModelList(Model3D* p_Parent) {}
     virtual void ResizeWindow(int p_Width, int p_Height) {}
 
-    glm::mat4x4 m_Transform;
+    glm::mat4x4 m_ProjectViewMatrix;
+};
+
+struct BoundingRegion
+{
+    BoundingRegion(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder = 0)
+    {
+        m_Position.x = p_X;         m_Position.y = p_Y;        m_Position.z = p_ZOrder;
+        m_Dimension.x = p_Width;    m_Dimension.y = p_Height;  m_Dimension.z = 0.0f;
+    }
+    
+    BoundingRegion(float p_X, float p_Y, float p_Z, float p_Width, float p_Height, float p_Depth)
+    {
+        m_Position.x = p_X;         m_Position.y = p_X;        m_Position.z = p_Z;
+        m_Dimension.x = p_Width;    m_Dimension.y = p_Height;  m_Dimension.z = p_Depth;
+    }
+
+    glm::vec3 m_Position;
+    glm::vec3 m_Dimension;
 };
 
 class Model3D
 {
 public:
-    Model3D(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_INSTANCED);
+    Model3D(Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_INSTANCED);
 
     virtual void Setup();
     void Update();
@@ -38,14 +56,18 @@ public:
     void Reset() { m_TransformedModel = glm::mat4(); }
 
     void SetZOrder(float p_ZOrder);
+    void SetPosition(float p_X, float p_Y);
 
-	GETSET(SHAPE, ShapeType);
-	GETSET(RENDER_SCEHEME_TYPE, RenderSchemeType);
-	GETSET(glm::vec3, Position)
-	GETSET(glm::mat4, Model)		// Owned by drawable item
-	GETSET(Scene3D*, Scene)
-	GETSET(Model3D*, Parent)
-   	GETSET(glm::mat4, TransformedModel)		// Owned by drawable item
+    GETSET(SHAPE, ShapeType);
+    GETSET(RENDER_SCEHEME_TYPE, RenderSchemeType);
+    //GETSET(glm::vec3, Position)
+    //GETSET(glm::vec2, Dimension)
+    GETSET(BoundingRegion, BoundedRegion)
+    GETSET(glm::vec4, Color)
+    GETSET(glm::mat4, Model)		// Owned by drawable item
+    GETSET(Scene3D*, Scene)
+    GETSET(Model3D*, Parent)
+    GETSET(glm::mat4, TransformedModel)		// Owned by drawable item
 
     virtual void mousePressEvent(QMouseEvent* p_Event);
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
@@ -63,6 +85,9 @@ public:
     glm::mat4 GetParentsTransformation(Model3D* p_Parent) const { return p_Parent ? (GetParentsTransformation(p_Parent->GetParent()) * p_Parent->m_Model) : glm::mat4(); }
 
     void GatherFlatModelList();
+
+protected:
+    void SetGeometry(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder = 0.0f);
 
 private:
     QList<Model3D*> m_ChildList;

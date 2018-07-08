@@ -23,22 +23,16 @@ public:
     };
 
 public:
-    RectangleModel(Scene3D* p_Scene, Model3D* p_Parent, float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder = 0.0f, const QString& p_Name = "", RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_MULTIDRAW);
+    RectangleModel(Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_MULTIDRAW);
     virtual ~RectangleModel() {}
 
-    GETSET(glm::vec2, Dimension)
-    GETSET(glm::vec4, Color)
     GETSET(DRAW_TYPE, DrawType)
-
-    void SetPosition(float p_X, float p_Y);
 
     AbstractModelFactory* GetRenderScemeFactory();
 
     virtual void Setup();
     void CreateVertexBuffer();
     VulkanBuffer m_VertexBuffer;
-private:
-    void SetGeometry(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder = 0.0f);
 };
 
 struct RectangleDescriptorSet
@@ -109,12 +103,12 @@ public:
     virtual ~RectangleMultiDrawFactory();
 
 public:
-	virtual void Setup();
+    virtual void Setup();
     virtual void Update();
     virtual void Render() { RecordCommandBuffer(); }
 
     void ResizeWindow(int width, int height);
-	virtual void Prepare(Scene3D* p_Scene);
+    virtual void Prepare(Scene3D* p_Scene);
 
 private:
     void CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap = false);
