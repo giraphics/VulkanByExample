@@ -11,8 +11,6 @@ Scene3D::Scene3D(AbstractApp* p_Application)
     , m_ScreenWidth(800)
     , m_ScreenHeight(600)
     , m_CurrentHoverItem(NULL)
-    , m_Projection(NULL)	// Not owned by Scene, double check this can be owned. TODO: PS
-    , m_View(NULL)		// Not owned by Scene
 {
 }
 
@@ -41,7 +39,7 @@ Scene3D::~Scene3D()
 
 void Scene3D::Setup()
 {
-    GatherFlatList(); // Assuming all nodes are added into the scenes by now
+    GatherFlatModelList(); // Assuming all nodes are added into the scenes by now
 
     foreach (Model3D* currentModel, m_ModelList)
     {
@@ -56,7 +54,6 @@ void Scene3D::Setup()
         factory->UpdateModelList(currentModel);
     }
 
-    ////////////////////////////////////////////////
     RenderSchemeTypeMap* m_FactoryMap = NULL;
     std::map<SHAPE, RenderSchemeTypeMap*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
     if (itSRST != m_ShapeRenderSchemeTypeMap.end())
@@ -72,12 +69,6 @@ void Scene3D::Setup()
         itSRST++;
     }
 
-    ///////////////////////////////////////////////
-    foreach(Model3D* currentModel, m_FlatList)
-    {
-//        m_ModelFactories.insert(currentModel->m_AbstractFactory);
-    }
-
 	assert(m_ModelFactories.size());
 	foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
     {
@@ -89,7 +80,7 @@ void Scene3D::Update()
 {
     foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
     {
-        currentModelFactory->m_Transform = (*GetProjection()) * (*GetView());
+        currentModelFactory->m_ProjectViewMatrix = *m_Transform.GetProjectionMatrix() * *m_Transform.GetViewMatrix();
     }
 
     foreach (Model3D* item, m_ModelList)
@@ -103,8 +94,6 @@ void Scene3D::Update()
 	{
 		currentModelFactory->Update();
 	}
-
-//	m_CubeFactory->prepareInstanceData(m_Scene);
 }
 
 void Scene3D::Render()
@@ -115,7 +104,7 @@ void Scene3D::Render()
     }
 }
 
-void Scene3D::GatherFlatList()
+void Scene3D::GatherFlatModelList()
 {
     m_FlatList.clear();
 
@@ -123,7 +112,7 @@ void Scene3D::GatherFlatList()
     {
         assert(item);
 
-        item->GatherFlatList();
+        item->GatherFlatModelList();
     }
 }
 
@@ -151,25 +140,21 @@ void Scene3D::Resize(int p_Width, int p_Height)
     m_ScreenWidth = p_Width;
     m_ScreenHeight = p_Height;
 
-	foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
-	{
-		currentModelFactory->ResizeWindow(p_Width, p_Height);
-	}
+    foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+    {
+        currentModelFactory->ResizeWindow(p_Width, p_Height);
+    }
 }
 
+// Default implementation, extend this function as per requirement in your function
 void Scene3D::SetUpProjection()
 {
     m_Transform.SetMatrixMode(Transformation3D::PROJECTION_MATRIX);
     m_Transform.LoadIdentity();
-
-    m_Transform.SetPerspective(45.0f, float(m_ScreenWidth)/m_ScreenHeight, 0.10f, 100.0f);
+    m_Transform.Ortho(0.0f, static_cast<float>(m_ScreenWidth), 0.0f, static_cast<float>(m_ScreenHeight), -1.0f, 1.0f);
 
     m_Transform.SetMatrixMode(Transformation3D::VIEW_MATRIX);
-    glm::vec3 eye(10.0, 10.0, 10.0);
-    glm::vec3 center(0.0, 0.0, 0.0);
-    glm::vec3 up(0.0, 1.0, 0.0);
     m_Transform.LoadIdentity();
-    m_Transform.LookAt(&eye, &center, &up);
 
     m_Transform.SetMatrixMode(Transformation3D::MODEL_MATRIX);
     m_Transform.LoadIdentity();

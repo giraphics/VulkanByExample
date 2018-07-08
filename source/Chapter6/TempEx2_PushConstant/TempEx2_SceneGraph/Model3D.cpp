@@ -113,7 +113,7 @@ void Model3D::Update(Model3D* p_Item)
     m_Scene->PopMatrix();
 }
 
-void Model3D::Rectangle(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder/*=0*/)
+void Model3D::SetGeometry(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder/*=0*/)
 {
 	Translate(p_X, p_Y, p_ZOrder);
 
@@ -149,13 +149,15 @@ void Model3D::SetPosition(float p_X, float p_Y)
     m_TransformedModel = m_Model * GetParentsTransformation(GetParent());
 }
 
-void Model3D::GatherFlatList()
+void Model3D::GatherFlatModelList()
 {
+    if (!m_Scene) return;
+
     m_Scene->m_FlatList.push_back(this);
 
     Q_FOREACH(Model3D* child, m_ChildList)
     {
         assert(child);
-        child->GatherFlatList();
+        child->GatherFlatModelList();
     }
 }

@@ -1,20 +1,16 @@
 #pragma once
 
-#define M_PI (3.14)
-#define M_PI_2 (3.14 * 2)
-
 enum SHAPE
 {
-	SHAPE_NONE = -1,
+    SHAPE_NONE = -1,
 
-	// BASIC SHAPES GOES HERE
-	SHAPE_CUBE,
-	SHAPE_RECTANGLE,
+    // BASIC SHAPES GOES HERE
+    SHAPE_RECTANGLE, // Support draw type Rounded Rectangle, Circle, Capsule,
 
-	SHAPE_COUNT, // TOTAL SHAPE COUNTS
+    SHAPE_COUNT, // TOTAL SHAPE COUNTS
 
-	// CUSTOM SHAPES GOES HERE
-	SHAPE_CUSTOM // NOTE: Important: the custom object are comprised of simpler objects hence not a part of model factories
+    // CUSTOM SHAPES GOES HERE
+    SHAPE_CUSTOM // NOTE: Important: the custom object are comprised of simpler objects hence not a part of model factories
 };
 
 enum RENDER_SCEHEME_TYPE

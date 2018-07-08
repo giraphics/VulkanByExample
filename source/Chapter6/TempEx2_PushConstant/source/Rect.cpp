@@ -113,7 +113,7 @@ void RectangleMultiDrawFactory::Update()
         UniformBuffer->m_MappedMemory,
         UniformBuffer->m_MappedRange,
         UniformBuffer->m_BufObj.m_MemoryFlags,
-        &m_Transform, sizeof(m_Transform));
+        &m_ProjectViewMatrix, sizeof(m_ProjectViewMatrix));
 }
 
 void RectangleMultiDrawFactory::ResizeWindow(int width, int height)
@@ -1159,10 +1159,10 @@ bool ProgressBar::mouseMoveEvent(QMouseEvent* p_Event)
 AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, glm::vec2 p_TopLeftPos, glm::vec2 p_Dim, SHAPE p_ShapeType)
     : Model3D(p_Scene, p_Parent, p_Name, p_ShapeType)
 {
-	Rectangle(p_TopLeftPos.x, p_TopLeftPos.y, p_Dim.x, p_Dim.y);
+    SetGeometry(p_TopLeftPos.x, p_TopLeftPos.y, p_Dim.x, p_Dim.y);
 
 	Model3D* background = new RectangleModel(NULL, m_Scene, this, "Audio Mixer Background", SHAPE_RECTANGLE);
-	background->Rectangle(0, 0, p_Dim.x, p_Dim.y);
+	background->SetGeometry(0, 0, p_Dim.x, p_Dim.y);
 	background->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
 	background->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
 
@@ -1171,7 +1171,7 @@ AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QStrin
 	const int activeTrackIndicatorTopMargin = 5.0;
 	const int activeTrackIndicatorTopMarginLeftMargin = 4.0;
 	Model3D* activeTrackIndicator = new RectangleModel(NULL, m_Scene, background, "Active Track Indicator", SHAPE_RECTANGLE);
-	activeTrackIndicator->Rectangle(activeTrackIndicatorTopMarginLeftMargin, activeTrackIndicatorTopMargin, p_Dim.x - (5 * activeTrackIndicatorTopMarginLeftMargin), activeIndicatorWidth);
+	activeTrackIndicator->SetGeometry(activeTrackIndicatorTopMarginLeftMargin, activeTrackIndicatorTopMargin, p_Dim.x - (5 * activeTrackIndicatorTopMarginLeftMargin), activeIndicatorWidth);
 	activeTrackIndicator->SetColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
 	activeTrackIndicator->SetDefaultColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
 	
@@ -1183,12 +1183,12 @@ AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QStrin
 	for (int i = 0; i < formatType; i++)
 	{
 		Model3D* channelBackground = new RectangleModel(NULL, m_Scene, background, "Channel", SHAPE_RECTANGLE);
-		channelBackground->Rectangle((i * channelWidth) + channelLeftMargin, channelTopMargin, ((i == (formatType - 1)) ? 2 : 0) + channelWidth, p_Dim.y - channelTopMargin - 5.0);
+		channelBackground->SetGeometry((i * channelWidth) + channelLeftMargin, channelTopMargin, ((i == (formatType - 1)) ? 2 : 0) + channelWidth, p_Dim.y - channelTopMargin - 5.0);
 		channelBackground->SetColor(glm::vec4(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0));
 		channelBackground->SetDefaultColor(glm::vec4(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0));
 
 		Model3D* channel = new RectangleModel(NULL, m_Scene, channelBackground, "Channel", SHAPE_RECTANGLE);
-		channel->Rectangle(2, 2, channelWidth - 2, p_Dim.y - channelTopMargin - 5.0 - 4);
+		channel->SetGeometry(2, 2, channelWidth - 2, p_Dim.y - channelTopMargin - 5.0 - 4);
 		channel->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
 		channel->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
 		
@@ -1201,7 +1201,7 @@ AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QStrin
 		for (int j = 0; j < totalRangeIndicator; j++)
 		{
 			Model3D* levelIndicator = new RectangleModel(NULL, m_Scene, channel, "Channel", SHAPE_RECTANGLE);
-			levelIndicator->Rectangle(2, j * 4, channelWidth - 4.0, 2.0);
+			levelIndicator->SetGeometry(2, j * 4, channelWidth - 4.0, 2.0);
 
 			const glm::vec4 color = (j <= redIndicatorRange) ? red : ((j <= yellowIndicatorRange) ? yellow : green);
 			levelIndicator->SetColor(color);

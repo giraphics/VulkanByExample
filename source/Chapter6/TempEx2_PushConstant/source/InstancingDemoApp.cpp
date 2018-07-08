@@ -25,17 +25,15 @@ InstancingDemoApp::InstancingDemoApp()
 {
     VulkanHelper::GetInstanceLayerExtensionProperties();
 
-//    m_CubeFactory = RectangleMultiDrawFactory::SingleTon(this);
-
     m_Scene = new Scene3D(this);
 
     m_Cube1 = new RectangleModel(this, m_Scene, NULL, "Rectangle 1", SHAPE_RECTANGLE, RENDER_SCEHEME_MULTIDRAW);
-    m_Cube1->Rectangle(200, 200 , 100, 100);
+    m_Cube1->SetGeometry(200, 200 , 100, 100);
     m_Cube1->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
     m_Cube1->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
 
     m_Cube2 = new RectangleModel(this, m_Scene, m_Cube1, "Rectangle 2", SHAPE_RECTANGLE, RENDER_SCEHEME_MULTIDRAW);
-    m_Cube2->Rectangle(100, 100, 50, 50);
+    m_Cube2->SetGeometry(100, 100, 50, 50);
     m_Cube2->SetColor(glm::vec4(0.0, 0.0, 1.0, 1.0));
     m_Cube2->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
 
@@ -65,7 +63,7 @@ void InstancingDemoApp::Grid(Scene3D* m_Scene)
 		for (int j = 0; j < parentRow; j++)
 		{
 			Model3D* m_Parent = new RectangleModel(NULL, m_Scene, NULL, "Node 1", SHAPE_RECTANGLE, RENDER_SCEHEME_MULTIDRAW);
-			m_Parent->Rectangle((i * parentColWidth), (j * parentColHeight), parentColWidth - 2, parentColHeight);
+			m_Parent->SetGeometry((i * parentColWidth), (j * parentColHeight), parentColWidth - 2, parentColHeight);
 			m_Parent->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
 			m_Parent->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
 
@@ -74,7 +72,7 @@ void InstancingDemoApp::Grid(Scene3D* m_Scene)
 				for (int l = 0; l < Row; l++)
 				{
 					RectangleModel* m_Cube1 = new RectangleModel(NULL, m_Scene, m_Parent, "Node 1", SHAPE_RECTANGLE, RENDER_SCEHEME_MULTIDRAW);
-					m_Cube1->Rectangle((k * colWidth), (l * colHeight), colWidth, colHeight);
+					m_Cube1->SetGeometry((k * colWidth), (l * colHeight), colWidth, colHeight);
 					m_Cube1->SetColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
 					m_Cube1->SetDefaultColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
 				}
@@ -126,19 +124,6 @@ void InstancingDemoApp::Setup()
     poolInfo.queueFamilyIndex = m_physicalDeviceInfo.graphicsFamilyIndex;
     VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo, &poolInfo);
 
-	//static glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-	//m_Scene->SetProjection(&Projection);
-
-	//static glm::mat4 View = glm::lookAt(glm::vec3(100, -200, 300), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-	//m_Scene->SetView(&View);
-    static glm::mat4 Projection = glm::ortho(0.0f, static_cast<float>(m_windowDim.width), 0.0f, static_cast<float>(m_windowDim.height));
-    m_Scene->SetProjection(&Projection);
-
-    //static glm::mat4 View = glm::lookAt(glm::vec3(0, 0, 1500), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-    //View = glm::translate(View, glm::vec3(-1000, -500, 0));
-    static glm::mat4 View;
-    m_Scene->SetView(&View);
-
     m_Scene->SetUpProjection(); // For some reason the ViewMatrix is not working properly, this setupensure model matrix is set properly.
 
 	m_Scene->Setup(); // Create the object's vertex buffer
@@ -148,9 +133,6 @@ void InstancingDemoApp::Setup()
 
 void InstancingDemoApp::Update()
 {
-    static glm::mat4 View;
-    m_Scene->SetView(&View);
-
     static float rot = 0.0;
     m_Cube1->Rotate(rot = .0001, 0.0, 0.0, 1.0);
     m_Cube2->Rotate(rot = .003, 0.0, 0.0, 1.0);
