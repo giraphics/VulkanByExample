@@ -36,7 +36,7 @@ protected:
     }
 
 public:
-    virtual void UpdateMeAndMyChildren()
+    void UpdateMeAndMyChildren()
     {
         Update(this);
     }
@@ -143,12 +143,12 @@ public:
     virtual ~RectangleMultiDrawFactory();
 
 public:
-	virtual void Setup();
+    virtual void Setup();
     virtual void Update();
     virtual void Render() { RecordCommandBuffer(); }
 
     void ResizeWindow(int width, int height);
-	virtual void Prepare(Scene3D* p_Scene);
+    virtual void Prepare(Scene3D* p_Scene);
 
 private:
     void CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap = false);

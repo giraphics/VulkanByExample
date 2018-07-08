@@ -148,27 +148,21 @@ void InstancingDemoApp::Setup()
 
 void InstancingDemoApp::Update()
 {
-    static float phi = 0.0f;
-    //glm::mat4 View = glm::lookAt(glm::vec3(500, 500, 500) * sin(phi += 0.01), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-    //m_Scene->SetView(&View);
     static glm::mat4 View;
     m_Scene->SetView(&View);
 
-	// TODO: Add dirty flag check to avoid constant update
     static float rot = 0.0;
     m_Cube1->Rotate(rot = .0001, 0.0, 0.0, 1.0);
-   m_Cube2->Rotate(rot = .003, 0.0, 0.0, 1.0);
-   m_Cube1->UpdateMeAndMyChildren();
-   //m_Scene->Update();
+    m_Cube2->Rotate(rot = .003, 0.0, 0.0, 1.0);
 
-    static int i = 0;
-	// This is a test check to see the perform
-	if (i < 1)
-	{
-//		printf("\n Update: %d......", i);
-	}
+    // Note: There are two ways to apply update
+    // 1. Scene Update: This will traverse all childs and apply updates (like creating vertex buffer) depending upon the derivation implementation.
+    m_Scene->Update();
 
-    i++;
+    // 2. Model Update: This update will not bother the all model nodes to update but only the intended one with its children.
+    //m_Cube1->UpdateMeAndMyChildren();
+
+    // Note: 
 }
 
 bool InstancingDemoApp::Render()

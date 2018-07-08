@@ -32,7 +32,6 @@ public:
     Model3D(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_INSTANCED);
 
     virtual void Setup();
-    virtual void UpdateXX();
     virtual void Update(Model3D* p_Item = NULL);
     virtual AbstractModelFactory* GetRenderScemeFactory() { return NULL; } // Custom model class do not need to implement it as they are made of basic model classes.
 
@@ -56,6 +55,7 @@ public:
 	GETSET(Model3D*, Parent)
    	GETSET(glm::mat4, TransformedModel)		// Owned by drawable item
     GETSET(unsigned int, GpuMemOffset)
+    GETSET(QList<Model3D*>, ChildList)
 
 	// Mouse interaction: Dummy interface for now.
 	virtual void mousePressEvent(QMouseEvent* p_Event);
@@ -77,9 +77,9 @@ public:
 	void GatherFlatList();
 
 	AbstractModelFactory* m_AbstractFactory; // REMOVE ME
+
 protected:
-public:
-    QList<Model3D*> m_ChildList;
+//    QList<Model3D*> m_ChildList;
 };
 
 //class RectangleModel;
