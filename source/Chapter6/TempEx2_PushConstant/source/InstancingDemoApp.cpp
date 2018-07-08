@@ -27,18 +27,16 @@ InstancingDemoApp::InstancingDemoApp()
 
     m_Scene = new Scene3D(this);
 
-    m_Cube1 = new RectangleModel(this, m_Scene, NULL, "Rectangle 1", SHAPE_RECTANGLE, RENDER_SCEHEME_MULTIDRAW);
-    m_Cube1->SetGeometry(200, 200 , 100, 100);
-    m_Cube1->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
-    m_Cube1->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+    //m_Cube1 = new RectangleModel(m_Scene, NULL, BoundingRegion(200, 200, 100, 100));
+    //m_Cube1->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
+    //m_Cube1->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
 
-    m_Cube2 = new RectangleModel(this, m_Scene, m_Cube1, "Rectangle 2", SHAPE_RECTANGLE, RENDER_SCEHEME_MULTIDRAW);
-    m_Cube2->SetGeometry(100, 100, 50, 50);
-    m_Cube2->SetColor(glm::vec4(0.0, 0.0, 1.0, 1.0));
-    m_Cube2->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+    //m_Cube2 = new RectangleModel(m_Scene, m_Cube1, BoundingRegion(100, 100, 50, 50));
+    //m_Cube2->SetColor(glm::vec4(0.0, 0.0, 1.0, 1.0));
+    //m_Cube2->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
 
 //	Grid(m_Scene);
-//    MixerView(m_Scene);
+    MixerView(m_Scene);
 }
 
 InstancingDemoApp::~InstancingDemoApp()
@@ -62,8 +60,7 @@ void InstancingDemoApp::Grid(Scene3D* m_Scene)
 	{
 		for (int j = 0; j < parentRow; j++)
 		{
-			Model3D* m_Parent = new RectangleModel(NULL, m_Scene, NULL, "Node 1", SHAPE_RECTANGLE, RENDER_SCEHEME_MULTIDRAW);
-			m_Parent->SetGeometry((i * parentColWidth), (j * parentColHeight), parentColWidth - 2, parentColHeight);
+			Model3D* m_Parent = new RectangleModel(m_Scene, NULL, BoundingRegion((i * parentColWidth), (j * parentColHeight), parentColWidth - 2, parentColHeight));
 			m_Parent->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
 			m_Parent->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
 
@@ -71,8 +68,7 @@ void InstancingDemoApp::Grid(Scene3D* m_Scene)
 			{
 				for (int l = 0; l < Row; l++)
 				{
-					RectangleModel* m_Cube1 = new RectangleModel(NULL, m_Scene, m_Parent, "Node 1", SHAPE_RECTANGLE, RENDER_SCEHEME_MULTIDRAW);
-					m_Cube1->SetGeometry((k * colWidth), (l * colHeight), colWidth, colHeight);
+					RectangleModel* m_Cube1 = new RectangleModel(m_Scene, m_Parent, BoundingRegion((k * colWidth), (l * colHeight), colWidth, colHeight));
 					m_Cube1->SetColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
 					m_Cube1->SetDefaultColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
 				}
@@ -91,9 +87,8 @@ void InstancingDemoApp::MixerView(Scene3D* m_Scene)
 
     for (int i = 0; i < numberOfMixers; i++)
     {
-        glm::vec2 p_TopLeftPos((i * mixerWidth), 0);
-        glm::vec2 p_Dim(mixerWidth, mixerPanelHeight);
-        AudioMixerItem* m_MixerItem = new AudioMixerItem(m_Scene, NULL, "Mixer Item 1", p_TopLeftPos, p_Dim, SHAPE_CUSTOM);
+        BoundingRegion boundedRegion((i * mixerWidth), 0, mixerWidth, mixerPanelHeight);
+        AudioMixerItem* m_MixerItem = new AudioMixerItem(m_Scene, NULL, boundedRegion, "Mixer Item 1", SHAPE_CUSTOM);
         m_MixerItem->SetColor(glm::vec4(1.1, 0.2, 0.20, 1.0));
         m_MixerItem->SetDefaultColor(glm::vec4(1.0, 0.15, 0.60, 1.0));
     }
@@ -134,8 +129,8 @@ void InstancingDemoApp::Setup()
 void InstancingDemoApp::Update()
 {
     static float rot = 0.0;
-    m_Cube1->Rotate(rot = .0001, 0.0, 0.0, 1.0);
-    m_Cube2->Rotate(rot = .003, 0.0, 0.0, 1.0);
+    //m_Cube1->Rotate(rot = .0001, 0.0, 0.0, 1.0);
+    //m_Cube2->Rotate(rot = .003, 0.0, 0.0, 1.0);
 
     // Note: There are two ways to apply update
     // 1. Scene Update: This will traverse all childs and apply updates (like creating vertex buffer) depending upon the derivation implementation.

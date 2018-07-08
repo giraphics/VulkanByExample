@@ -44,7 +44,7 @@ struct BoundingRegion
 class Model3D
 {
 public:
-    Model3D(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_INSTANCED);
+    Model3D(Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_INSTANCED);
 
     virtual void Setup();
     virtual void Update(Model3D* p_Item = NULL);
@@ -60,8 +60,7 @@ public:
 
     GETSET(SHAPE, ShapeType);
     GETSET(RENDER_SCEHEME_TYPE, RenderSchemeType);
-    GETSET(glm::vec3, Position)
-    GETSET(glm::vec2, Dimension)
+    GETSET(BoundingRegion, BoundedRegion)
     GETSET(glm::vec4, Color)
     GETSET(glm::vec4, DefaultColor)
     GETSET(glm::mat4, Model)		// Owned by drawable item
