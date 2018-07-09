@@ -155,27 +155,3 @@ private:
 
     VulkanApp* m_VulkanApplication;
 };
-
-class RectangleModel;
-class QMouseEvent;
-class ProgressBar : public Model3D
-{
-public:
-    ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
-    virtual ~ProgressBar() {}
-
-    virtual bool mouseMoveEvent(QMouseEvent* p_Event);
-    RectangleModel* progressIndicator;
-    RectangleModel* bar;
-};
-
-class AudioMixerItem : public Model3D
-{
-public:
-    AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
-    virtual ~AudioMixerItem() {}
-
-    //virtual bool mouseMoveEvent(QMouseEvent* p_Event);
-    //Model3D* progressIndicator;
-};
-

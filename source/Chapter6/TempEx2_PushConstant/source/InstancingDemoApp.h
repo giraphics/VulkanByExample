@@ -1,6 +1,7 @@
 #pragma once
 #include "../../../common/VulkanApp.h"
 #include "../TempEx2_SceneGraph/Scene3D.h"
+#include "UIDemo.h"
 
 class RectangleModel;
 class InstancingDemoApp : public VulkanApp
@@ -21,13 +22,9 @@ public:
 	virtual void mouseMoveEvent(QMouseEvent* p_Event);
 
 private:
-	void Grid(Scene3D* m_Scene);
-	void MixerView(Scene3D* m_Scene);
-//	void ProgressBarFunc(Scene3D* m_Scene);
-
-private:
 	Scene3D* m_Scene;
     RectangleModel* m_Cube1;
     RectangleModel* m_Cube2;
+    UIDemo m_UIDemo;
 };
     
