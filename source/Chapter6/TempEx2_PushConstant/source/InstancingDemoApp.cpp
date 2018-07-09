@@ -10,8 +10,8 @@ int main(int argc, char **argv)
 {
     QApplication qtApp(argc, argv);
 
-    InstancingDemoApp* instanceDemo = new InstancingDemoApp(); // Create Vulkan app instance
-    instanceDemo->SetWindowDimension(800, 600);    // Default application window dimension
+    InstancingDemoApp* instanceDemo = new InstancingDemoApp();
+    instanceDemo->SetWindowDimension(800, 600);
     instanceDemo->EnableDepthBuffer(true);
     instanceDemo->EnableWindowResize(true);
     instanceDemo->Initialize();
@@ -119,9 +119,9 @@ void InstancingDemoApp::Setup()
     poolInfo.queueFamilyIndex = m_physicalDeviceInfo.graphicsFamilyIndex;
     VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo, &poolInfo);
 
-    m_Scene->SetUpProjection(); // For some reason the ViewMatrix is not working properly, this setupensure model matrix is set properly.
+    m_Scene->SetUpProjection();
 
-	m_Scene->Setup(); // Create the object's vertex buffer
+	m_Scene->Setup();
 
     m_Scene->Update();
 }

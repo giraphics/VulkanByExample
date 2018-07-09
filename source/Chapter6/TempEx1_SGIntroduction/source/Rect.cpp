@@ -637,127 +637,68 @@ void RectangleMultiDrawFactory::Prepare(Scene3D* p_Scene)
 
 void RectangleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
 {
-    //for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
-    //{
-    //    VkPipelineLayout graphicsPipelineLayout = VK_NULL_HANDLE;
-    //    VkPipeline       graphicsPipeline = VK_NULL_HANDLE;
-    //    if (pipelineIdx == PIPELINE_FILLED)
-    //    {
-    //        if (m_GraphicsPipelineMap.contains(PIPELINE_RECT_FILLED))
-    //        {
-    //            graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].first;
-    //            graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].second;
-    //        }
-    //    }
-    //    /*
-    //    else if (pipelineIdx == PIPELINE_OUTLINE)
-    //    {
-    //        if (m_GraphicsPipelineMap.contains(PIPELINE_RECT_OUTLINE))
-    //        {
-    //            graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_RECT_OUTLINE].first;
-    //            graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_RECT_OUTLINE].second;
-    //        }
-    //    }
-    //    */
-    //    else
-    //    {
-    //        assert(false);
-    //    }
+    for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
+    {
+        ModelVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
+        const int modelSize = m_ModelList.size();
+        if (!modelSize) continue;
 
-    //    vkCmdBindDescriptorSets(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineLayout, 0, 1, CDS->descriptorSet.data(), 0, NULL);
-    //    vkCmdBindPipeline(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-    //    for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
-    //    {
-    //        ModelVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
-    //        const int modelSize = m_ModelList.size();
-    //        if (!modelSize) continue;
-
-    //        for (int j = 0; j < modelSize; j++)
-    //        {
-    //            if (m_ModelList.at(j)->GetRefShapeType() == SHAPE_RECTANGLE)
-    //            {
-    //                RectangleModel* model = (static_cast<RectangleModel*>(m_ModelList.at(j)));
-    //                if (!model) return;
-
-    //                // Specify vertex buffer information
-    //                const VkDeviceSize offsets[1] = { 0 };
-    //                vkCmdBindVertexBuffers(p_CmdBuffer, VERTEX_BUFFER_BIND_IDX, 1, &model->m_VertexBuffer.m_Buffer, offsets);
-
-    //                // Draw the Cube 
-    //                const int vertexCount = sizeof(rectFilledVertices) / sizeof(Vertex);
-    //                vkCmdDraw(p_CmdBuffer, vertexCount, /*INSTANCE_COUNT*/1, 0, 0);
-    //            }
-    //            else if (m_ModelList.at(j)->GetRefShapeType() == SHAPE_RECTANGLE)
-    //            {
-
-    //            }
-    //        }
-    //    }
-        //////////////////////
-        for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
+        VkPipelineLayout graphicsPipelineLayout = VK_NULL_HANDLE;
+        VkPipeline       graphicsPipeline = VK_NULL_HANDLE;
+        if (pipelineIdx == PIPELINE_FILLED)
         {
-            ModelVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
-            const int modelSize = m_ModelList.size();
-            if (!modelSize) continue;
-
-            VkPipelineLayout graphicsPipelineLayout = VK_NULL_HANDLE;
-            VkPipeline       graphicsPipeline = VK_NULL_HANDLE;
-            if (pipelineIdx == PIPELINE_FILLED)
+            if (m_GraphicsPipelineMap.contains(PIPELINE_RECT_FILLED))
             {
-                if (m_GraphicsPipelineMap.contains(PIPELINE_RECT_FILLED))
-                {
-                    graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].first;
-                    graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].second;
-                }
+                graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].first;
+                graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].second;
             }
-            else if (pipelineIdx == PIPELINE_OUTLINE)
-            {
-                if (m_GraphicsPipelineMap.contains(PIPELINE_RECT_OUTLINE))
-                {
-                    graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_RECT_OUTLINE].first;
-                    graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_RECT_OUTLINE].second;
-                }
-            }
-            else
-            {
-                assert(false);
-            }
-
-            vkCmdBindDescriptorSets(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineLayout, 0, 1, CDS->descriptorSet.data(), 0, NULL);
-            vkCmdBindPipeline(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-
-            for (int j = 0; j < modelSize; j++)
-            {
-                RectangleModel* model = (static_cast<RectangleModel*>(m_ModelList.at(j)));
-                if (!model) continue;
-                if (model->GetDrawType() == RectangleModel::FILLED)
-                {
-
-                    // Specify vertex buffer information
-                    const VkDeviceSize offsets[1] = { 0 };
-                    vkCmdBindVertexBuffers(p_CmdBuffer, VERTEX_BUFFER_BIND_IDX, 1, &model->m_VertexBuffer.m_Buffer, offsets);
-
-                    // Draw the Cube 
-                    const int vertexCount = sizeof(rectFilledVertices) / sizeof(Vertex);
-                    vkCmdDraw(p_CmdBuffer, vertexCount, /*INSTANCE_COUNT*/1, 0, 0);
-                }
-                else if (model->GetDrawType() == RectangleModel::OUTLINE)
-                {
-                    // Specify vertex buffer information
-                    const VkDeviceSize offsets[1] = { 0 };
-                    vkCmdBindVertexBuffers(p_CmdBuffer, VERTEX_BUFFER_BIND_IDX, 1, &model->m_VertexBuffer.m_Buffer, offsets);
-
-                    // Draw the Cube 
-                    const int vertexCount = sizeof(rectOutlineVertices) / sizeof(Vertex);
-                    vkCmdDraw(p_CmdBuffer, vertexCount, /*INSTANCE_COUNT*/1, 0, 0);
-
-                }
-            }
-
         }
-        ////////////////////////
+        else if (pipelineIdx == PIPELINE_OUTLINE)
+        {
+            if (m_GraphicsPipelineMap.contains(PIPELINE_RECT_OUTLINE))
+            {
+                graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_RECT_OUTLINE].first;
+                graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_RECT_OUTLINE].second;
+            }
+        }
+        else
+        {
+            assert(false);
+        }
+
+        vkCmdBindDescriptorSets(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineLayout, 0, 1, CDS->descriptorSet.data(), 0, NULL);
+        vkCmdBindPipeline(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+
+        for (int j = 0; j < modelSize; j++)
+        {
+            RectangleModel* model = (static_cast<RectangleModel*>(m_ModelList.at(j)));
+            if (!model) continue;
+            if (model->GetDrawType() == RectangleModel::FILLED)
+            {
+
+                // Specify vertex buffer information
+                const VkDeviceSize offsets[1] = { 0 };
+                vkCmdBindVertexBuffers(p_CmdBuffer, VERTEX_BUFFER_BIND_IDX, 1, &model->m_VertexBuffer.m_Buffer, offsets);
+
+                // Draw the Cube
+                const int vertexCount = sizeof(rectFilledVertices) / sizeof(Vertex);
+                vkCmdDraw(p_CmdBuffer, vertexCount, /*INSTANCE_COUNT*/1, 0, 0);
+            }
+            else if (model->GetDrawType() == RectangleModel::OUTLINE)
+            {
+                // Specify vertex buffer information
+                const VkDeviceSize offsets[1] = { 0 };
+                vkCmdBindVertexBuffers(p_CmdBuffer, VERTEX_BUFFER_BIND_IDX, 1, &model->m_VertexBuffer.m_Buffer, offsets);
+
+                // Draw the Cube
+                const int vertexCount = sizeof(rectOutlineVertices) / sizeof(Vertex);
+                vkCmdDraw(p_CmdBuffer, vertexCount, /*INSTANCE_COUNT*/1, 0, 0);
+
+            }
+        }
+
     }
-//}
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

@@ -60,14 +60,13 @@ public:
 
     GETSET(SHAPE, ShapeType);
     GETSET(RENDER_SCEHEME_TYPE, RenderSchemeType);
-    //GETSET(glm::vec3, Position)
-    //GETSET(glm::vec2, Dimension)
     GETSET(BoundingRegion, BoundedRegion)
     GETSET(glm::vec4, Color)
     GETSET(glm::mat4, Model)		// Owned by drawable item
     GETSET(Scene3D*, Scene)
     GETSET(Model3D*, Parent)
     GETSET(glm::mat4, TransformedModel)		// Owned by drawable item
+    GETSET(QList<Model3D*>, ChildList)
 
     virtual void mousePressEvent(QMouseEvent* p_Event);
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
@@ -88,7 +87,4 @@ public:
 
 protected:
     void SetGeometry(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder = 0.0f);
-
-private:
-    QList<Model3D*> m_ChildList;
 };

@@ -42,38 +42,11 @@ public:
         Update(this);
     }
 
-    //virtual void Update(Model3D* p_Item = NULL)
-    //{
-    //    Model3D::Update(p_Item);
+    AbstractModelFactory* GetRenderScemeFactory();
 
-    //    CreateVertexBuffer();
-    //}
-
-    //void Update()
-    //{
-    //    m_Scene->PushMatrix();
-    //        m_Scene->ApplyTransformation(GetParentsTransformation(GetParent())); // This retrives all the transformation from the parent
-
-    //        Model3D::Update(); // This update applied transformation on this model to below children
-    //    m_Scene->PopMatrix();
-
-    //    CreateVertexBuffer();
-    //}
-    
-    //virtual void Rotate(float p_Angle, float p_X, float p_Y, float p_Z)
-    //{
-    //    Model3D::Rotate(p_Angle, p_X, p_Y, p_Z);
-
-    //    Update(); // If instancing example also support 
-    //}
-
-
-	AbstractModelFactory* GetRenderScemeFactory();
-
-	virtual void Setup();
+    virtual void Setup();
     void CreateVertexBuffer();
-	VulkanBuffer m_VertexBuffer;
-    std::vector<Model3D*> m_ModelList;
+    VulkanBuffer m_VertexBuffer;
 };
 
 struct RectangleDescriptorSet
