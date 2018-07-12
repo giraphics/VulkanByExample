@@ -9,6 +9,7 @@ struct Vertex
 {
     glm::vec3 m_Position; // Vertex Position => x, y, z
     glm::vec3 m_Color;    // Color format => r, g, b
+    unsigned int m_DrawType;    // Color format => r, g, b
 };
 
 class RectangleModel : public Model3D

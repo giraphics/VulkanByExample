@@ -13,6 +13,7 @@ layout(push_constant) uniform colorBlock {
 // Vextex attributes
 layout (location = 0) in vec4 inPosition;
 layout (location = 1) in vec4 inColor;
+layout (location = 2) in uint DrawType;
 layout (location = 0) out vec4 fragColor;
 layout(location = 1) out vec4 texCoord;
 

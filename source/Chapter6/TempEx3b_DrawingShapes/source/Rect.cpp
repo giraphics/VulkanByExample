@@ -21,12 +21,12 @@ RectangleDescriptorSet::UniformBufferObj* UniformBuffer = NULL;
 
 static const Vertex rectFilledVertices[] =
 {
-    { glm::vec3(1, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
-    { glm::vec3(0, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
-    { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
-    { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
-    { glm::vec3(0, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
-    { glm::vec3(0, 1, 0),	glm::vec3(1.f, 1.f, 0.f) },
+    { glm::vec3(1, 0, 0),	glm::vec3(0.f, 0.f, 0.f), 0 },
+    { glm::vec3(0, 0, 0),	glm::vec3(1.f, 0.f, 0.f), 0 },
+    { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f), 0 },
+    { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f), 0 },
+    { glm::vec3(0, 0, 0),	glm::vec3(1.f, 0.f, 0.f), 0 },
+    { glm::vec3(0, 1, 0),	glm::vec3(1.f, 1.f, 0.f), 0 },
 };
 
 static const Vertex rectOutlineVertices[] =
@@ -615,7 +615,7 @@ void RectangleMultiDrawFactory::CreateVertexBuffer()
             //VkVertexInputAttributeDescription	m_VertexInputAttribute[2]; // Why 2 = 2(for position and color)
 
             m_VertexInputBinding[pipelineIdx].resize(1);   // 0 for position and 1 for color
-            m_VertexInputAttribute[pipelineIdx].resize(2); // Why 2 = 2(for position and color
+            m_VertexInputAttribute[pipelineIdx].resize(3); // Why 2 = 2(for position and color
 
             // Indicates the rate at which the information will be
             // injected for vertex input.
@@ -633,6 +633,11 @@ void RectangleMultiDrawFactory::CreateVertexBuffer()
             m_VertexInputAttribute[pipelineIdx][1].location = 1;
             m_VertexInputAttribute[pipelineIdx][1].format = VK_FORMAT_R32G32B32_SFLOAT;
             m_VertexInputAttribute[pipelineIdx][1].offset = offsetof(struct Vertex, m_Color);
+
+            m_VertexInputAttribute[pipelineIdx][2].binding = VERTEX_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[pipelineIdx][2].location = 2;
+            m_VertexInputAttribute[pipelineIdx][2].format = VK_FORMAT_R32_UINT;
+            m_VertexInputAttribute[pipelineIdx][2].offset = offsetof(struct Vertex, m_DrawType);
         }
         else if (pipelineIdx == PIPELINE_OUTLINE)
         {
