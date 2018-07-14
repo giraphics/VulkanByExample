@@ -101,8 +101,6 @@ void RectangleMultiDrawFactory::Setup(VkCommandBuffer& p_CommandBuffer)
     // Build the push constants
     createPushConstants();
 
-//    m_VulkanApplication->CreateCommandBuffers(); // Create command buffers
-
     RecordCommandBuffer(p_CommandBuffer);
 }
 
@@ -115,16 +113,11 @@ void RectangleMultiDrawFactory::Update()
         &m_ProjectViewMatrix, sizeof(m_ProjectViewMatrix));
 }
 
-void RectangleMultiDrawFactory::ResizeWindow(int width, int height)
+void RectangleMultiDrawFactory::ResizeWindow(VkCommandBuffer& p_CommandBuffer)
 {
-    return;
-    /*
     CreateGraphicsPipeline(true);
 
-//    m_VulkanApplication->CreateCommandBuffers(); // Create command buffers
-
-    RecordCommandBuffer();
-    */
+    RecordCommandBuffer(p_CommandBuffer);
 }
 
 void RectangleMultiDrawFactory::CreateRectOutlinePipeline()

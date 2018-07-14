@@ -17,7 +17,7 @@ public:
     virtual void Render(VkCommandBuffer& p_CommandBuffer) {}
     virtual void Prepare(Scene3D* p_Scene) {}
     virtual void UpdateModelList(Model3D* p_Parent) {}
-    virtual void ResizeWindow(int p_Width, int p_Height) {}
+    virtual void ResizeWindow(VkCommandBuffer& p_CommandBuffer) {}
 
     glm::mat4x4 m_ProjectViewMatrix;
     VulkanApp* m_VulkanApplication;
@@ -59,7 +59,6 @@ public:
     void SetPosition(float p_X, float p_Y);
 
     GETSET(SHAPE, ShapeType);
-//    GETSET(RENDER_SCEHEME_TYPE, RenderSchemeType);
     GETSET(BoundingRegion, BoundedRegion)
     GETSET(glm::vec4, Color)
     GETSET(glm::vec4, DefaultColor)
@@ -84,7 +83,7 @@ public:
     glm::mat4 GetRelativeTransformations() const { return GetParentsTransformation(GetParent()) * m_Model; }
     glm::mat4 GetParentsTransformation(Model3D* p_Parent) const { return p_Parent ? (GetParentsTransformation(p_Parent->GetParent()) * p_Parent->m_Model) : glm::mat4(); }
 
-    void GatherFlatModelList();
+    void GatherFlatModelList(); // Rename: GatherFlatRenderItemList
 
 protected:
 public:

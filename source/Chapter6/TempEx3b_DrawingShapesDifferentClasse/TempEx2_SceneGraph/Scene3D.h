@@ -26,7 +26,7 @@ public:
     void AddModel(Model3D* p_Model);
     void RemoveModel(Model3D *p_Model);
 
-    void Resize(int p_Width, int p_Height);
+    virtual void Resize(VkCommandBuffer& p_CommandBuffer, int p_Width, int p_Height);
     virtual void SetUpProjection();
     inline Transformation3D& Transform() { return m_Transform; }
 
@@ -58,7 +58,5 @@ public:
     std::vector<Model3D*> m_FlatList;
     std::set<AbstractModelFactory*> m_ModelFactories;
 
-//    typedef std::map<RENDER_SCEHEME_TYPE, AbstractModelFactory*> RenderSchemeTypeMap;
-//    std::map<SHAPE, RenderSchemeTypeMap*> m_ShapeRenderSchemeTypeMap;
     std::map<SHAPE, AbstractModelFactory*> m_ShapeRenderSchemeTypeMap;
 };

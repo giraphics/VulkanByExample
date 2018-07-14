@@ -48,7 +48,6 @@ void Scene3D::Setup(VkCommandBuffer& p_CommandBuffer)
         factory->UpdateModelList(currentModel);
     }
 
-//    RenderSchemeTypeMap* m_FactoryMap = NULL;
     std::map<SHAPE, AbstractModelFactory*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
     while (itSRST != m_ShapeRenderSchemeTypeMap.end())
     {
@@ -57,69 +56,11 @@ void Scene3D::Setup(VkCommandBuffer& p_CommandBuffer)
         itSRST++;
     }
 
-    /////////////////////////////////////////////////////////////////////
-    VulkanApp* vulkanApp = dynamic_cast<VulkanApp*>(m_Application);
-
-    // Specify the clear color value
-    VkClearValue clearColor[2];
-    clearColor[0].color.float32[0] = 0.0f;
-    clearColor[0].color.float32[1] = 0.0f;
-    clearColor[0].color.float32[2] = 0.0f;
-    clearColor[0].color.float32[3] = 0.0f;
-
-    // Specify the depth/stencil clear value
-    clearColor[1].depthStencil.depth = 1.0f;
-    clearColor[1].depthStencil.stencil = 0;
-
-    // Offset to render in the frame buffer
-    VkOffset2D   renderOffset = { 0, 0 };
-    // Width & Height to render in the frame buffer
-    VkExtent2D   renderExtent = vulkanApp->m_swapChainExtent;
-
-    // For each command buffers in the command buffer list
-    for (size_t i = 0; i < vulkanApp->m_hCommandBufferList.size(); i++)
-    {
-        VkCommandBufferBeginInfo beginInfo = {};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        // Indicate that the command buffer can be resubmitted to the queue
-        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-
-        // Begin command buffer
-        vkBeginCommandBuffer(vulkanApp->m_hCommandBufferList[i], &beginInfo);
-
-        VkRenderPassBeginInfo renderPassInfo = {};
-        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = vulkanApp->m_hRenderPass;
-        renderPassInfo.framebuffer = vulkanApp->m_hFramebuffers[i];
-        renderPassInfo.renderArea.offset = renderOffset;
-        renderPassInfo.renderArea.extent = renderExtent;
-        renderPassInfo.clearValueCount = 2;
-        renderPassInfo.pClearValues = clearColor;
-
-        // Begin render pass
-        vkCmdBeginRenderPass(vulkanApp->m_hCommandBufferList[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-        /////////////////////////////
 	assert(m_ModelFactories.size());
 	foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
     {
-        currentModelFactory->Setup(vulkanApp->m_hCommandBufferList[i]);
+        currentModelFactory->Setup(p_CommandBuffer);
     }
-
-    /////////////////////
-
-        // End the Render pass
-        vkCmdEndRenderPass(vulkanApp->m_hCommandBufferList[i]);
-
-        // End the Command buffer
-        VkResult vkResult = vkEndCommandBuffer(vulkanApp->m_hCommandBufferList[i]);
-        if (vkResult != VK_SUCCESS)
-        {
-            VulkanHelper::LogError("vkEndCommandBuffer() failed!");
-            assert(false);
-        }
-        }
-
 }
 
 void Scene3D::Update()
@@ -172,7 +113,7 @@ void Scene3D::AddModel(Model3D* p_Model)
 
 void Scene3D::RemoveModel(Model3D* p_Model)
 {
-    while (1)
+    while (true)
     {
         auto result = std::find(std::begin(m_ModelList), std::end(m_ModelList), p_Model);
         if (result == std::end(m_ModelList)) break;
@@ -181,14 +122,14 @@ void Scene3D::RemoveModel(Model3D* p_Model)
     }
 }
 
-void Scene3D::Resize(int p_Width, int p_Height)
+void Scene3D::Resize(VkCommandBuffer& p_CommandBuffer, int p_Width, int p_Height)
 {
     m_ScreenWidth = p_Width;
     m_ScreenHeight = p_Height;
 
     foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
     {
-        currentModelFactory->ResizeWindow(p_Width, p_Height);
+        currentModelFactory->ResizeWindow(p_CommandBuffer);
     }
 }
 
@@ -259,19 +200,6 @@ AbstractModelFactory* Scene3D::GetFactory(Model3D* p_Model)
     const SHAPE shapeType = p_Model->GetShapeType();
     if ((shapeType <= SHAPE_NONE) && (shapeType >= SHAPE_COUNT)) return NULL;
 
-    //RenderSchemeTypeMap* m_FactoryMap = NULL;
-    //std::map<SHAPE, RenderSchemeTypeMap*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.find(shapeType);
-    //if (itSRST != m_ShapeRenderSchemeTypeMap.end())
-    //{
-    //    m_FactoryMap = itSRST->second;
-    //}
-    //else
-    //{
-    //    m_FactoryMap = new RenderSchemeTypeMap();
-    //    m_ShapeRenderSchemeTypeMap[shapeType] = m_FactoryMap;
-    //}
-
-//    const RENDER_SCEHEME_TYPE renderSchemeType = p_Model->GetRenderSchemeType();
     std::map<SHAPE, AbstractModelFactory*>::iterator it = m_ShapeRenderSchemeTypeMap.find(shapeType);
     if (it != m_ShapeRenderSchemeTypeMap.end())
     {

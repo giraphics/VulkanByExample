@@ -120,10 +120,9 @@ public:
 public:
     virtual void Setup(VkCommandBuffer& p_CommandBuffer);
     virtual void Update();
-    //virtual void Render(VkCommandBuffer& p_CommandBuffer) { RecordCommandBuffer(p_CommandBuffer); }
     virtual void Render(VkCommandBuffer& p_CmdBuffer);
 
-    void ResizeWindow(int width, int height);
+    void ResizeWindow(VkCommandBuffer& p_CmdBuffer);
     virtual void Prepare(Scene3D* p_Scene);
 
 private:

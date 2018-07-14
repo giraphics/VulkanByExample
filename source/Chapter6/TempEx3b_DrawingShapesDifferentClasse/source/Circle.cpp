@@ -108,22 +108,17 @@ void CircleMultiDrawFactory::Update()
         &m_ProjectViewMatrix, sizeof(m_ProjectViewMatrix));
 }
 
-void CircleMultiDrawFactory::ResizeWindow(int width, int height)
+void CircleMultiDrawFactory::ResizeWindow(VkCommandBuffer& p_CommandBuffer)
 {
-    return;
-    /*
     CreateGraphicsPipeline(true);
 
-//    m_VulkanApplication->CreateCommandBuffers(); // Create command buffers
-
-    RecordCommandBuffer();
-    */
+    RecordCommandBuffer(p_CommandBuffer);
 }
 
 void CircleMultiDrawFactory::CreateRectOutlinePipeline()
 {
     // Compile the vertex shader
-    VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/RectInstanceVert.spv"); // Relative path to binary output dir
+    VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CircleVert.spv"); // Relative path to binary output dir
                                                                                                                                       // Setup the vertex shader stage create info structures
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -132,7 +127,7 @@ void CircleMultiDrawFactory::CreateRectOutlinePipeline()
     vertShaderStageInfo.pName = "main";
 
     // Compile the fragment shader
-    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/RectInstanceFrag.spv"); // Relative path to binary output dir
+    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CircleFrag.spv"); // Relative path to binary output dir
                                                                                                                                       // Setup the fragment shader stage create info structures
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
     fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -289,7 +284,7 @@ void CircleMultiDrawFactory::CreateRectOutlinePipeline()
 void CircleMultiDrawFactory::CreateRectFillPipeline()
 {
     // Compile the vertex shader
-    VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/RectInstanceVert.spv"); // Relative path to binary output dir
+    VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CircleVert.spv"); // Relative path to binary output dir
                                                                                                                                       // Setup the vertex shader stage create info structures
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -298,7 +293,7 @@ void CircleMultiDrawFactory::CreateRectFillPipeline()
     vertShaderStageInfo.pName = "main";
 
     // Compile the fragment shader
-    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/RectInstanceFrag.spv"); // Relative path to binary output dir
+    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CircleFrag.spv"); // Relative path to binary output dir
                                                                                                                                       // Setup the fragment shader stage create info structures
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
     fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;

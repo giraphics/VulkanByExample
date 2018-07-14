@@ -1,5 +1,6 @@
 #include "InstancingDemoApp.h"
 #include "UIDemo.h"
+#include "Circle.h"
 
 #include <QApplication>
 
@@ -17,7 +18,7 @@ int main(int argc, char **argv)
     delete instanceDemo;
     return 0;
 }
-#include "Circle.h"
+
 InstancingDemoApp::InstancingDemoApp()
 {
     VulkanHelper::GetInstanceLayerExtensionProperties();
@@ -86,58 +87,58 @@ void InstancingDemoApp::Setup()
 
 void InstancingDemoApp::SetupPrivate()
 {
-    //// Specify the clear color value
-    //VkClearValue clearColor[2];
-    //clearColor[0].color.float32[0] = 0.0f;
-    //clearColor[0].color.float32[1] = 0.0f;
-    //clearColor[0].color.float32[2] = 0.0f;
-    //clearColor[0].color.float32[3] = 0.0f;
+    // Specify the clear color value
+    VkClearValue clearColor[2];
+    clearColor[0].color.float32[0] = 0.0f;
+    clearColor[0].color.float32[1] = 0.0f;
+    clearColor[0].color.float32[2] = 0.0f;
+    clearColor[0].color.float32[3] = 0.0f;
 
-    //// Specify the depth/stencil clear value
-    //clearColor[1].depthStencil.depth = 1.0f;
-    //clearColor[1].depthStencil.stencil = 0;
+    // Specify the depth/stencil clear value
+    clearColor[1].depthStencil.depth = 1.0f;
+    clearColor[1].depthStencil.stencil = 0;
 
-    //// Offset to render in the frame buffer
-    //VkOffset2D   renderOffset = { 0, 0 };
-    //// Width & Height to render in the frame buffer
-    //VkExtent2D   renderExtent = m_swapChainExtent;
+    // Offset to render in the frame buffer
+    VkOffset2D   renderOffset = { 0, 0 };
+    // Width & Height to render in the frame buffer
+    VkExtent2D   renderExtent = m_swapChainExtent;
 
-    //// For each command buffers in the command buffer list
-    //for (size_t i = 0; i < m_hCommandBufferList.size(); i++)
-    //{
-    //    VkCommandBufferBeginInfo beginInfo = {};
-    //    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    //    // Indicate that the command buffer can be resubmitted to the queue
-    //    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+    // For each command buffers in the command buffer list
+    for (size_t i = 0; i < m_hCommandBufferList.size(); i++)
+    {
+        VkCommandBufferBeginInfo beginInfo = {};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        // Indicate that the command buffer can be resubmitted to the queue
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 
-    //    // Begin command buffer
-    //    vkBeginCommandBuffer(m_hCommandBufferList[i], &beginInfo);
+        // Begin command buffer
+        vkBeginCommandBuffer(m_hCommandBufferList[i], &beginInfo);
 
-    //    VkRenderPassBeginInfo renderPassInfo = {};
-    //    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    //    renderPassInfo.renderPass = m_hRenderPass;
-    //    renderPassInfo.framebuffer = m_hFramebuffers[i];
-    //    renderPassInfo.renderArea.offset = renderOffset;
-    //    renderPassInfo.renderArea.extent = renderExtent;
-    //    renderPassInfo.clearValueCount = 2;
-    //    renderPassInfo.pClearValues = clearColor;
+        VkRenderPassBeginInfo renderPassInfo = {};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassInfo.renderPass = m_hRenderPass;
+        renderPassInfo.framebuffer = m_hFramebuffers[i];
+        renderPassInfo.renderArea.offset = renderOffset;
+        renderPassInfo.renderArea.extent = renderExtent;
+        renderPassInfo.clearValueCount = 2;
+        renderPassInfo.pClearValues = clearColor;
 
-    //    // Begin render pass
-    //    vkCmdBeginRenderPass(m_hCommandBufferList[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        // Begin render pass
+        vkCmdBeginRenderPass(m_hCommandBufferList[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        m_Scene->Setup(m_hCommandBufferList.at(0));
+        m_Scene->Setup(m_hCommandBufferList[i]);
 
-    //    // End the Render pass
-    //    vkCmdEndRenderPass(m_hCommandBufferList[i]);
+        // End the Render pass
+        vkCmdEndRenderPass(m_hCommandBufferList[i]);
 
-    //    // End the Command buffer
-    //    VkResult vkResult = vkEndCommandBuffer(m_hCommandBufferList[i]);
-    //    if (vkResult != VK_SUCCESS)
-    //    {
-    //        VulkanHelper::LogError("vkEndCommandBuffer() failed!");
-    //        assert(false);
-    //    }
-    //}
+        // End the Command buffer
+        VkResult vkResult = vkEndCommandBuffer(m_hCommandBufferList[i]);
+        if (vkResult != VK_SUCCESS)
+        {
+            VulkanHelper::LogError("vkEndCommandBuffer() failed!");
+            assert(false);
+        }
+    }
 }
 
 void InstancingDemoApp::Update()
@@ -249,5 +250,56 @@ void InstancingDemoApp::ResizeWindow(int width, int height)
 {
     VulkanApp::ResizeWindow(width, height);
 
-	m_Scene->Resize(width, height);
+    // Specify the clear color value
+    VkClearValue clearColor[2];
+    clearColor[0].color.float32[0] = 0.0f;
+    clearColor[0].color.float32[1] = 0.0f;
+    clearColor[0].color.float32[2] = 0.0f;
+    clearColor[0].color.float32[3] = 0.0f;
+
+    // Specify the depth/stencil clear value
+    clearColor[1].depthStencil.depth = 1.0f;
+    clearColor[1].depthStencil.stencil = 0;
+
+    // Offset to render in the frame buffer
+    VkOffset2D   renderOffset = { 0, 0 };
+    // Width & Height to render in the frame buffer
+    VkExtent2D   renderExtent = m_swapChainExtent;
+
+    // For each command buffers in the command buffer list
+    for (size_t i = 0; i < m_hCommandBufferList.size(); i++)
+    {
+        VkCommandBufferBeginInfo beginInfo = {};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        // Indicate that the command buffer can be resubmitted to the queue
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+
+        // Begin command buffer
+        vkBeginCommandBuffer(m_hCommandBufferList[i], &beginInfo);
+
+        VkRenderPassBeginInfo renderPassInfo = {};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassInfo.renderPass = m_hRenderPass;
+        renderPassInfo.framebuffer = m_hFramebuffers[i];
+        renderPassInfo.renderArea.offset = renderOffset;
+        renderPassInfo.renderArea.extent = renderExtent;
+        renderPassInfo.clearValueCount = 2;
+        renderPassInfo.pClearValues = clearColor;
+
+        // Begin render pass
+        vkCmdBeginRenderPass(m_hCommandBufferList[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        m_Scene->Resize(m_hCommandBufferList[i], width, height);
+
+        // End the Render pass
+        vkCmdEndRenderPass(m_hCommandBufferList[i]);
+
+        // End the Command buffer
+        VkResult vkResult = vkEndCommandBuffer(m_hCommandBufferList[i]);
+        if (vkResult != VK_SUCCESS)
+        {
+            VulkanHelper::LogError("vkEndCommandBuffer() failed!");
+            assert(false);
+        }
+    }
 }
