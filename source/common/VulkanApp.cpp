@@ -150,12 +150,13 @@ void VulkanApp::InitializeVulkan()
 	CreateVulkanDeviceAndQueue();   // Create Vulkan Device and Queue
 	CreateSwapChain();		// Create Swap chain
 	
-	if (m_DepthEnabled)
+    CreateCommandBuffers();
+    if (m_DepthEnabled)
 	{
 		CreateDepthImage();     // Create the depth image
 	}
 	
-	CreateRenderPass(); 	// Create Render Pass
+    CreateRenderPass(); 	// Create Render Pass
 	CreateFramebuffers();   // Create Frame buffer
 	CreateSemaphores();     // Create semaphores for rendering synchronization between window system and presentaion rate 
 }
@@ -733,8 +734,15 @@ void VulkanApp::CreateCommandBuffers()
     // Create the command buffer pool object
 	if (!m_hCommandPool)
 	{ 
-		VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo);
-	}
+        // Note: We are overidding the default Create Command pool with VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+        // because we need to re-record the command buffer when the instance data size changes. 
+        // This need to recreate the command buffer. 
+        VkCommandPoolCreateInfo poolInfo = {};
+        poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+        poolInfo.queueFamilyIndex = m_physicalDeviceInfo.graphicsFamilyIndex;
+        VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo, &poolInfo);
+    }
 
 	VkResult vkResult;
     if (m_hCommandPool)
@@ -807,9 +815,10 @@ void VulkanApp::ResizeWindow(int width, int height)
     m_hFramebuffers.clear();
     CreateFramebuffers();
 
-    // Destroy and create new command buffers
-    vkFreeCommandBuffers(m_hDevice, m_hCommandPool, m_hCommandBufferList.size(), m_hCommandBufferList.data());
-    m_hCommandBufferList.clear();
+    // Parminder: It seems there is no need to destroy the command buffer. Just record them with new render pass.
+    //// Destroy and create new command buffers
+    //vkFreeCommandBuffers(m_hDevice, m_hCommandPool, (uint32_t)m_hCommandBufferList.size(), m_hCommandBufferList.data());
+    //m_hCommandBufferList.clear();
 
     m_activeSwapChainImageIndex = 0;
 

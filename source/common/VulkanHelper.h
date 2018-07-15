@@ -10,7 +10,6 @@
 #include <iomanip>
 
 using namespace std;
-
 #define GETSET(type, var) \
 	protected: type m_##var; \
 	public: type Get##var() { return m_##var; } \
@@ -44,6 +43,7 @@ struct LayerProperties
 // TODO: remove the m_ prefix from the structures
 struct VulkanBuffer
 {
+    VulkanBuffer() { memset(this, 0, sizeof(VulkanBuffer)); }
 	VkBuffer				m_Buffer;			// Buffer resource object
 	uint64_t				m_DataSize;			// Actual data size request for, use m_MemRqrmnt.size for actual backing size
 	VkDeviceMemory			m_Memory;			// Buffer resource object's allocated device memory

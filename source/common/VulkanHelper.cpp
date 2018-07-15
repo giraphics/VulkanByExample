@@ -577,7 +577,10 @@ void VulkanHelper::CreateStagingBuffer(const VkDevice p_Device, VkPhysicalDevice
 
 	// Create Device Local Buffers
 	p_VulkanBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT; // Ensure, it must be device local
-	VulkanHelper::CreateBuffer(p_Device, p_DeviceMemProp, p_VulkanBuffer, p_UsageFlags, p_Data, p_pBufInfo);
+	if (p_VulkanBuffer.m_Buffer == VK_NULL_HANDLE)
+	{
+		VulkanHelper::CreateBuffer(p_Device, p_DeviceMemProp, p_VulkanBuffer, p_UsageFlags, p_Data, p_pBufInfo);
+	}
 
 	// Copy staging buffers in device local buffer
 	{

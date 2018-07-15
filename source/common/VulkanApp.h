@@ -1,6 +1,8 @@
 #pragma once
 #include "VulkanHelper.h"
 
+#include <memory>
+
 #include <QWindow>
 #include <QTimer>
 #include <QMainWindow>
