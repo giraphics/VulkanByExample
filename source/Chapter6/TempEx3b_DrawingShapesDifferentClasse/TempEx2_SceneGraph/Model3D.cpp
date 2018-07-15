@@ -7,9 +7,10 @@ Model3D::Model3D(Scene3D *p_Scene, Model3D* p_Parent, const BoundingRegion& p_Bo
     , m_Parent(p_Parent)
     , m_ShapeType(p_ShapeType)
     , m_BoundedRegion(p_BoundedRegion)
+    , m_OriginOffset(glm::vec3(0.0f, 0.0f, 0.0f))
 {
     m_Parent ? m_Parent->m_ChildList.append(this) : p_Scene->AddModel(this);
-
+    
     // Todo: We can directly use the translate as the m_BoundedRegion is already set
     SetGeometry(m_BoundedRegion.m_Position.x, m_BoundedRegion.m_Position.y, m_BoundedRegion.m_Dimension.x, m_BoundedRegion.m_Dimension.y, m_BoundedRegion.m_Position.z);
 }

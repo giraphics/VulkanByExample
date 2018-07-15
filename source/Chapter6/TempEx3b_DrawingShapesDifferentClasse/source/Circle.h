@@ -16,11 +16,18 @@ public:
         SetShapeType(SHAPE::SHAPE_CIRCLE_MULTIDRAW);
     }
 
+    Circle(Scene3D* p_Scene, Model3D* p_Parent, glm::vec2 m_Center, float radius, const QString& p_Name = "")
+        : RectangleModel(p_Scene, p_Parent, BoundingRegion(m_Center.x - (radius * 0.5f), m_Center.y - (radius * 0.5f), radius, radius), p_Name)
+    {
+        SetShapeType(SHAPE::SHAPE_CIRCLE_MULTIDRAW);
+    }
+
     virtual ~Circle() {}
 
-    AbstractModelFactory* GetRenderScemeFactory();
+    virtual void Setup();
+    void CreateVertexBuffer();
 
-public:
+    AbstractModelFactory* GetRenderScemeFactory();
 };
 
 struct CircleDescriptorSet : public RectangleDescriptorSet
@@ -40,7 +47,6 @@ public:
 public:
     virtual void Setup(VkCommandBuffer& p_CommandBuffer);
     virtual void Update();
-    //virtual void Render(VkCommandBuffer& p_CommandBuffer) { RecordCommandBuffer(p_CommandBuffer); }
     virtual void Render(VkCommandBuffer& p_CmdBuffer);
 
     void ResizeWindow(VkCommandBuffer& p_CommandBuffer);
@@ -53,7 +59,6 @@ private:
 
     void createPushConstants();
 
-    void RecordCommandBuffer(VkCommandBuffer& p_CommandBuffer);
     void CreateVertexBuffer();
 
     //void Render(VkCommandBuffer& p_CmdBuffer);
@@ -75,6 +80,5 @@ private:
     typedef std::vector<Model3D*> ModelVector;
     ModelVector m_PipelineTypeModelVector[PIPELINE_COUNT];
 
-    CircleDescriptorSet* CDS;
-    CircleDescriptorSet::UniformBufferObj* UniformBuffer;
+    std::shared_ptr<CircleDescriptorSet> CDS;
 };

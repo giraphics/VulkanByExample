@@ -5,13 +5,6 @@
 #include "../TempEx2_SceneGraph/Scene3D.h"
 #include "../TempEx2_SceneGraph/Model3D.h"
 
-struct Vertex
-{
-    glm::vec3 m_Position; // Vertex Position => x, y, z
-    glm::vec3 m_Color;    // Color format => r, g, b
-    unsigned int m_DrawType;    // Color format => r, g, b
-};
-
 class RectangleModel : public Model3D
 {
 public:
@@ -70,6 +63,8 @@ struct RectangleDescriptorSet
         m_VulkanApplication = p_VulkanApplication;
 
         UniformBuffer = new UniformBufferObj;
+
+        CreateDescriptor();
     }
 
     ~RectangleDescriptorSet()
@@ -90,6 +85,15 @@ struct RectangleDescriptorSet
     void CreateDescriptorSetLayout();
     void DestroyDescriptorLayout();
 
+    UniformBufferObj* UniformBuffer;
+
+    // List of all the VkDescriptorSetLayouts 
+    std::vector<VkDescriptorSetLayout> descLayout;
+
+    // List of all created VkDescriptorSet
+    std::vector<VkDescriptorSet> descriptorSet;
+
+private:
     void CreateDescriptor();
 
     // Creates the descriptor pool, this function depends on - 
@@ -98,17 +102,10 @@ struct RectangleDescriptorSet
     // This function depend on the createDescriptorPool() and createUniformBuffer().
     void CreateDescriptorSet();
 
-    // List of all the VkDescriptorSetLayouts 
-    std::vector<VkDescriptorSetLayout> descLayout;
-
     // Decriptor pool object that will be used for allocating VkDescriptorSet object
     VkDescriptorPool descriptorPool;
 
-    // List of all created VkDescriptorSet
-    std::vector<VkDescriptorSet> descriptorSet;
-
     VulkanApp*		 m_VulkanApplication;
-    UniformBufferObj* UniformBuffer;
 };
 
 class RectangleMultiDrawFactory : public AbstractModelFactory
@@ -132,10 +129,7 @@ private:
 
     void createPushConstants();
 
-    void RecordCommandBuffer(VkCommandBuffer& p_CommandBuffer);
     void CreateVertexBuffer();
-
-    //void Render(VkCommandBuffer& p_CmdBuffer);
 
     virtual void UpdateModelList(Model3D* p_Item);
 
@@ -154,6 +148,5 @@ private:
     typedef std::vector<Model3D*> ModelVector;
     ModelVector m_PipelineTypeModelVector[PIPELINE_COUNT];
 
-    RectangleDescriptorSet* CDS;
-    RectangleDescriptorSet::UniformBufferObj* UniformBuffer;
+    std::shared_ptr<RectangleDescriptorSet> CDS;
 };

@@ -32,16 +32,18 @@ InstancingDemoApp::InstancingDemoApp()
     m_Cube2 = new RectangleModel(m_Scene, m_Cube1, BoundingRegion(100, 100, 50, 50));
     m_Cube2->SetColor(glm::vec4(0.0, 0.0, 1.0, 1.0));
     m_Cube2->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
-
+   
     m_Cube3 = new RectangleModel(m_Scene, m_Cube1, BoundingRegion(0, 0, 50, 50));
     m_Cube3->SetColor(glm::vec4(0.6, 0.0, 1.0, 1.0));
     m_Cube3->SetDefaultColor(glm::vec4(0.2, 0.55, 0.20, 1.0));
 
-    m_Cube4 = new RectangleModel(m_Scene, m_Cube1, BoundingRegion(100, 0, 50, 50));
+    m_Cube4 = new RectangleModel(m_Scene, m_Cube1, BoundingRegion(75, -25, 50, 50));
+    m_Cube4->SetOriginOffset(glm::vec3(25, 25, 0));
     m_Cube4->SetColor(glm::vec4(0.0, 0.2, 1.0, 1.0));
     m_Cube4->SetDefaultColor(glm::vec4(0.2, 0.35, 0.30, 1.0));
 
-    m_Cube5 = new Circle(m_Scene, m_Cube1, BoundingRegion(0, 100, 50, 50));
+    m_Cube5 = new Circle(m_Scene, m_Cube1, glm::vec2(0, 0), 50.0f);
+    m_Cube5->SetOriginOffset(glm::vec3(25, 25, 0));
     m_Cube5->SetColor(glm::vec4(0.0, 0.5, 1.0, 1.0));
     m_Cube5->SetDefaultColor(glm::vec4(0.62, 0.25, 0.60, 1.0));
 
@@ -83,6 +85,9 @@ void InstancingDemoApp::Setup()
 
 	//m_Scene->Setup();
     SetupPrivate();
+
+    // At least update the scene once so that in case UpdateMeAndMyChildren() is being used it has all transformation readily available
+    m_Scene->Update();
 }
 
 void InstancingDemoApp::SetupPrivate()
@@ -149,17 +154,19 @@ void InstancingDemoApp::Update()
     
     if (m_Cube2)
     {
-        m_Cube2->Rotate(rot = .003, 0.0, 0.0, 1.0);
-        m_Cube3->Rotate(rot = .003, 0.0, 0.0, 1.0);
-        m_Cube4->Rotate(rot = .003, 0.0, 0.0, 1.0);
-        m_Cube5->Rotate(rot = .003, 0.0, 0.0, 1.0);
+        m_Cube2->Reset();
+        m_Cube2->Rotate(rot += .1, 0.0, 0.0, 1.0);
+        m_Cube3->Rotate(.003, 0.0, 0.0, 1.0);
+        m_Cube4->Rotate(.003, 0.0, 0.0, 1.0);
+        m_Cube5->Rotate(.003, 0.0, 0.0, 1.0);
     }
+
     // Note: There are two ways to apply update
     // 1. Scene Update: This will traverse all childs and apply updates (like creating vertex buffer) depending upon the derivation implementation.
     m_Scene->Update();
 
     // 2. Model Update: This update will not bother the all model nodes to update but only the intended one with its children.
-    //m_Cube1->UpdateMeAndMyChildren();
+    //m_Cube2->UpdateMeAndMyChildren();
 
     // Note: 
 }
@@ -170,12 +177,12 @@ bool InstancingDemoApp::Render()
     // 1. It has been observed that the re-recording of command buffer in case of non-instance drawing is expensive
     
     //m_Scene->Render(); //Read the note before uncommenting
-    RenderPrivate();
+    RecordRenderPass();
 
     return VulkanApp::Render();
 }
 
-void InstancingDemoApp::RenderPrivate()
+void InstancingDemoApp::RecordRenderPass()
 {
     // Specify the clear color value
     VkClearValue clearColor[2];

@@ -16,7 +16,7 @@ public:
     void SetupPrivate();
     virtual void Update();
     virtual bool Render();
-    void RenderPrivate();
+    void RecordRenderPass();
     void ResizeWindow(int width, int height);
 
 	virtual void mousePressEvent(QMouseEvent* p_Event);

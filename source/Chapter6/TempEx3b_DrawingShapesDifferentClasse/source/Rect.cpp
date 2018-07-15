@@ -17,6 +17,13 @@ static char* PIPELINE_RECT_OUTLINE = "RectOutline";
 
 //std::shared_ptr<RectangleDescriptorSet> CDS = NULL;// std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
 
+struct Vertex
+{
+    glm::vec3 m_Position; // Vertex Position => x, y, z
+    glm::vec3 m_Color;    // Color format => r, g, b
+    unsigned int m_DrawType;    // Color format => r, g, b
+};
+
 static const Vertex rectFilledVertices[] =
 {
     { glm::vec3(1, 0, 0),	glm::vec3(0.f, 0.f, 0.f), 0 },
@@ -29,11 +36,11 @@ static const Vertex rectFilledVertices[] =
 
 static const Vertex rectOutlineVertices[] =
 {
-    { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
-    { glm::vec3(1, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
-    { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
-    { glm::vec3(0, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
-    { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
+    { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f), 0 },
+    { glm::vec3(1, 0, 0),	glm::vec3(1.f, 0.f, 0.f), 0 },
+    { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f), 0 },
+    { glm::vec3(0, 1, 0),	glm::vec3(0.f, 1.f, 0.f), 0 },
+    { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f), 0 },
 };
 
 RectangleMultiDrawFactory::RectangleMultiDrawFactory(VulkanApp* p_VulkanApp)
@@ -41,10 +48,7 @@ RectangleMultiDrawFactory::RectangleMultiDrawFactory(VulkanApp* p_VulkanApp)
 	assert(p_VulkanApp);
     m_VulkanApplication = p_VulkanApp;
 
-	memset(&UniformBuffer, 0, sizeof(UniformBuffer));
-	
     CDS = NULL;
-    UniformBuffer = NULL;
 }
 
 RectangleMultiDrawFactory::~RectangleMultiDrawFactory()
@@ -69,7 +73,6 @@ RectangleMultiDrawFactory::~RectangleMultiDrawFactory()
         }
     }
 
-    delete CDS;
 	//// Destroy descriptors
 	//for (int i = 0; i < descLayout.size(); i++) {
  //       vkDestroyDescriptorSetLayout(m_VulkanApplication->m_hDevice, descLayout[i], NULL);
@@ -79,6 +82,7 @@ RectangleMultiDrawFactory::~RectangleMultiDrawFactory()
     //vkFreeDescriptorSets(m_VulkanApplication->m_hDevice, descriptorPool, (uint32_t)descriptorSet.size(), &descriptorSet[0]);
     //vkDestroyDescriptorPool(m_VulkanApplication->m_hDevice, descriptorPool, NULL);
 
+    RectangleDescriptorSet::UniformBufferObj* UniformBuffer = CDS->UniformBuffer;
     vkUnmapMemory(m_VulkanApplication->m_hDevice, UniformBuffer->m_BufObj.m_Memory);
     vkDestroyBuffer(m_VulkanApplication->m_hDevice, UniformBuffer->m_BufObj.m_Buffer, NULL);
     vkFreeMemory(m_VulkanApplication->m_hDevice, UniformBuffer->m_BufObj.m_Memory, NULL);
@@ -86,13 +90,7 @@ RectangleMultiDrawFactory::~RectangleMultiDrawFactory()
 
 void RectangleMultiDrawFactory::Setup(VkCommandBuffer& p_CommandBuffer)
 {
-    if (!CDS)
-    {
-        //CDS = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
-        CDS = new RectangleDescriptorSet(m_VulkanApplication);
-        CDS->CreateDescriptor();
-        UniformBuffer = CDS->UniformBuffer;
-    }
+    CDS = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
 
     CreateVertexBuffer();
 
@@ -101,11 +99,12 @@ void RectangleMultiDrawFactory::Setup(VkCommandBuffer& p_CommandBuffer)
     // Build the push constants
     createPushConstants();
 
-    RecordCommandBuffer(p_CommandBuffer);
+    Render(p_CommandBuffer);
 }
 
 void RectangleMultiDrawFactory::Update()
 {
+    RectangleDescriptorSet::UniformBufferObj* UniformBuffer = CDS->UniformBuffer;
     VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice,
         UniformBuffer->m_MappedMemory,
         UniformBuffer->m_MappedRange,
@@ -117,7 +116,7 @@ void RectangleMultiDrawFactory::ResizeWindow(VkCommandBuffer& p_CommandBuffer)
 {
     CreateGraphicsPipeline(true);
 
-    RecordCommandBuffer(p_CommandBuffer);
+    Render(p_CommandBuffer);
 }
 
 void RectangleMultiDrawFactory::CreateRectOutlinePipeline()
@@ -542,62 +541,6 @@ void RectangleMultiDrawFactory::createPushConstants()
 
     //CommandBufferMgr::endCommandBuffer(cmdPushConstant);
     //CommandBufferMgr::submitCommandBuffer(deviceObj->queue, &cmdPushConstant);
-}
-
-void RectangleMultiDrawFactory::RecordCommandBuffer(VkCommandBuffer& p_CommandBuffer)
-{
-    //// Specify the clear color value
-    //VkClearValue clearColor[2];
-    //clearColor[0].color.float32[0] = 0.0f;
-    //clearColor[0].color.float32[1] = 0.0f;
-    //clearColor[0].color.float32[2] = 0.0f;
-    //clearColor[0].color.float32[3] = 0.0f;
-
-    //// Specify the depth/stencil clear value
-    //clearColor[1].depthStencil.depth = 1.0f;
-    //clearColor[1].depthStencil.stencil = 0;
-
-    //// Offset to render in the frame buffer
-    //VkOffset2D   renderOffset = { 0, 0 };
-    //// Width & Height to render in the frame buffer
-    //VkExtent2D   renderExtent = m_VulkanApplication->m_swapChainExtent;
-
-    //// For each command buffers in the command buffer list
-    //for (size_t i = 0; i < m_VulkanApplication->m_hCommandBufferList.size(); i++)
-    //{
-    //    VkCommandBufferBeginInfo beginInfo = {};
-    //    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    //    // Indicate that the command buffer can be resubmitted to the queue
-    //    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-
-    //    // Begin command buffer
-    //    vkBeginCommandBuffer(m_VulkanApplication->m_hCommandBufferList[i], &beginInfo);
-
-    //    VkRenderPassBeginInfo renderPassInfo = {};
-    //    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    //    renderPassInfo.renderPass = m_VulkanApplication->m_hRenderPass;
-    //    renderPassInfo.framebuffer = m_VulkanApplication->m_hFramebuffers[i];
-    //    renderPassInfo.renderArea.offset = renderOffset;
-    //    renderPassInfo.renderArea.extent = renderExtent;
-    //    renderPassInfo.clearValueCount = 2;
-    //    renderPassInfo.pClearValues = clearColor;
-
-    //    // Begin render pass
-    //    vkCmdBeginRenderPass(m_VulkanApplication->m_hCommandBufferList[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-    Render(p_CommandBuffer); // consider using shared ptr/smart pointers
-
-    //    // End the Render pass
-    //    vkCmdEndRenderPass(m_VulkanApplication->m_hCommandBufferList[i]);
-
-    //    // End the Command buffer
-    //    VkResult vkResult = vkEndCommandBuffer(m_VulkanApplication->m_hCommandBufferList[i]);
-    //    if (vkResult != VK_SUCCESS)
-    //    {
-    //        VulkanHelper::LogError("vkEndCommandBuffer() failed!");
-    //        assert(false);
-    //    }
-    //}
 }
 
 void RectangleMultiDrawFactory::CreateVertexBuffer()

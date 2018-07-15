@@ -4,13 +4,14 @@ static char* PIPELINE_RECT_FILLED = "RectFilled";
 static char* PIPELINE_RECT_OUTLINE = "RectOutline";
 
 #define VERTEX_BUFFER_BIND_IDX 0
-
-AbstractModelFactory* Circle::GetRenderScemeFactory()
+struct CircleVertex
 {
-    return new CircleMultiDrawFactory(static_cast<VulkanApp*>(m_Scene->GetApplication()));
-}
+    glm::vec3 m_Position;       // Vertex Position => x, y, z
+    glm::vec3 m_TexCoord;       // TexCoord format => u, v
+    unsigned int m_DrawType;    // 
+};
 
-static const Vertex rectFilledVertices[] =
+static const CircleVertex rectFilledVertices[] =
 {
     { glm::vec3(1, 0, 0),	glm::vec3(0.f, 0.f, 0.f), 0 },
     { glm::vec3(0, 0, 0),	glm::vec3(1.f, 0.f, 0.f), 0 },
@@ -20,7 +21,7 @@ static const Vertex rectFilledVertices[] =
     { glm::vec3(0, 1, 0),	glm::vec3(1.f, 1.f, 0.f), 0 },
 };
 
-static const Vertex rectOutlineVertices[] =
+static const CircleVertex rectOutlineVertices[] =
 {
     { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
     { glm::vec3(1, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
@@ -29,15 +30,64 @@ static const Vertex rectOutlineVertices[] =
     { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
 };
 
+
+AbstractModelFactory* Circle::GetRenderScemeFactory()
+{
+    return new CircleMultiDrawFactory(static_cast<VulkanApp*>(m_Scene->GetApplication()));
+}
+
+void Circle::Setup()
+{
+    CreateVertexBuffer();
+
+    Model3D::Setup();
+}
+
+void Circle::CreateVertexBuffer()
+{
+    glm::mat4 parentTransform = GetTransformedModel();//m_Model * GetParentsTransformation(GetParent());
+
+    CircleVertex rectVertices[6];
+    memcpy(rectVertices, rectFilledVertices, sizeof(CircleVertex) * 6);
+    uint32_t dataSize = sizeof(rectVertices);
+    uint32_t dataStride = sizeof(rectVertices[0]);
+    const int vertexCount = dataSize / dataStride;
+    for (int i = 0; i < vertexCount; ++i)
+    {
+        glm::vec4 pos(rectFilledVertices[i].m_Position, 1.0);
+        pos.x = pos.x * m_BoundedRegion.m_Dimension.x;
+        pos.y = pos.y * m_BoundedRegion.m_Dimension.y;
+
+        pos = parentTransform * pos;
+        rectVertices[i].m_Position.x = pos.x;
+        rectVertices[i].m_Position.y = pos.y;
+        rectVertices[i].m_Position.z = pos.z;
+    }
+
+    VulkanApp* app = static_cast<VulkanApp*>(m_Scene->GetApplication());
+    const VkDevice& device = app->m_hDevice;
+
+    if (m_VertexBuffer.m_Buffer != VK_NULL_HANDLE)
+    {
+        vkDestroyBuffer(device, m_VertexBuffer.m_Buffer, NULL);
+        vkFreeMemory(device, m_VertexBuffer.m_Memory, NULL);
+    }
+
+    m_VertexBuffer.m_DataSize = dataSize;
+    m_VertexBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+
+    const VkPhysicalDeviceMemoryProperties& memProp = app->m_physicalDeviceInfo.memProp;
+    VulkanHelper::CreateBuffer(device, memProp, m_VertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, rectVertices);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 CircleMultiDrawFactory::CircleMultiDrawFactory(VulkanApp* p_VulkanApp)
 {
     assert(p_VulkanApp);
     m_VulkanApplication = p_VulkanApp;
 
-    memset(&UniformBuffer, 0, sizeof(UniformBuffer));
-
-    CDS = NULL;// std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
-    UniformBuffer = NULL;
+    CDS = NULL;
 }
 
 CircleMultiDrawFactory::~CircleMultiDrawFactory()
@@ -62,7 +112,6 @@ CircleMultiDrawFactory::~CircleMultiDrawFactory()
         }
     }
 
-    delete CDS;
     //// Destroy descriptors
     //for (int i = 0; i < descLayout.size(); i++) {
     //       vkDestroyDescriptorSetLayout(m_VulkanApplication->m_hDevice, descLayout[i], NULL);
@@ -72,6 +121,7 @@ CircleMultiDrawFactory::~CircleMultiDrawFactory()
     //vkFreeDescriptorSets(m_VulkanApplication->m_hDevice, descriptorPool, (uint32_t)descriptorSet.size(), &descriptorSet[0]);
     //vkDestroyDescriptorPool(m_VulkanApplication->m_hDevice, descriptorPool, NULL);
 
+    CircleDescriptorSet::UniformBufferObj* UniformBuffer = CDS->UniformBuffer;
     vkUnmapMemory(m_VulkanApplication->m_hDevice, UniformBuffer->m_BufObj.m_Memory);
     vkDestroyBuffer(m_VulkanApplication->m_hDevice, UniformBuffer->m_BufObj.m_Buffer, NULL);
     vkFreeMemory(m_VulkanApplication->m_hDevice, UniformBuffer->m_BufObj.m_Memory, NULL);
@@ -79,13 +129,7 @@ CircleMultiDrawFactory::~CircleMultiDrawFactory()
 
 void CircleMultiDrawFactory::Setup(VkCommandBuffer& p_CommandBuffer)
 {
-    if (!CDS)
-    {
-        //CDS = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
-        CDS = new CircleDescriptorSet(m_VulkanApplication);
-        CDS->CreateDescriptor();
-        UniformBuffer = CDS->UniformBuffer;
-    }
+    CDS = std::make_shared<CircleDescriptorSet>(m_VulkanApplication);
 
     CreateVertexBuffer();
 
@@ -94,13 +138,13 @@ void CircleMultiDrawFactory::Setup(VkCommandBuffer& p_CommandBuffer)
     // Build the push constants
     createPushConstants();
 
-//    m_VulkanApplication->CreateCommandBuffers(); // Create command buffers
-
-    RecordCommandBuffer(p_CommandBuffer);
+//    RecordCommandBuffer(p_CommandBuffer);
+    Render(p_CommandBuffer);
 }
 
 void CircleMultiDrawFactory::Update()
 {
+    CircleDescriptorSet::UniformBufferObj* UniformBuffer = CDS->UniformBuffer;
     VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice,
         UniformBuffer->m_MappedMemory,
         UniformBuffer->m_MappedRange,
@@ -112,7 +156,7 @@ void CircleMultiDrawFactory::ResizeWindow(VkCommandBuffer& p_CommandBuffer)
 {
     CreateGraphicsPipeline(true);
 
-    RecordCommandBuffer(p_CommandBuffer);
+    Render(p_CommandBuffer);
 }
 
 void CircleMultiDrawFactory::CreateRectOutlinePipeline()
@@ -306,9 +350,9 @@ void CircleMultiDrawFactory::CreateRectFillPipeline()
     // Setup the vertex input
     VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount = (uint32_t)m_VertexInputBinding[PIPELINE_FILLED].size();// sizeof(m_VertexInputBinding[PIPELINE_FILLED]) / sizeof(VkVertexInputBindingDescription);
+    vertexInputInfo.vertexBindingDescriptionCount = (uint32_t)m_VertexInputBinding[PIPELINE_FILLED].size();
     vertexInputInfo.pVertexBindingDescriptions = m_VertexInputBinding[PIPELINE_FILLED].data();
-    vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)m_VertexInputAttribute[PIPELINE_FILLED].size();// sizeof(m_VertexInputAttribute[PIPELINE_FILLED]) / sizeof(VkVertexInputAttributeDescription);
+    vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)m_VertexInputAttribute[PIPELINE_FILLED].size();
     vertexInputInfo.pVertexAttributeDescriptions = m_VertexInputAttribute[PIPELINE_FILLED].data();
 
     // Setup input assembly
@@ -539,117 +583,58 @@ void CircleMultiDrawFactory::createPushConstants()
     //CommandBufferMgr::submitCommandBuffer(deviceObj->queue, &cmdPushConstant);
 }
 
-void CircleMultiDrawFactory::RecordCommandBuffer(VkCommandBuffer& p_CommandBuffer)
-{
-    //// Specify the clear color value
-    //VkClearValue clearColor[2];
-    //clearColor[0].color.float32[0] = 0.0f;
-    //clearColor[0].color.float32[1] = 0.0f;
-    //clearColor[0].color.float32[2] = 0.0f;
-    //clearColor[0].color.float32[3] = 0.0f;
-
-    //// Specify the depth/stencil clear value
-    //clearColor[1].depthStencil.depth = 1.0f;
-    //clearColor[1].depthStencil.stencil = 0;
-
-    //// Offset to render in the frame buffer
-    //VkOffset2D   renderOffset = { 0, 0 };
-    //// Width & Height to render in the frame buffer
-    //VkExtent2D   renderExtent = m_VulkanApplication->m_swapChainExtent;
-
-    //// For each command buffers in the command buffer list
-    //for (size_t i = 0; i < m_VulkanApplication->m_hCommandBufferList.size(); i++)
-    //{
-    //    VkCommandBufferBeginInfo beginInfo = {};
-    //    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    //    // Indicate that the command buffer can be resubmitted to the queue
-    //    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-
-    //    // Begin command buffer
-    //vkBeginCommandBuffer(m_VulkanApplication->m_hCommandBufferList[i], &beginInfo);
-    //Render(p_CommandBuffer);
-    //    VkRenderPassBeginInfo renderPassInfo = {};
-    //    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    //    renderPassInfo.renderPass = m_VulkanApplication->m_hRenderPass;
-    //    renderPassInfo.framebuffer = m_VulkanApplication->m_hFramebuffers[i];
-    //    renderPassInfo.renderArea.offset = renderOffset;
-    //    renderPassInfo.renderArea.extent = renderExtent;
-    //    renderPassInfo.clearValueCount = 2;
-    //    renderPassInfo.pClearValues = clearColor;
-
-    //    // Begin render pass
-    //    vkCmdBeginRenderPass(m_VulkanApplication->m_hCommandBufferList[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-    Render(p_CommandBuffer); // consider using shared ptr/smart pointers
-
-    //                                                          // End the Render pass
-    //    vkCmdEndRenderPass(m_VulkanApplication->m_hCommandBufferList[i]);
-
-    //    // End the Command buffer
-    //    VkResult vkResult = vkEndCommandBuffer(m_VulkanApplication->m_hCommandBufferList[i]);
-    //    if (vkResult != VK_SUCCESS)
-    //    {
-    //        VulkanHelper::LogError("vkEndCommandBuffer() failed!");
-    //        assert(false);
-    //    }
-    //}
-}
-
 void CircleMultiDrawFactory::CreateVertexBuffer()
 {
     for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
     {
         if (pipelineIdx == PIPELINE_FILLED)
         {
-            //VkVertexInputBindingDescription		m_VertexInputBinding[1];   // 0 for (position and color)
-            //VkVertexInputAttributeDescription	m_VertexInputAttribute[2]; // Why 2 = 2(for position and color)
-
             m_VertexInputBinding[pipelineIdx].resize(1);   // 0 for position and 1 for color
             m_VertexInputAttribute[pipelineIdx].resize(3); // Why 2 = 2(for position and color
 
-                                                           // Indicates the rate at which the information will be
-                                                           // injected for vertex input.
+            // Indicates the rate at which the information will be
+            // injected for vertex input.
             m_VertexInputBinding[pipelineIdx][0].binding = VERTEX_BUFFER_BIND_IDX;
             m_VertexInputBinding[pipelineIdx][0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-            m_VertexInputBinding[pipelineIdx][0].stride = sizeof(Vertex);
+            m_VertexInputBinding[pipelineIdx][0].stride = sizeof(CircleVertex);
 
             // The VkVertexInputAttribute interpreting the data.
             m_VertexInputAttribute[pipelineIdx][0].binding = VERTEX_BUFFER_BIND_IDX;
             m_VertexInputAttribute[pipelineIdx][0].location = 0;
             m_VertexInputAttribute[pipelineIdx][0].format = VK_FORMAT_R32G32B32_SFLOAT;
-            m_VertexInputAttribute[pipelineIdx][0].offset = offsetof(struct Vertex, m_Position);
+            m_VertexInputAttribute[pipelineIdx][0].offset = offsetof(CircleVertex, m_Position);
 
             m_VertexInputAttribute[pipelineIdx][1].binding = VERTEX_BUFFER_BIND_IDX;
             m_VertexInputAttribute[pipelineIdx][1].location = 1;
             m_VertexInputAttribute[pipelineIdx][1].format = VK_FORMAT_R32G32B32_SFLOAT;
-            m_VertexInputAttribute[pipelineIdx][1].offset = offsetof(struct Vertex, m_Color);
+            m_VertexInputAttribute[pipelineIdx][1].offset = offsetof(CircleVertex, m_TexCoord);
 
             m_VertexInputAttribute[pipelineIdx][2].binding = VERTEX_BUFFER_BIND_IDX;
             m_VertexInputAttribute[pipelineIdx][2].location = 2;
             m_VertexInputAttribute[pipelineIdx][2].format = VK_FORMAT_R32_UINT;
-            m_VertexInputAttribute[pipelineIdx][2].offset = offsetof(struct Vertex, m_DrawType);
+            m_VertexInputAttribute[pipelineIdx][2].offset = offsetof(CircleVertex, m_DrawType);
         }
         else if (pipelineIdx == PIPELINE_OUTLINE)
         {
             m_VertexInputBinding[pipelineIdx].resize(1);   // 0 for position and 1 for color
             m_VertexInputAttribute[pipelineIdx].resize(2); // Why 2 = 2(for position and color
 
-                                                           // Indicates the rate at which the information will be
-                                                           // injected for vertex input.
+            // Indicates the rate at which the information will be
+            // injected for vertex input.
             m_VertexInputBinding[pipelineIdx][0].binding = VERTEX_BUFFER_BIND_IDX;
             m_VertexInputBinding[pipelineIdx][0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-            m_VertexInputBinding[pipelineIdx][0].stride = sizeof(Vertex);
+            m_VertexInputBinding[pipelineIdx][0].stride = sizeof(CircleVertex);
 
             // The VkVertexInputAttribute interpreting the data.
             m_VertexInputAttribute[pipelineIdx][0].binding = VERTEX_BUFFER_BIND_IDX;
             m_VertexInputAttribute[pipelineIdx][0].location = 0;
             m_VertexInputAttribute[pipelineIdx][0].format = VK_FORMAT_R32G32B32_SFLOAT;
-            m_VertexInputAttribute[pipelineIdx][0].offset = offsetof(struct Vertex, m_Position);
+            m_VertexInputAttribute[pipelineIdx][0].offset = offsetof(CircleVertex, m_Position);
 
             m_VertexInputAttribute[pipelineIdx][1].binding = VERTEX_BUFFER_BIND_IDX;
             m_VertexInputAttribute[pipelineIdx][1].location = 1;
-            m_VertexInputAttribute[pipelineIdx][1].format = VK_FORMAT_R32G32B32_SFLOAT;
-            m_VertexInputAttribute[pipelineIdx][1].offset = offsetof(struct Vertex, m_Color);
+            m_VertexInputAttribute[pipelineIdx][1].format = VK_FORMAT_R32G32_SFLOAT;
+            m_VertexInputAttribute[pipelineIdx][1].offset = offsetof(CircleVertex, m_TexCoord);
         }
     }
 }
@@ -766,7 +751,7 @@ void CircleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
                 vkCmdBindVertexBuffers(p_CmdBuffer, VERTEX_BUFFER_BIND_IDX, 1, &model->m_VertexBuffer.m_Buffer, offsets);
 
                 // Draw the Cube
-                const int vertexCount = sizeof(rectFilledVertices) / sizeof(Vertex);
+                const int vertexCount = sizeof(rectFilledVertices) / sizeof(CircleVertex);
                 vkCmdDraw(p_CmdBuffer, vertexCount, /*INSTANCE_COUNT*/1, 0, 0);
             }
             else if (model->GetDrawType() == RectangleModel::OUTLINE)
@@ -776,7 +761,7 @@ void CircleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
                 vkCmdBindVertexBuffers(p_CmdBuffer, VERTEX_BUFFER_BIND_IDX, 1, &model->m_VertexBuffer.m_Buffer, offsets);
 
                 // Draw the Cube
-                const int vertexCount = sizeof(rectOutlineVertices) / sizeof(Vertex);
+                const int vertexCount = sizeof(rectOutlineVertices) / sizeof(CircleVertex);
                 vkCmdDraw(p_CmdBuffer, vertexCount, /*INSTANCE_COUNT*/1, 0, 0);
 
             }

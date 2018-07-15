@@ -50,9 +50,27 @@ public:
     virtual void Update(Model3D* p_Item = NULL);
     virtual AbstractModelFactory* GetRenderScemeFactory() { return NULL; } // Custom model class do not need to implement it as they are made of basic model classes.
 
-    virtual void Rotate(float p_Angle, float p_X, float p_Y, float p_Z) { m_Model = glm::rotate(m_Model, p_Angle, glm::vec3(p_X, p_Y, p_Z)); }
-    void Translate(float p_X, float p_Y, float p_Z) { m_Model = glm::translate(m_Model, glm::vec3(p_X, p_Y, p_Z)); }
-    void Scale(float p_X, float p_Y, float p_Z) { m_Model = glm::scale(m_Model, glm::vec3(p_X, p_Y, p_Z)); }
+    virtual void Rotate(float p_Angle, float p_X, float p_Y, float p_Z) 
+    { 
+        if (m_OriginOffset != glm::vec3(0.0f, 0.0f, 0.0f)) { m_Model = glm::translate(m_Model, m_OriginOffset); }
+        m_Model = glm::rotate(m_Model, p_Angle, glm::vec3(p_X, p_Y, p_Z));
+        if (m_OriginOffset != glm::vec3(0.0f, 0.0f, 0.0f)) { m_Model = glm::translate(m_Model, -m_OriginOffset); }
+    }
+    
+    void Translate(float p_X, float p_Y, float p_Z) 
+    { 
+        if (m_OriginOffset != glm::vec3(0.0f, 0.0f, 0.0f)) { m_Model = glm::translate(m_Model, m_OriginOffset); }
+        m_Model = glm::translate(m_Model, glm::vec3(p_X, p_Y, p_Z));
+        if (m_OriginOffset != glm::vec3(0.0f, 0.0f, 0.0f)) { m_Model = glm::translate(m_Model, -m_OriginOffset); }
+    }
+
+    void Scale(float p_X, float p_Y, float p_Z) 
+    { 
+        if (m_OriginOffset != glm::vec3(0.0f, 0.0f, 0.0f)) { m_Model = glm::translate(m_Model, m_OriginOffset); }
+        m_Model = glm::scale(m_Model, glm::vec3(p_X, p_Y, p_Z));
+        if (m_OriginOffset != glm::vec3(0.0f, 0.0f, 0.0f)) { m_Model = glm::translate(m_Model, -m_OriginOffset); }
+    }
+
     void Reset() { m_TransformedModel = glm::mat4(); }
 
     void SetZOrder(float p_ZOrder);
@@ -65,6 +83,7 @@ public:
     GETSET(glm::mat4, Model)		// Owned by drawable item
     GETSET(Scene3D*, Scene)
     GETSET(Model3D*, Parent)
+    GETSET(glm::vec3, OriginOffset)
     GETSET(glm::mat4, TransformedModel)		// Owned by drawable item
     GETSET(QList<Model3D*>, ChildList)
 
