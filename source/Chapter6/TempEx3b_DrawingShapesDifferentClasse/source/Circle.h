@@ -7,27 +7,56 @@
 #include "../TempEx2_SceneGraph/Model3D.h"
 class CircleMultiDrawFactory;
 
-class Circle : public RectangleModel
+class Circle : public Model3D
 {
 public:
-    Circle(Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "") 
-        : RectangleModel(p_Scene, p_Parent, p_BoundedRegion, p_Name)
+    enum DRAW_TYPE
     {
-        SetShapeType(SHAPE::SHAPE_CIRCLE_MULTIDRAW);
+        FILLED = 0,
+        OUTLINE,
+        ROUNDED,
+        DRAW_TYPE_COUNT
+    };
+
+public:
+    Circle(Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "") 
+//        : RectangleModel(p_Scene, p_Parent, p_BoundedRegion, p_Name)
+        : Model3D(p_Scene, p_Parent, p_BoundedRegion, p_Name, SHAPE_CIRCLE_MULTIDRAW)
+        , m_DrawType(FILLED)
+    {
+        //SetShapeType(SHAPE::SHAPE_CIRCLE_MULTIDRAW);
     }
 
     Circle(Scene3D* p_Scene, Model3D* p_Parent, glm::vec2 m_Center, float radius, const QString& p_Name = "")
-        : RectangleModel(p_Scene, p_Parent, BoundingRegion(m_Center.x - (radius * 0.5f), m_Center.y - (radius * 0.5f), radius, radius), p_Name)
+        : Model3D(p_Scene, p_Parent, BoundingRegion(m_Center.x - (radius * 0.5f), m_Center.y - (radius * 0.5f), radius, radius), p_Name, SHAPE_CIRCLE_MULTIDRAW)
+        , m_DrawType(FILLED)
     {
-        SetShapeType(SHAPE::SHAPE_CIRCLE_MULTIDRAW);
+        //SetShapeType(SHAPE::SHAPE_CIRCLE_MULTIDRAW);
+    }
+
+protected:
+    virtual void Update(Model3D* p_Item = NULL)
+    {
+        Model3D::Update(p_Item);
+
+        CreateVertexBuffer();
+    }
+
+public:
+    void UpdateMeAndMyChildren()
+    {
+        Update(this);
     }
 
     virtual ~Circle() {}
 
-    virtual void Setup();
-    void CreateVertexBuffer();
+    GETSET(DRAW_TYPE, DrawType)
 
     AbstractModelFactory* GetRenderScemeFactory();
+
+    virtual void Setup();
+    void CreateVertexBuffer();
+    VulkanBuffer m_VertexBuffer;
 };
 
 struct CircleDescriptorSet : public RectangleDescriptorSet
@@ -54,8 +83,8 @@ public:
 
 private:
     void CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap = false);
-    void CreateRectFillPipeline();
-    void CreateRectOutlinePipeline();
+    void CreateCircleFillPipeline();
+    void CreateCircleOutlinePipeline();
 
     void createPushConstants();
 
@@ -67,7 +96,7 @@ private:
 
     QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
 
-    enum RECTANGLE_GRAPHICS_PIPELINES
+    enum CIRCLE_GRAPHICS_PIPELINES
     {
         PIPELINE_FILLED = 0,
         PIPELINE_OUTLINE,

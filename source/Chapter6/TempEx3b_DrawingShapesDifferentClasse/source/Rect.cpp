@@ -34,6 +34,16 @@ static const Vertex rectFilledVertices[] =
     { glm::vec3(0, 1, 0),	glm::vec3(1.f, 1.f, 0.f), 0 },
 };
 
+//static const Vertex rectFilledVertices[] =
+//{
+//    { glm::vec3(1, 0, 0),	glm::vec2(0.f, 0.f), 0 },
+//    { glm::vec3(0, 0, 0),	glm::vec2(1.f, 0.f), 0 },
+//    { glm::vec3(1, 1, 0),	glm::vec2(0.f, 1.f), 0 },
+//    { glm::vec3(1, 1, 0),	glm::vec2(0.f, 1.f), 0 },
+//    { glm::vec3(0, 0, 0),	glm::vec2(1.f, 0.f), 0 },
+//    { glm::vec3(0, 1, 0),	glm::vec2(1.f, 1.f), 0 },
+//};
+
 static const Vertex rectOutlineVertices[] =
 {
     { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f), 0 },
@@ -92,7 +102,7 @@ void RectangleMultiDrawFactory::Setup(VkCommandBuffer& p_CommandBuffer)
 {
     CDS = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
 
-    CreateVertexBuffer();
+    CreateVertexLayoutBinding();
 
     CreateGraphicsPipeline();
 
@@ -543,7 +553,7 @@ void RectangleMultiDrawFactory::createPushConstants()
     //CommandBufferMgr::submitCommandBuffer(deviceObj->queue, &cmdPushConstant);
 }
 
-void RectangleMultiDrawFactory::CreateVertexBuffer()
+void RectangleMultiDrawFactory::CreateVertexLayoutBinding()
 {
     for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
     {
@@ -890,7 +900,7 @@ AbstractModelFactory* RectangleModel::GetRenderScemeFactory()
     return new RectangleMultiDrawFactory(static_cast<VulkanApp*>(m_Scene->GetApplication()));
 }
 
-void RectangleModel::CreateVertexBuffer()
+void RectangleModel::CreateRectVertexBuffer()
 {
     glm::mat4 parentTransform = GetTransformedModel();//m_Model * GetParentsTransformation(GetParent());
 
@@ -928,7 +938,7 @@ void RectangleModel::CreateVertexBuffer()
 
 void RectangleModel::Setup()
 {
-    CreateVertexBuffer();
+    CreateRectVertexBuffer();
 
 	Model3D::Setup();
 }

@@ -3,7 +3,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 layout(location = 0) in vec4 fragColor;
-layout(location = 1) in vec4 texCoord;
+layout(location = 1) in vec2 texCoord;
 
 layout(location = 0) out vec4 outColor;
 
@@ -23,7 +23,7 @@ void main()
 	///////////////////////////////
 
 	    // Pass through fragment color input as output
-    outColor = texCoord;
+    //outColor = texCoord;
 	///////////////////////////
 	float weight = 0.0f;
     float dx     = texCoord.x - 0.5;

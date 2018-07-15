@@ -27,7 +27,7 @@ protected:
     {
         Model3D::Update(p_Item);
 
-        CreateVertexBuffer();
+        CreateRectVertexBuffer();
     }
 
 public:
@@ -39,7 +39,7 @@ public:
     AbstractModelFactory* GetRenderScemeFactory();
 
     virtual void Setup();
-    void CreateVertexBuffer();
+    void CreateRectVertexBuffer();
     VulkanBuffer m_VertexBuffer;
 };
 
@@ -129,7 +129,7 @@ private:
 
     void createPushConstants();
 
-    void CreateVertexBuffer();
+    void CreateVertexLayoutBinding();
 
     virtual void UpdateModelList(Model3D* p_Item);
 

@@ -4,6 +4,7 @@
 #include "UIDemo.h"
 
 class RectangleModel;
+class Circle;
 class InstancingDemoApp : public VulkanApp
 {
 public:
@@ -29,7 +30,7 @@ private:
     RectangleModel* m_Cube2;
     RectangleModel* m_Cube3;
     RectangleModel* m_Cube4;
-    RectangleModel* m_Cube5;
+    Circle* m_Cube5;
     UIDemo m_UIDemo;
 };
     
