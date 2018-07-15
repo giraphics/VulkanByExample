@@ -916,6 +916,8 @@ void RectangleModel::CreateRectVertexBuffer()
         pos.y = pos.y * m_BoundedRegion.m_Dimension.y;
 
         pos = parentTransform * pos;
+        //std::cout << m_Name.toStdString() << "=+ x:" << pos.x << ", y:" << pos.y << ", z:" << pos.z << endl;
+        
         rectVertices[i].m_Position.x = pos.x;
         rectVertices[i].m_Position.y = pos.y;
         rectVertices[i].m_Position.z = pos.z;

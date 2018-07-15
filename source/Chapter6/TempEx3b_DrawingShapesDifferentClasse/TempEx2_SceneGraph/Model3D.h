@@ -19,16 +19,19 @@ public:
     virtual void UpdateModelList(Model3D* p_Parent) {}
     virtual void ResizeWindow(VkCommandBuffer& p_CommandBuffer) {}
 
-    glm::mat4x4 m_ProjectViewMatrix;
-    VulkanApp* m_VulkanApplication;
+    GETSET(glm::mat4x4, ProjectViewMatrix);
+    GETSET(VulkanApp*, VulkanApplication)
+
+protected:
+    QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
 };
 
 struct BoundingRegion
 {
-    BoundingRegion(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder = 0)
+    BoundingRegion(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder = 0) // For 2D Bounding Box
     {
         m_Position.x = p_X;         m_Position.y = p_Y;        m_Position.z = p_ZOrder;
-        m_Dimension.x = p_Width;    m_Dimension.y = p_Height;  m_Dimension.z = 0.0f;
+        m_Dimension.x = p_Width;    m_Dimension.y = p_Height;  m_Dimension.z = p_ZOrder;
     }
     
     BoundingRegion(float p_X, float p_Y, float p_Z, float p_Width, float p_Height, float p_Depth)
@@ -48,6 +51,7 @@ public:
 
     virtual void Setup();
     virtual void Update(Model3D* p_Item = NULL);
+
     virtual AbstractModelFactory* GetRenderScemeFactory() { return NULL; } // Custom model class do not need to implement it as they are made of basic model classes.
 
     virtual void Rotate(float p_Angle, float p_X, float p_Y, float p_Z) 
@@ -71,11 +75,12 @@ public:
         if (m_OriginOffset != glm::vec3(0.0f, 0.0f, 0.0f)) { m_Model = glm::translate(m_Model, -m_OriginOffset); }
     }
 
-    void Reset() { m_TransformedModel = glm::mat4(); }
+    void Reset() { m_Model = glm::mat4(); }
 
     void SetZOrder(float p_ZOrder);
     void SetPosition(float p_X, float p_Y);
 
+    GETSET(QString, Name)
     GETSET(SHAPE, ShapeType);
     GETSET(BoundingRegion, BoundedRegion)
     GETSET(glm::vec4, Color)

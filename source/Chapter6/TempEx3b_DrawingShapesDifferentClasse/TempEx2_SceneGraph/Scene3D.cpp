@@ -67,7 +67,7 @@ void Scene3D::Update()
 {
     foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
     {
-        currentModelFactory->m_ProjectViewMatrix = *m_Transform.GetProjectionMatrix() * *m_Transform.GetViewMatrix();
+        currentModelFactory->SetRefProjectViewMatrix(*m_Transform.GetProjectionMatrix() * *m_Transform.GetViewMatrix());
     }
 
     foreach (Model3D* item, m_ModelList)

@@ -31,7 +31,6 @@ public:
         : Model3D(p_Scene, p_Parent, BoundingRegion(m_Center.x - (radius * 0.5f), m_Center.y - (radius * 0.5f), radius, radius), p_Name, SHAPE_CIRCLE_MULTIDRAW)
         , m_DrawType(FILLED)
     {
-        //SetShapeType(SHAPE::SHAPE_CIRCLE_MULTIDRAW);
     }
 
 protected:
@@ -39,7 +38,7 @@ protected:
     {
         Model3D::Update(p_Item);
 
-        CreateVertexBuffer();
+        CreateCircleVertexBuffer();
     }
 
 public:
@@ -55,7 +54,7 @@ public:
     AbstractModelFactory* GetRenderScemeFactory();
 
     virtual void Setup();
-    void CreateVertexBuffer();
+    void CreateCircleVertexBuffer();
     VulkanBuffer m_VertexBuffer;
 };
 
@@ -88,13 +87,10 @@ private:
 
     void createPushConstants();
 
-    void CreateVertexBuffer();
-
-    //void Render(VkCommandBuffer& p_CmdBuffer);
+    void CreateVertexLayoutBinding();
 
     virtual void UpdateModelList(Model3D* p_Item);
 
-    QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
 
     enum CIRCLE_GRAPHICS_PIPELINES
     {

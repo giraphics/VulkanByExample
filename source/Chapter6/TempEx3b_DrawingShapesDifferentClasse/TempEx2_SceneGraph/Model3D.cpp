@@ -5,6 +5,7 @@
 Model3D::Model3D(Scene3D *p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType)
     : m_Scene(p_Scene)
     , m_Parent(p_Parent)
+    , m_Name(p_Name)
     , m_ShapeType(p_ShapeType)
     , m_BoundedRegion(p_BoundedRegion)
     , m_OriginOffset(glm::vec3(0.0f, 0.0f, 0.0f))

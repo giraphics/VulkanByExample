@@ -133,8 +133,6 @@ private:
 
     virtual void UpdateModelList(Model3D* p_Item);
 
-    QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
-
     enum RECTANGLE_GRAPHICS_PIPELINES
     {
         PIPELINE_FILLED = 0,

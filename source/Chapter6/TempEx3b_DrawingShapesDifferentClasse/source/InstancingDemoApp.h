@@ -30,6 +30,10 @@ private:
     RectangleModel* m_Cube2;
     RectangleModel* m_Cube3;
     RectangleModel* m_Cube4;
+    RectangleModel* item1;
+    RectangleModel* item2;
+    RectangleModel* item3;
+    RectangleModel* item4;
     Circle* m_Cube5;
     UIDemo m_UIDemo;
 };

@@ -38,12 +38,12 @@ AbstractModelFactory* Circle::GetRenderScemeFactory()
 
 void Circle::Setup()
 {
-    CreateVertexBuffer();
+    CreateCircleVertexBuffer();
 
     Model3D::Setup();
 }
 
-void Circle::CreateVertexBuffer()
+void Circle::CreateCircleVertexBuffer()
 {
     glm::mat4 parentTransform = GetTransformedModel();//m_Model * GetParentsTransformation(GetParent());
 
@@ -131,7 +131,7 @@ void CircleMultiDrawFactory::Setup(VkCommandBuffer& p_CommandBuffer)
 {
     CDS = std::make_shared<CircleDescriptorSet>(m_VulkanApplication);
 
-    CreateVertexBuffer();
+    CreateVertexLayoutBinding();
 
     CreateGraphicsPipeline();
 
@@ -583,7 +583,7 @@ void CircleMultiDrawFactory::createPushConstants()
     //CommandBufferMgr::submitCommandBuffer(deviceObj->queue, &cmdPushConstant);
 }
 
-void CircleMultiDrawFactory::CreateVertexBuffer()
+void CircleMultiDrawFactory::CreateVertexLayoutBinding()
 {
     for (int pipelineIdx = 0; pipelineIdx < CIRCLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
     {

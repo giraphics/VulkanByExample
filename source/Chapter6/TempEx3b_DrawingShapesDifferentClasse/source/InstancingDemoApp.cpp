@@ -28,6 +28,7 @@ InstancingDemoApp::InstancingDemoApp()
     m_Cube1 = new RectangleModel(m_Scene, NULL, BoundingRegion(200, 200, 100, 100));
     m_Cube1->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
     m_Cube1->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+    m_Cube1->SetZOrder(1.1);
 
     m_Cube2 = new RectangleModel(m_Scene, m_Cube1, BoundingRegion(100, 100, 50, 50));
     m_Cube2->SetColor(glm::vec4(0.0, 0.0, 1.0, 1.0));
@@ -38,6 +39,7 @@ InstancingDemoApp::InstancingDemoApp()
     m_Cube3->SetDefaultColor(glm::vec4(0.2, 0.55, 0.20, 1.0));
 
     m_Cube4 = new RectangleModel(m_Scene, m_Cube1, BoundingRegion(75, -25, 50, 50));
+    m_Cube4->SetZOrder(-10.1);
     m_Cube4->SetOriginOffset(glm::vec3(25, 25, 0));
     m_Cube4->SetColor(glm::vec4(0.0, 0.2, 1.0, 1.0));
     m_Cube4->SetDefaultColor(glm::vec4(0.2, 0.35, 0.30, 1.0));
@@ -46,7 +48,31 @@ InstancingDemoApp::InstancingDemoApp()
     m_Cube5->SetOriginOffset(glm::vec3(25, 25, 0));
     m_Cube5->SetColor(glm::vec4(0.0, 0.5, 1.0, 1.0));
     m_Cube5->SetDefaultColor(glm::vec4(0.62, 0.25, 0.60, 1.0));
+    m_Cube5->SetZOrder(10.1);
 
+    {
+        float x = 0;
+        float y = 0;
+        item1 = new RectangleModel(m_Scene, NULL, BoundingRegion(x, y, 100, 100, -1), "Item1");
+        item1->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
+        item1->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+        x += 50;
+
+        item2 = new RectangleModel(m_Scene, item1, BoundingRegion(x, y, 100, 100, -1), "Item2");
+        item2->SetColor(glm::vec4(1.0, 0.2, 0.20, 1.0));
+        item2->SetDefaultColor(glm::vec4(1.42, 0.15, 0.60, 1.0));
+        x += 50;
+
+        item3 = new RectangleModel(m_Scene, item1, BoundingRegion(x, y, 100, 100, 10), "Item3");
+        item3->SetColor(glm::vec4(1.0, 1.2, 0.20, 1.0));
+        item3->SetDefaultColor(glm::vec4(1.42, 1.15, 0.60, 1.0));
+        x += 50;
+
+        item4 = new RectangleModel(m_Scene, item1, BoundingRegion(x, y, 100, 100, -1000), "Item4");
+        item4->SetColor(glm::vec4(1.0, 1.2, 1.0, 1.0));
+        item4->SetDefaultColor(glm::vec4(1., 0.5, 0.60, 1.0));
+        x += 50;
+    }
 //    m_UIDemo.Grid(m_Scene, m_windowDim.width, m_windowDim.height);
 //    m_UIDemo.MixerView(m_Scene, m_windowDim.width, m_windowDim.height);
 }
@@ -149,16 +175,23 @@ void InstancingDemoApp::SetupPrivate()
 void InstancingDemoApp::Update()
 {
     static float rot = 0.0;
-    if (m_Cube1)
-        m_Cube1->Rotate(rot = .001, 0.0, 0.0, 1.0);
-    
-    if (m_Cube2)
+    //if (m_Cube1)
+    //{
+    //    m_Cube1->Rotate(.001, 0.0, 0.0, 1.0);
+    // 
+    //    m_Cube2->Reset();
+    //    m_Cube2->SetPosition(100, 100);// = new RectangleModel(m_Scene, m_Cube1, BoundingRegion(100, 100, 50, 50));
+    //    m_Cube2->Rotate(rot += .1, 0.0, 0.0, 1.0);
+    //    
+    //    m_Cube3->Rotate(.003, 0.0, 0.0, 1.0);
+    //    m_Cube4->Rotate(.003, 0.0, 0.0, 1.0);
+    //    m_Cube5->Rotate(.003, 0.0, 0.0, 1.0);
+    //}
     {
-        m_Cube2->Reset();
-        m_Cube2->Rotate(rot += .1, 0.0, 0.0, 1.0);
-        m_Cube3->Rotate(.003, 0.0, 0.0, 1.0);
-        m_Cube4->Rotate(.003, 0.0, 0.0, 1.0);
-        m_Cube5->Rotate(.003, 0.0, 0.0, 1.0);
+        //item1->Rotate(.003, 0.0, 0.0, 1.0);
+        //item2->Rotate(.003, 0.0, 0.0, 1.0);
+        //item3->Rotate(.003, 0.0, 0.0, 1.0);
+        //item4->Rotate(.003, 0.0, 0.0, 1.0);
     }
 
     // Note: There are two ways to apply update
