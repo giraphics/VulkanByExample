@@ -1,8 +1,5 @@
 #pragma once
 
-#include <QObject>
-#include <QMatrix4x4>
-
 #include "Transformation3D.h"
 #include "../../../common/VulkanHelper.h"
 #include "SGCommon.h"
@@ -38,23 +35,22 @@ public:
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
     virtual void mouseMoveEvent(QMouseEvent* p_Event);
 
-    GETSET(DrawItem*, CurrentHoverItem)  // Not owned by Scene
-    GETSET(AbstractApp*, Application)
-    GETSET(int, ScreenHeight);
-    GETSET(int, ScreenWidth);
-    GETSET(int, Frame);
-    GETSET(Transformation, Transform);
-
     RenderSchemeFactory* GetFactory(DrawItem* p_Item);
     void AppendToDrawItemsFlatList(DrawItem* p_Item);
 
 private:
     void GatherDrawItemsFlatList();
 
-private:
-    std::vector<DrawItem*> m_ModelList;
-    std::vector<QMatrix4x4> m_MatrixVector;
-    std::vector<DrawItem*> m_FlatList;
-    std::set<RenderSchemeFactory*> m_ModelFactories;
-    std::map<SHAPE, RenderSchemeFactory*> m_ShapeRenderSchemeTypeMap;
+    std::vector<DrawItem*>                  m_ModelList;
+    std::vector<QMatrix4x4>                 m_MatrixVector;
+    std::vector<DrawItem*>                  m_FlatList;
+    std::set<RenderSchemeFactory*>          m_ModelFactories;
+    std::map<SHAPE, RenderSchemeFactory*>   m_ShapeRenderSchemeTypeMap;
+
+    GETSET(DrawItem*,                       CurrentHoverItem)  // Not owned by Scene
+    GETSET(AbstractApp*,                    Application)
+    GETSET(int,                             ScreenHeight);
+    GETSET(int,                             ScreenWidth);
+    GETSET(int,                             Frame);
+    GETSET(Transformation,                  Transform);
 };

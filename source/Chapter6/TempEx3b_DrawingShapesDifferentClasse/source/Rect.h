@@ -126,10 +126,9 @@ private:
     void CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap = false);
     void CreateRectFillPipeline();
     void CreateRectOutlinePipeline();
+    void CreateVertexLayoutBinding();
 
     void createPushConstants();
-
-    void CreateVertexLayoutBinding();
 
     virtual void UpdateModelList(DrawItem* p_Item);
 

@@ -71,10 +71,10 @@ private:
     void CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap = false);
     void CreateCircleFillPipeline();
     void CreateCircleOutlinePipeline();
+    void CreateVertexLayoutBinding();
 
     void createPushConstants();
 
-    void CreateVertexLayoutBinding();
 
     virtual void UpdateModelList(DrawItem* p_Item);
 
