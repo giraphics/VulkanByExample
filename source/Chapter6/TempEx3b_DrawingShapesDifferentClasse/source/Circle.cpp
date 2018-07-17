@@ -14,21 +14,21 @@ struct CircleVertex
 
 static const CircleVertex rectFilledVertices[] =
 {
-    { glm::vec3(1, 0, 0),	glm::vec2(0.f, 0.f), 0 },
-    { glm::vec3(0, 0, 0),	glm::vec2(1.f, 0.f), 0 },
-    { glm::vec3(1, 1, 0),	glm::vec2(0.f, 1.f), 0 },
-    { glm::vec3(1, 1, 0),	glm::vec2(0.f, 1.f), 0 },
-    { glm::vec3(0, 0, 0),	glm::vec2(1.f, 0.f), 0 },
-    { glm::vec3(0, 1, 0),	glm::vec2(1.f, 1.f), 0 },
+    { glm::vec3(1, 0, 0),   glm::vec2(0.f, 0.f), 0 },
+    { glm::vec3(0, 0, 0),   glm::vec2(1.f, 0.f), 0 },
+    { glm::vec3(1, 1, 0),   glm::vec2(0.f, 1.f), 0 },
+    { glm::vec3(1, 1, 0),   glm::vec2(0.f, 1.f), 0 },
+    { glm::vec3(0, 0, 0),   glm::vec2(1.f, 0.f), 0 },
+    { glm::vec3(0, 1, 0),   glm::vec2(1.f, 1.f), 0 },
 };
 
 static const CircleVertex rectOutlineVertices[] =
 {
-    { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
-    { glm::vec3(1, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
-    { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
-    { glm::vec3(0, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
-    { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
+    { glm::vec3(0, 0, 0),   glm::vec3(0.f, 0.f, 0.f) },
+    { glm::vec3(1, 0, 0),   glm::vec3(1.f, 0.f, 0.f) },
+    { glm::vec3(1, 1, 0),   glm::vec3(0.f, 1.f, 0.f) },
+    { glm::vec3(0, 1, 0),   glm::vec3(0.f, 1.f, 0.f) },
+    { glm::vec3(0, 0, 0),   glm::vec3(0.f, 0.f, 0.f) },
 };
 
 Circle::Circle(Scene *p_Scene, DrawItem *p_Parent, const BoundingRegion &p_BoundedRegion, const QString &p_Name)
@@ -108,7 +108,7 @@ CircleMultiDrawFactory::~CircleMultiDrawFactory()
 {
     for (int pipelineIdx = 0; pipelineIdx < CIRCLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
     {
-        ModelVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
+        DrawItemVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
         const int modelSize = m_ModelList.size();
         if (!modelSize) continue;
 
@@ -700,7 +700,7 @@ void CircleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
 {
     for (int pipelineIdx = 0; pipelineIdx < CIRCLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
     {
-        ModelVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
+        DrawItemVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
         const int modelSize = m_ModelList.size();
         if (!modelSize) continue;
 

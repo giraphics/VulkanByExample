@@ -10,7 +10,7 @@ DrawItem::DrawItem(Scene *p_Scene, DrawItem* p_Parent, const BoundingRegion& p_B
     , m_BoundedRegion(p_BoundedRegion)
     , m_OriginOffset(glm::vec3(0.0f, 0.0f, 0.0f))
 {
-    m_Parent ? m_Parent->m_ChildList.append(this) : p_Scene->AddModel(this);
+    m_Parent ? m_Parent->m_ChildList.append(this) : p_Scene->AddItem(this);
     
     // Todo: We can directly use the translate as the m_BoundedRegion is already set
     SetGeometry(m_BoundedRegion.m_Position.x, m_BoundedRegion.m_Position.y, m_BoundedRegion.m_Dimension.x, m_BoundedRegion.m_Dimension.y, m_BoundedRegion.m_Position.z);
@@ -124,7 +124,7 @@ void DrawItem::Update(DrawItem* p_Item)
         m_Scene->ApplyTransformation(m_Model);
     }
 
-    m_TransformedModel = *m_Scene->m_Transform.GetModelMatrix();
+    m_TransformedModel = *m_Scene->GetRefTransform().GetModelMatrix();
     
     QList<DrawItem*>& childList = (p_Item ? p_Item->m_ChildList : m_ChildList);
     Q_FOREACH(DrawItem* child, childList )
@@ -221,7 +221,7 @@ void DrawItem::GatherDrawItemsFlatList()
 {
     if (!m_Scene) return;
 
-    m_Scene->m_FlatList.push_back(this);
+    m_Scene->AppendToDrawItemsFlatList(this);
 
     Q_FOREACH(DrawItem* child, m_ChildList)
     {

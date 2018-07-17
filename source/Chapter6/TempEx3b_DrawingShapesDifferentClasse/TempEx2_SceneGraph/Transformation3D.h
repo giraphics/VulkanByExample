@@ -59,7 +59,7 @@ typedef struct
 } TransformData;
 
 
-class Transformation3D
+class Transformation
 {
 public:
 	enum
@@ -77,8 +77,8 @@ public:
 		TEXTURE_MATRIX = 3
 	};
 
-	Transformation3D(void);
-	~Transformation3D(void);
+	Transformation(void);
+	~Transformation(void);
 
     void Init( void );
 

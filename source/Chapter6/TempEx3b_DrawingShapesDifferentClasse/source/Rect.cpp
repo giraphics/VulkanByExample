@@ -105,7 +105,7 @@ RectangleMultiDrawFactory::~RectangleMultiDrawFactory()
 {
     for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
     {
-        ModelVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
+        DrawItemVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
         const int modelSize = m_ModelList.size();
         if (!modelSize) continue;
 
@@ -697,7 +697,7 @@ void RectangleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
 {
     for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
     {
-        ModelVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
+        DrawItemVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
         const int modelSize = m_ModelList.size();
         if (!modelSize) continue;
 

@@ -30,7 +30,7 @@ Scene::~Scene()
 
 void Scene::Setup(VkCommandBuffer& p_CommandBuffer)
 {
-    GatherFlatModelList(); // Assuming all nodes are added into the scenes by now
+    GatherDrawItemsFlatList(); // Assuming all nodes are added into the scenes by now
 
     foreach (DrawItem* currentModel, m_ModelList)
     {
@@ -75,9 +75,9 @@ void Scene::Update()
     }
 
     foreach(RenderSchemeFactory* currentModelFactory, m_ModelFactories)
-	{
-		currentModelFactory->Update();
-	}
+    {
+        currentModelFactory->Update();
+    }
 }
 
 void Scene::Render(VkCommandBuffer& p_CommandBuffer)
@@ -88,7 +88,7 @@ void Scene::Render(VkCommandBuffer& p_CommandBuffer)
     }
 }
 
-void Scene::GatherFlatModelList()
+void Scene::GatherDrawItemsFlatList()
 {
     m_FlatList.clear();
 
@@ -100,19 +100,19 @@ void Scene::GatherFlatModelList()
     }
 }
 
-void Scene::AddModel(DrawItem* p_Model)
+void Scene::AddItem(DrawItem* p_Item)
 {
-    if (p_Model && !p_Model->GetParent())
+    if (p_Item && !p_Item->GetParent())
     {
-        m_ModelList.push_back(p_Model);
+        m_ModelList.push_back(p_Item);
     }
 }
 
-void Scene::RemoveModel(DrawItem* p_Model)
+void Scene::RemoveItem(DrawItem* p_Item)
 {
     while (true)
     {
-        auto result = std::find(std::begin(m_ModelList), std::end(m_ModelList), p_Model);
+        auto result = std::find(std::begin(m_ModelList), std::end(m_ModelList), p_Item);
         if (result == std::end(m_ModelList)) break;
 
         m_ModelList.erase(result);
@@ -133,14 +133,14 @@ void Scene::Resize(VkCommandBuffer& p_CommandBuffer, int p_Width, int p_Height)
 // Default implementation, extend this function as per requirement in your function
 void Scene::SetUpProjection()
 {
-    m_Transform.SetMatrixMode(Transformation3D::PROJECTION_MATRIX);
+    m_Transform.SetMatrixMode(Transformation::PROJECTION_MATRIX);
     m_Transform.LoadIdentity();
     m_Transform.Ortho(0.0f, static_cast<float>(m_ScreenWidth), 0.0f, static_cast<float>(m_ScreenHeight), -1.0f, 1.0f);
 
-    m_Transform.SetMatrixMode(Transformation3D::VIEW_MATRIX);
+    m_Transform.SetMatrixMode(Transformation::VIEW_MATRIX);
     m_Transform.LoadIdentity();
 
-    m_Transform.SetMatrixMode(Transformation3D::MODEL_MATRIX);
+    m_Transform.SetMatrixMode(Transformation::MODEL_MATRIX);
     m_Transform.LoadIdentity();
 }
 
@@ -191,9 +191,9 @@ void Scene::mouseMoveEvent(QMouseEvent* p_Event)
     }
 }
 
-RenderSchemeFactory* Scene::GetFactory(DrawItem* p_Model)
+RenderSchemeFactory* Scene::GetFactory(DrawItem* p_Item)
 {
-    const SHAPE shapeType = p_Model->GetShapeType();
+    const SHAPE shapeType = p_Item->GetShapeType();
     if ((shapeType <= SHAPE_NONE) && (shapeType >= SHAPE_COUNT)) return NULL;
 
     std::map<SHAPE, RenderSchemeFactory*>::iterator it = m_ShapeRenderSchemeTypeMap.find(shapeType);
@@ -202,7 +202,7 @@ RenderSchemeFactory* Scene::GetFactory(DrawItem* p_Model)
         return it->second;
     }
 
-    RenderSchemeFactory* abstractFactory = p_Model->GetRenderSchemeFactory();
+    RenderSchemeFactory* abstractFactory = p_Item->GetRenderSchemeFactory();
     if (abstractFactory)
     {
         (m_ShapeRenderSchemeTypeMap)[shapeType] = abstractFactory;
@@ -211,3 +211,7 @@ RenderSchemeFactory* Scene::GetFactory(DrawItem* p_Model)
     return abstractFactory;
 }
 
+void Scene::AppendToDrawItemsFlatList(DrawItem* p_Item)
+{
+    m_FlatList.push_back(p_Item);
+}

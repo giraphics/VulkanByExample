@@ -23,12 +23,12 @@ public:
     void Update();
     void Render(VkCommandBuffer& p_CommandBuffer);
 
-    void AddModel(DrawItem* p_Model);
-    void RemoveModel(DrawItem *p_Model);
+    void AddItem(DrawItem* p_Item);
+    void RemoveItem(DrawItem* p_Item);
 
     virtual void Resize(VkCommandBuffer& p_CommandBuffer, int p_Width, int p_Height);
     virtual void SetUpProjection();
-    inline Transformation3D& Transform() { return m_Transform; }
+    inline Transformation& Transform() { return m_Transform; }
 
     void PushMatrix() { m_Transform.PushMatrix(); }
     void PopMatrix() { m_Transform.PopMatrix(); }
@@ -40,23 +40,21 @@ public:
 
     GETSET(DrawItem*, CurrentHoverItem)  // Not owned by Scene
     GETSET(AbstractApp*, Application)
+    GETSET(int, ScreenHeight);
+    GETSET(int, ScreenWidth);
+    GETSET(int, Frame);
+    GETSET(Transformation, Transform);
 
-    RenderSchemeFactory* GetFactory(DrawItem* p_Model);
+    RenderSchemeFactory* GetFactory(DrawItem* p_Item);
+    void AppendToDrawItemsFlatList(DrawItem* p_Item);
 
 private:
-    void GatherFlatModelList();
+    void GatherDrawItemsFlatList();
 
-public:
-    int m_ScreenHeight;
-    int m_ScreenWidth;
-
+private:
     std::vector<DrawItem*> m_ModelList;
-    Transformation3D m_Transform;
-    int m_Frame;
-
     std::vector<QMatrix4x4> m_MatrixVector;
     std::vector<DrawItem*> m_FlatList;
     std::set<RenderSchemeFactory*> m_ModelFactories;
-
     std::map<SHAPE, RenderSchemeFactory*> m_ShapeRenderSchemeTypeMap;
 };

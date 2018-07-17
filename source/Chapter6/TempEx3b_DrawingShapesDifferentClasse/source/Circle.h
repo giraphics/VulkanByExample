@@ -88,8 +88,8 @@ private:
     std::vector<VkVertexInputBindingDescription>   m_VertexInputBinding[PIPELINE_COUNT];   // 0 for (position and color) 1 for ()
     std::vector<VkVertexInputAttributeDescription> m_VertexInputAttribute[PIPELINE_COUNT]; // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
 
-    typedef std::vector<DrawItem*> ModelVector;
-    ModelVector m_PipelineTypeModelVector[PIPELINE_COUNT];
+    typedef std::vector<DrawItem*> DrawItemVector;
+    DrawItemVector m_PipelineTypeModelVector[PIPELINE_COUNT];
 
     std::shared_ptr<CircleDescriptorSet> m_DescriptorSet;
 };
