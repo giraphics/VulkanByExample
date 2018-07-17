@@ -23,7 +23,7 @@ UIDemoApp::UIDemoApp()
 {
     VulkanHelper::GetInstanceLayerExtensionProperties();
 
-    m_Scene = new Scene3D(this);
+    m_Scene = new Scene(this);
 
     m_Cube1 = new Rectangl(m_Scene, NULL, BoundingRegion(200, 200, 100, 100));
     m_Cube1->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));

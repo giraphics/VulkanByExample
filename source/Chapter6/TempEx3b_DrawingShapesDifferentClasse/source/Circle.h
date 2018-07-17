@@ -20,8 +20,8 @@ public:
     };
 
 public:
-    Circle(Scene3D* p_Scene, DrawItem* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "");
-    Circle(Scene3D* p_Scene, DrawItem* p_Parent, glm::vec2 m_Center, float radius, const QString& p_Name = "");
+    Circle(Scene* p_Scene, DrawItem* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "");
+    Circle(Scene* p_Scene, DrawItem* p_Parent, glm::vec2 m_Center, float radius, const QString& p_Name = "");
     virtual ~Circle() {}
 
     GETSET(DRAW_TYPE, DrawType)
@@ -65,7 +65,7 @@ public:
     virtual void Render(VkCommandBuffer& p_CommandBuffer);
 
     void ResizeWindow(VkCommandBuffer& p_CommandBuffer);
-    virtual void Prepare(Scene3D* p_Scene);
+    virtual void Prepare(Scene* p_Scene);
 
 private:
     void CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap = false);

@@ -8,16 +8,16 @@
 #include "SGCommon.h"
 
 class DrawItem;
-class Scene3D;
+class Scene;
 class QMouseEvent;
 class RenderSchemeFactory;
 class AbstractApp;
 
-class Scene3D
+class Scene
 {
 public:
-    Scene3D(AbstractApp* p_Application = NULL);
-    virtual ~Scene3D();
+    Scene(AbstractApp* p_Application = NULL);
+    virtual ~Scene();
 
     void Setup(VkCommandBuffer& p_CommandBuffer);
     void Update();

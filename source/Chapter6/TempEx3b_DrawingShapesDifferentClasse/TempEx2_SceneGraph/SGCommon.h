@@ -17,10 +17,20 @@ enum SHAPE
     SHAPE_CUSTOM // NOTE: Important: the custom object are comprised of simpler objects hence not a part of model factories
 };
 
-//enum RENDER_SCEHEME_TYPE
-//{
-//    RENDER_SCEHEME_NONE = -1,
-//    RENDER_SCEHEME_INSTANCED = 1000, // Single Command buffer, Single Draw call
-//    RENDER_SCEHEME_MULTIDRAW = 2000, // Single Command buffer, Multiple Draw call
-//    RENDER_SCEHEME_COUNT
-//};
+struct BoundingRegion
+{
+    BoundingRegion(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder = 0) // For 2D Bounding Box
+    {
+        m_Position.x = p_X;         m_Position.y = p_Y;        m_Position.z = p_ZOrder;
+        m_Dimension.x = p_Width;    m_Dimension.y = p_Height;  m_Dimension.z = p_ZOrder;
+    }
+
+    BoundingRegion(float p_X, float p_Y, float p_Z, float p_Width, float p_Height, float p_Depth)
+    {
+        m_Position.x = p_X;         m_Position.y = p_X;        m_Position.z = p_Z;
+        m_Dimension.x = p_Width;    m_Dimension.y = p_Height;  m_Dimension.z = p_Depth;
+    }
+
+    glm::vec3 m_Position;
+    glm::vec3 m_Dimension;
+};

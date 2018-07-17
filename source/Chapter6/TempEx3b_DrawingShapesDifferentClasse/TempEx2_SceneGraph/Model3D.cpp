@@ -2,7 +2,7 @@
 #include<QMouseEvent>
 #include<glm/gtx/string_cast.hpp>
 
-DrawItem::DrawItem(Scene3D *p_Scene, DrawItem* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType)
+DrawItem::DrawItem(Scene *p_Scene, DrawItem* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType)
     : m_Scene(p_Scene)
     , m_Parent(p_Parent)
     , m_Name(p_Name)
@@ -90,6 +90,26 @@ bool DrawItem::mouseMoveEvent(QMouseEvent* p_Event)
     }
 
     return false;
+}
+
+DrawItem *DrawItem::GetParent() const
+{
+    return m_Parent;
+}
+
+void DrawItem::ApplyTransformation()
+{
+    *m_Scene->Transform().GetModelMatrix() *= m_Model;
+}
+
+glm::mat4 DrawItem::GetRelativeTransformations() const
+{
+    return GetParentsTransformation(GetParent()) * m_Model;
+}
+
+glm::mat4 DrawItem::GetParentsTransformation(DrawItem *p_Parent) const
+{
+    return p_Parent ? (GetParentsTransformation(p_Parent->GetParent()) * p_Parent->m_Model) : glm::mat4();
 }
 
 void DrawItem::Update(DrawItem* p_Item)

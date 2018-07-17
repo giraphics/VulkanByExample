@@ -34,7 +34,7 @@ static const Vertex rectOutlineVertices[] =
 };
 
 
-Rectangl::Rectangl(Scene3D *p_Scene, DrawItem *p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name)
+Rectangl::Rectangl(Scene *p_Scene, DrawItem *p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name)
     : DrawItem(p_Scene, p_Parent, p_BoundedRegion, p_Name, SHAPE_RECTANGLE_MULTIDRAW)
     , m_DrawType(FILLED)
 {
@@ -676,7 +676,7 @@ void RectangleMultiDrawFactory::UpdateModelList(DrawItem *p_Item)
     }
 }
 
-void RectangleMultiDrawFactory::Prepare(Scene3D* p_Scene)
+void RectangleMultiDrawFactory::Prepare(Scene* p_Scene)
 {
     // Update the uniform
     //if (!CDS)

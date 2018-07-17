@@ -1,9 +1,8 @@
 ﻿#include "Scene3D.h"
 #include "Model3D.h"
 #include "../../common/VulkanApp.h"
-#include "../TempEx2_SceneGraph/RenderSchemeFactory.h"
 
-Scene3D::Scene3D(AbstractApp* p_Application)
+Scene::Scene(AbstractApp* p_Application)
     : m_Application(p_Application)
     , m_Frame(0)
     , m_ScreenWidth(800)
@@ -12,7 +11,7 @@ Scene3D::Scene3D(AbstractApp* p_Application)
 {
 }
 
-Scene3D::~Scene3D()
+Scene::~Scene()
 {
     std::map<SHAPE, RenderSchemeFactory*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
 
@@ -29,7 +28,7 @@ Scene3D::~Scene3D()
     }
 }
 
-void Scene3D::Setup(VkCommandBuffer& p_CommandBuffer)
+void Scene::Setup(VkCommandBuffer& p_CommandBuffer)
 {
     GatherFlatModelList(); // Assuming all nodes are added into the scenes by now
 
@@ -61,7 +60,7 @@ void Scene3D::Setup(VkCommandBuffer& p_CommandBuffer)
     }
 }
 
-void Scene3D::Update()
+void Scene::Update()
 {
     foreach(RenderSchemeFactory* currentModelFactory, m_ModelFactories)
     {
@@ -81,7 +80,7 @@ void Scene3D::Update()
 	}
 }
 
-void Scene3D::Render(VkCommandBuffer& p_CommandBuffer)
+void Scene::Render(VkCommandBuffer& p_CommandBuffer)
 {
     foreach(RenderSchemeFactory* currentModelFactory, m_ModelFactories)
     {
@@ -89,7 +88,7 @@ void Scene3D::Render(VkCommandBuffer& p_CommandBuffer)
     }
 }
 
-void Scene3D::GatherFlatModelList()
+void Scene::GatherFlatModelList()
 {
     m_FlatList.clear();
 
@@ -101,7 +100,7 @@ void Scene3D::GatherFlatModelList()
     }
 }
 
-void Scene3D::AddModel(DrawItem* p_Model)
+void Scene::AddModel(DrawItem* p_Model)
 {
     if (p_Model && !p_Model->GetParent())
     {
@@ -109,7 +108,7 @@ void Scene3D::AddModel(DrawItem* p_Model)
     }
 }
 
-void Scene3D::RemoveModel(DrawItem* p_Model)
+void Scene::RemoveModel(DrawItem* p_Model)
 {
     while (true)
     {
@@ -120,7 +119,7 @@ void Scene3D::RemoveModel(DrawItem* p_Model)
     }
 }
 
-void Scene3D::Resize(VkCommandBuffer& p_CommandBuffer, int p_Width, int p_Height)
+void Scene::Resize(VkCommandBuffer& p_CommandBuffer, int p_Width, int p_Height)
 {
     m_ScreenWidth = p_Width;
     m_ScreenHeight = p_Height;
@@ -132,7 +131,7 @@ void Scene3D::Resize(VkCommandBuffer& p_CommandBuffer, int p_Width, int p_Height
 }
 
 // Default implementation, extend this function as per requirement in your function
-void Scene3D::SetUpProjection()
+void Scene::SetUpProjection()
 {
     m_Transform.SetMatrixMode(Transformation3D::PROJECTION_MATRIX);
     m_Transform.LoadIdentity();
@@ -145,7 +144,7 @@ void Scene3D::SetUpProjection()
     m_Transform.LoadIdentity();
 }
 
-void Scene3D::mousePressEvent(QMouseEvent* p_Event)
+void Scene::mousePressEvent(QMouseEvent* p_Event)
 {
     foreach (DrawItem* item, m_ModelList)
     {
@@ -155,7 +154,7 @@ void Scene3D::mousePressEvent(QMouseEvent* p_Event)
     }
 }
 
-void Scene3D::mouseReleaseEvent(QMouseEvent* p_Event)
+void Scene::mouseReleaseEvent(QMouseEvent* p_Event)
 {
     foreach (DrawItem* item, m_ModelList)
     {
@@ -165,7 +164,7 @@ void Scene3D::mouseReleaseEvent(QMouseEvent* p_Event)
     }
 }
 
-void Scene3D::mouseMoveEvent(QMouseEvent* p_Event)
+void Scene::mouseMoveEvent(QMouseEvent* p_Event)
 {
     DrawItem* oldModelItem = GetCurrentHoverItem();
     for (int i = m_ModelList.size() - 1; i >= 0; i--)
@@ -192,7 +191,7 @@ void Scene3D::mouseMoveEvent(QMouseEvent* p_Event)
     }
 }
 
-RenderSchemeFactory* Scene3D::GetFactory(DrawItem* p_Model)
+RenderSchemeFactory* Scene::GetFactory(DrawItem* p_Model)
 {
     const SHAPE shapeType = p_Model->GetShapeType();
     if ((shapeType <= SHAPE_NONE) && (shapeType >= SHAPE_COUNT)) return NULL;

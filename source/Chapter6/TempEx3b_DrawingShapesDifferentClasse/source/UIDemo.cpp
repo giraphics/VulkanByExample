@@ -8,7 +8,7 @@ UIDemo::~UIDemo()
 {
 }
 
-void UIDemo::Grid(Scene3D* p_Scene, int p_Width, int p_Height)
+void UIDemo::Grid(Scene* p_Scene, int p_Width, int p_Height)
 {
 	float parentCol = 2;
 	float parentRow = 2;
@@ -41,7 +41,7 @@ void UIDemo::Grid(Scene3D* p_Scene, int p_Width, int p_Height)
 	}
 }
 
-void UIDemo::MixerView(Scene3D* p_Scene, int p_Width, int p_Height)
+void UIDemo::MixerView(Scene* p_Scene, int p_Width, int p_Height)
 {
     const float mixerPanelWidth = p_Width;
     const float mixerPanelHeight = p_Height;
@@ -100,7 +100,7 @@ return false;
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, DrawItem* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType)
+AudioMixerItem::AudioMixerItem(Scene* p_Scene, DrawItem* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType)
     : DrawItem(p_Scene, p_Parent, p_BoundedRegion, p_Name, p_ShapeType)
 {
     DrawItem* background = new Rectangl(m_Scene, this, BoundingRegion(0, 0, p_BoundedRegion.m_Dimension.x, p_BoundedRegion.m_Dimension.y));

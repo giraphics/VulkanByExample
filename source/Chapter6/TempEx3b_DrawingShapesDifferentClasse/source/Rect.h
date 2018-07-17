@@ -4,7 +4,6 @@
 #include "../TempEx2_SceneGraph/Transformation3D.h"
 #include "../TempEx2_SceneGraph/Scene3D.h"
 #include "../TempEx2_SceneGraph/Model3D.h"
-//#include "../TempEx2_SceneGraph/RenderSchemeFactory.h"
 
 class Rectangl : public DrawItem
 {
@@ -18,7 +17,7 @@ public:
     };
 
 public:
-    Rectangl(Scene3D* p_Scene, DrawItem* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "");
+    Rectangl(Scene* p_Scene, DrawItem* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "");
     virtual ~Rectangl() {}
 
     GETSET(DRAW_TYPE, DrawType)
@@ -121,7 +120,7 @@ public:
     virtual void Render(VkCommandBuffer& p_CommandBuffer);
 
     void ResizeWindow(VkCommandBuffer& p_CommandBuffer);
-    virtual void Prepare(Scene3D* p_Scene);
+    virtual void Prepare(Scene* p_Scene);
 
 private:
     void CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap = false);

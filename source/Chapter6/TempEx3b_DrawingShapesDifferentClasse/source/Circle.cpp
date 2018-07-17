@@ -31,13 +31,13 @@ static const CircleVertex rectOutlineVertices[] =
     { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
 };
 
-Circle::Circle(Scene3D *p_Scene, DrawItem *p_Parent, const BoundingRegion &p_BoundedRegion, const QString &p_Name)
+Circle::Circle(Scene *p_Scene, DrawItem *p_Parent, const BoundingRegion &p_BoundedRegion, const QString &p_Name)
     : DrawItem(p_Scene, p_Parent, p_BoundedRegion, p_Name, SHAPE_CIRCLE_MULTIDRAW)
     , m_DrawType(FILLED)
 {
 }
 
-Circle::Circle(Scene3D *p_Scene, DrawItem *p_Parent, glm::vec2 m_Center, float radius, const QString &p_Name)
+Circle::Circle(Scene *p_Scene, DrawItem *p_Parent, glm::vec2 m_Center, float radius, const QString &p_Name)
     : DrawItem(p_Scene, p_Parent, BoundingRegion(m_Center.x - (radius * 0.5f), m_Center.y - (radius * 0.5f), radius, radius), p_Name, SHAPE_CIRCLE_MULTIDRAW)
     , m_DrawType(FILLED)
 {
@@ -679,7 +679,7 @@ void CircleMultiDrawFactory::UpdateModelList(DrawItem *p_Item)
     }
 }
 
-void CircleMultiDrawFactory::Prepare(Scene3D* p_Scene)
+void CircleMultiDrawFactory::Prepare(Scene* p_Scene)
 {
     // Update the uniform
     //if (!CDS)
