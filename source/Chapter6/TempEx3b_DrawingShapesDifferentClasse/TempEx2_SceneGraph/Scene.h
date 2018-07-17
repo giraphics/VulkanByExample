@@ -43,10 +43,9 @@ public:
 private:
     void GatherDrawItemsFlatList();
 
-    std::vector<DrawItem*>                  m_ModelList;
-    //std::vector<QMatrix4x4>                 m_MatrixVector;
+    std::vector<DrawItem*>                  m_DrawItemList;
     std::vector<DrawItem*>                  m_FlatList;
-    std::set<RenderSchemeFactory*>          m_ModelFactories;
+    std::set<RenderSchemeFactory*>          m_RenderSchemeFactorySet;
     std::map<SHAPE, RenderSchemeFactory*>   m_ShapeRenderSchemeTypeMap;
 
     GETSET(DrawItem*,                       CurrentHoverItem)  // Not owned by Scene

@@ -22,7 +22,7 @@ Scene::~Scene()
         ++itSRST;
     }
 
-    foreach (DrawItem* currentModel, m_ModelList)
+    foreach (DrawItem* currentModel, m_DrawItemList)
     {
         delete currentModel;
     }
@@ -32,7 +32,7 @@ void Scene::Setup(VkCommandBuffer& p_CommandBuffer)
 {
     GatherDrawItemsFlatList(); // Assuming all nodes are added into the scenes by now
 
-    foreach (DrawItem* currentModel, m_ModelList)
+    foreach (DrawItem* currentModel, m_DrawItemList)
     {
         currentModel->Setup();
     }
@@ -48,13 +48,13 @@ void Scene::Setup(VkCommandBuffer& p_CommandBuffer)
     std::map<SHAPE, RenderSchemeFactory*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
     while (itSRST != m_ShapeRenderSchemeTypeMap.end())
     {
-        m_ModelFactories.insert(itSRST->second);
+        m_RenderSchemeFactorySet.insert(itSRST->second);
 
         itSRST++;
     }
 
-	assert(m_ModelFactories.size());
-    foreach(RenderSchemeFactory* currentModelFactory, m_ModelFactories)
+    assert(m_RenderSchemeFactorySet.size());
+    foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
     {
         currentModelFactory->Setup(p_CommandBuffer);
     }
@@ -62,19 +62,19 @@ void Scene::Setup(VkCommandBuffer& p_CommandBuffer)
 
 void Scene::Update()
 {
-    foreach(RenderSchemeFactory* currentModelFactory, m_ModelFactories)
+    foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
     {
         currentModelFactory->SetRefProjectViewMatrix(*m_Transform.GetProjectionMatrix() * *m_Transform.GetViewMatrix());
     }
 
-    foreach (DrawItem* item, m_ModelList)
+    foreach (DrawItem* item, m_DrawItemList)
     {
         assert(item);
 
         item->Update();
     }
 
-    foreach(RenderSchemeFactory* currentModelFactory, m_ModelFactories)
+    foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
     {
         currentModelFactory->Update();
     }
@@ -82,7 +82,7 @@ void Scene::Update()
 
 void Scene::Render(VkCommandBuffer& p_CommandBuffer)
 {
-    foreach(RenderSchemeFactory* currentModelFactory, m_ModelFactories)
+    foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
     {
         currentModelFactory->Render(p_CommandBuffer);
     }
@@ -92,7 +92,7 @@ void Scene::GatherDrawItemsFlatList()
 {
     m_FlatList.clear();
 
-    foreach (DrawItem* item, m_ModelList)
+    foreach (DrawItem* item, m_DrawItemList)
     {
         assert(item);
 
@@ -104,7 +104,7 @@ void Scene::AddItem(DrawItem* p_Item)
 {
     if (p_Item && !p_Item->GetParent())
     {
-        m_ModelList.push_back(p_Item);
+        m_DrawItemList.push_back(p_Item);
     }
 }
 
@@ -112,10 +112,10 @@ void Scene::RemoveItem(DrawItem* p_Item)
 {
     while (true)
     {
-        auto result = std::find(std::begin(m_ModelList), std::end(m_ModelList), p_Item);
-        if (result == std::end(m_ModelList)) break;
+        auto result = std::find(std::begin(m_DrawItemList), std::end(m_DrawItemList), p_Item);
+        if (result == std::end(m_DrawItemList)) break;
 
-        m_ModelList.erase(result);
+        m_DrawItemList.erase(result);
     }
 }
 
@@ -124,7 +124,7 @@ void Scene::Resize(VkCommandBuffer& p_CommandBuffer, int p_Width, int p_Height)
     m_ScreenWidth = p_Width;
     m_ScreenHeight = p_Height;
 
-    foreach(RenderSchemeFactory* currentModelFactory, m_ModelFactories)
+    foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
     {
         currentModelFactory->ResizeWindow(p_CommandBuffer);
     }
@@ -146,7 +146,7 @@ void Scene::SetUpProjection()
 
 void Scene::mousePressEvent(QMouseEvent* p_Event)
 {
-    foreach (DrawItem* item, m_ModelList)
+    foreach (DrawItem* item, m_DrawItemList)
     {
         assert(item);
 
@@ -156,7 +156,7 @@ void Scene::mousePressEvent(QMouseEvent* p_Event)
 
 void Scene::mouseReleaseEvent(QMouseEvent* p_Event)
 {
-    foreach (DrawItem* item, m_ModelList)
+    foreach (DrawItem* item, m_DrawItemList)
     {
         assert(item);
 
@@ -167,9 +167,9 @@ void Scene::mouseReleaseEvent(QMouseEvent* p_Event)
 void Scene::mouseMoveEvent(QMouseEvent* p_Event)
 {
     DrawItem* oldModelItem = GetCurrentHoverItem();
-    for (int i = m_ModelList.size() - 1; i >= 0; i--)
+    for (int i = m_DrawItemList.size() - 1; i >= 0; i--)
     {
-        DrawItem* item = m_ModelList.at(i);
+        DrawItem* item = m_DrawItemList.at(i);
         assert(item);
 
         if (item->mouseMoveEvent(p_Event))

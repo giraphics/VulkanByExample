@@ -2,7 +2,7 @@
 #include<QMouseEvent>
 #include<glm/gtx/string_cast.hpp>
 
-DrawItem::DrawItem(Scene *p_Scene, DrawItem* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType)
+DrawItem::DrawItem(Scene* p_Scene, DrawItem* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType)
     : m_Scene(p_Scene)
     , m_Parent(p_Parent)
     , m_Name(p_Name)
@@ -18,13 +18,11 @@ DrawItem::DrawItem(Scene *p_Scene, DrawItem* p_Parent, const BoundingRegion& p_B
 
 void DrawItem::Setup()
 {
-    foreach(DrawItem* currentModel, m_ChildList)
+    foreach(DrawItem* childItem, m_ChildList)
     {
-        DrawItem* model = /*dynamic_cast<Model3D*>*/(currentModel);
+        if (!childItem) continue;
 
-        if (!model) continue;
-
-        model->Setup();
+        childItem->Setup();
     }
 }
 
@@ -43,21 +41,21 @@ void DrawItem::mousePressEvent(QMouseEvent* p_Event)
     if (rect.contains(p_Event->x(), p_Event->y()))
         cout << "\n***************";
 
-    foreach(DrawItem* item, m_ChildList)
+    foreach(DrawItem* childItem, m_ChildList)
     {
-        assert(item);
+        assert(childItem);
 
-        item->mousePressEvent(p_Event);
+        childItem->mousePressEvent(p_Event);
     }
 }
 
 void DrawItem::mouseReleaseEvent(QMouseEvent* p_Event)
 {
-    foreach(DrawItem* item, m_ChildList)
+    foreach(DrawItem* childItem, m_ChildList)
     {
-        assert(item);
+        assert(childItem);
 
-        item->mouseReleaseEvent(p_Event);
+        childItem->mouseReleaseEvent(p_Event);
     }
 }
 
@@ -77,10 +75,10 @@ bool DrawItem::mouseMoveEvent(QMouseEvent* p_Event)
         //cout << "\n##### mouseMoveEvent";
         for (int i = m_ChildList.size() - 1; i >= 0; i--)
         {
-            DrawItem* item = m_ChildList.at(i);
-            assert(item);
+            DrawItem* childItem = m_ChildList.at(i);
+            assert(childItem);
 
-            if (item->mouseMoveEvent(p_Event))
+            if (childItem->mouseMoveEvent(p_Event))
             {
                 return true;
             }
@@ -92,7 +90,7 @@ bool DrawItem::mouseMoveEvent(QMouseEvent* p_Event)
     return false;
 }
 
-DrawItem *DrawItem::GetParent() const
+DrawItem* DrawItem::GetParent() const
 {
     return m_Parent;
 }
@@ -127,10 +125,11 @@ void DrawItem::Update(DrawItem* p_Item)
     m_TransformedModel = *m_Scene->GetRefTransform().GetModelMatrix();
     
     QList<DrawItem*>& childList = (p_Item ? p_Item->m_ChildList : m_ChildList);
-    Q_FOREACH(DrawItem* child, childList)
+    Q_FOREACH(DrawItem* childItem, childList)
     {
-        assert(child);
-        child->Update();
+        if (!childItem) continue;
+
+        childItem->Update();
     }
 
     m_Scene->PopMatrix();
@@ -223,9 +222,9 @@ void DrawItem::GatherDrawItemsFlatList()
 
     m_Scene->AppendToDrawItemsFlatList(this);
 
-    Q_FOREACH(DrawItem* child, m_ChildList)
+    Q_FOREACH(DrawItem* childItem, m_ChildList)
     {
-        assert(child);
-        child->GatherDrawItemsFlatList();
+        assert(childItem);
+        childItem->GatherDrawItemsFlatList();
     }
 }

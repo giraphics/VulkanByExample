@@ -1,4 +1,4 @@
-#include "InstancingDemoApp.h"
+#include "UIDemoApp.h"
 #include "UIDemo.h"
 #include "Circle.h"
 
