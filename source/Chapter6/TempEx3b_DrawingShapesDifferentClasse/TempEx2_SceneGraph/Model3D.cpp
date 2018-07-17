@@ -43,7 +43,6 @@ void DrawItem::mousePressEvent(QMouseEvent* p_Event)
     if (rect.contains(p_Event->x(), p_Event->y()))
         cout << "\n***************";
 
-
     foreach(DrawItem* item, m_ChildList)
     {
         assert(item);
@@ -117,6 +116,51 @@ void DrawItem::Update(DrawItem* p_Item)
     m_Scene->PopMatrix();
 }
 
+void DrawItem::Rotate(float p_Angle, float p_X, float p_Y, float p_Z)
+{
+    if (m_OriginOffset != glm::vec3(0.0f, 0.0f, 0.0f))
+    {
+        m_Model = glm::translate(m_Model, m_OriginOffset);
+    }
+
+    m_Model = glm::rotate(m_Model, p_Angle, glm::vec3(p_X, p_Y, p_Z));
+
+    if (m_OriginOffset != glm::vec3(0.0f, 0.0f, 0.0f))
+    {
+        m_Model = glm::translate(m_Model, -m_OriginOffset);
+    }
+}
+
+void DrawItem::Translate(float p_X, float p_Y, float p_Z)
+{
+    if (m_OriginOffset != glm::vec3(0.0f, 0.0f, 0.0f))
+    {
+        m_Model = glm::translate(m_Model, m_OriginOffset);
+    }
+
+    m_Model = glm::translate(m_Model, glm::vec3(p_X, p_Y, p_Z));
+
+    if (m_OriginOffset != glm::vec3(0.0f, 0.0f, 0.0f))
+    {
+        m_Model = glm::translate(m_Model, -m_OriginOffset);
+    }
+}
+
+void DrawItem::Scale(float p_X, float p_Y, float p_Z)
+{
+    if (m_OriginOffset != glm::vec3(0.0f, 0.0f, 0.0f))
+    {
+        m_Model = glm::translate(m_Model, m_OriginOffset);
+    }
+
+    m_Model = glm::scale(m_Model, glm::vec3(p_X, p_Y, p_Z));
+
+    if (m_OriginOffset != glm::vec3(0.0f, 0.0f, 0.0f))
+    {
+        m_Model = glm::translate(m_Model, -m_OriginOffset);
+    }
+}
+
 void DrawItem::SetGeometry(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder/*=0*/)
 {
     Translate(p_X, p_Y, p_ZOrder);
@@ -153,7 +197,7 @@ void DrawItem::SetPosition(float p_X, float p_Y)
     m_TransformedModel = m_Model * GetParentsTransformation(GetParent());
 }
 
-void DrawItem::GatherFlatModelList()
+void DrawItem::GatherDrawItemsFlatList()
 {
     if (!m_Scene) return;
 
@@ -162,6 +206,6 @@ void DrawItem::GatherFlatModelList()
     Q_FOREACH(DrawItem* child, m_ChildList)
     {
         assert(child);
-        child->GatherFlatModelList();
+        child->GatherDrawItemsFlatList();
     }
 }

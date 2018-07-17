@@ -5,6 +5,7 @@
 #include "../TempEx2_SceneGraph/Transformation3D.h"
 #include "../TempEx2_SceneGraph/Scene3D.h"
 #include "../TempEx2_SceneGraph/Model3D.h"
+
 class CircleMultiDrawFactory;
 
 class Circle : public DrawItem
@@ -39,7 +40,7 @@ public:
         Update(this);
     }
 
-    AbstractRenderSchemeFactory* GetRenderSchemeFactory();
+    RenderSchemeFactory* GetRenderSchemeFactory();
 
     virtual void Setup();
     void CreateCircleVertexBuffer();
@@ -52,7 +53,7 @@ struct CircleDescriptorSet : public RectangleDescriptorSet
         : RectangleDescriptorSet(p_VulkanApplication) {}
 };
 
-class CircleMultiDrawFactory : public AbstractRenderSchemeFactory
+class CircleMultiDrawFactory : public RenderSchemeFactory
 {
 public:
     CircleMultiDrawFactory(VulkanApp* p_VulkanApp);

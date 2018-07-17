@@ -10,7 +10,7 @@
 class DrawItem;
 class Scene3D;
 class QMouseEvent;
-class AbstractRenderSchemeFactory;
+class RenderSchemeFactory;
 class AbstractApp;
 
 class Scene3D
@@ -41,7 +41,7 @@ public:
     GETSET(DrawItem*, CurrentHoverItem)  // Not owned by Scene
     GETSET(AbstractApp*, Application)
 
-    AbstractRenderSchemeFactory* GetFactory(DrawItem* p_Model);
+    RenderSchemeFactory* GetFactory(DrawItem* p_Model);
 
 private:
     void GatherFlatModelList();
@@ -56,7 +56,7 @@ public:
 
     std::vector<QMatrix4x4> m_MatrixVector;
     std::vector<DrawItem*> m_FlatList;
-    std::set<AbstractRenderSchemeFactory*> m_ModelFactories;
+    std::set<RenderSchemeFactory*> m_ModelFactories;
 
-    std::map<SHAPE, AbstractRenderSchemeFactory*> m_ShapeRenderSchemeTypeMap;
+    std::map<SHAPE, RenderSchemeFactory*> m_ShapeRenderSchemeTypeMap;
 };

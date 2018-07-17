@@ -40,7 +40,7 @@ Rectangl::Rectangl(Scene3D *p_Scene, DrawItem *p_Parent, const BoundingRegion& p
 {
 }
 
-AbstractRenderSchemeFactory* Rectangl::GetRenderSchemeFactory()
+RenderSchemeFactory* Rectangl::GetRenderSchemeFactory()
 {
     return new RectangleMultiDrawFactory(static_cast<VulkanApp*>(m_Scene->GetApplication()));
 }

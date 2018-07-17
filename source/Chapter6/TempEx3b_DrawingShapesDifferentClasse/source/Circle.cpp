@@ -43,7 +43,7 @@ Circle::Circle(Scene3D *p_Scene, DrawItem *p_Parent, glm::vec2 m_Center, float r
 {
 }
 
-AbstractRenderSchemeFactory* Circle::GetRenderSchemeFactory()
+RenderSchemeFactory* Circle::GetRenderSchemeFactory()
 {
     return new CircleMultiDrawFactory(static_cast<VulkanApp*>(m_Scene->GetApplication()));
 }

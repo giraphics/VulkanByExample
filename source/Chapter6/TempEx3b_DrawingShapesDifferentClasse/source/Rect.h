@@ -4,6 +4,7 @@
 #include "../TempEx2_SceneGraph/Transformation3D.h"
 #include "../TempEx2_SceneGraph/Scene3D.h"
 #include "../TempEx2_SceneGraph/Model3D.h"
+//#include "../TempEx2_SceneGraph/RenderSchemeFactory.h"
 
 class Rectangl : public DrawItem
 {
@@ -36,7 +37,7 @@ public:
         Update(this);
     }
 
-    AbstractRenderSchemeFactory* GetRenderSchemeFactory();
+    RenderSchemeFactory* GetRenderSchemeFactory();
 
     virtual void Setup();
     void CreateRectVertexBuffer();
@@ -108,7 +109,7 @@ private:
     VulkanApp*		 m_VulkanApplication;
 };
 
-class RectangleMultiDrawFactory : public AbstractRenderSchemeFactory
+class RectangleMultiDrawFactory : public RenderSchemeFactory
 {
 public:
     RectangleMultiDrawFactory(VulkanApp* p_VulkanApp);

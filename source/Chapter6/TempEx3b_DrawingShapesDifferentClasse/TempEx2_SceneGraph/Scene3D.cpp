@@ -1,9 +1,7 @@
 ﻿#include "Scene3D.h"
 #include "Model3D.h"
-
-#include "../../common/VulkanApp.h" // Not a good design to include vulkan app here: Todo move AbstractApp 
-#include <QMouseEvent> 
-/*extern*/ bool isDirty;
+#include "../../common/VulkanApp.h"
+#include "../TempEx2_SceneGraph/RenderSchemeFactory.h"
 
 Scene3D::Scene3D(AbstractApp* p_Application)
     : m_Application(p_Application)
@@ -16,7 +14,7 @@ Scene3D::Scene3D(AbstractApp* p_Application)
 
 Scene3D::~Scene3D()
 {
-    std::map<SHAPE, AbstractRenderSchemeFactory*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
+    std::map<SHAPE, RenderSchemeFactory*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
 
     while (itSRST != m_ShapeRenderSchemeTypeMap.end())
     {
@@ -42,13 +40,13 @@ void Scene3D::Setup(VkCommandBuffer& p_CommandBuffer)
 
     foreach(DrawItem* currentModel, m_FlatList)
     {
-        AbstractRenderSchemeFactory* factory = GetFactory(currentModel); // Populate factories
+        RenderSchemeFactory* factory = GetFactory(currentModel); // Populate factories
         if (!factory) continue;
 
         factory->UpdateModelList(currentModel);
     }
 
-    std::map<SHAPE, AbstractRenderSchemeFactory*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
+    std::map<SHAPE, RenderSchemeFactory*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
     while (itSRST != m_ShapeRenderSchemeTypeMap.end())
     {
         m_ModelFactories.insert(itSRST->second);
@@ -57,7 +55,7 @@ void Scene3D::Setup(VkCommandBuffer& p_CommandBuffer)
     }
 
 	assert(m_ModelFactories.size());
-	foreach(AbstractRenderSchemeFactory* currentModelFactory, m_ModelFactories)
+    foreach(RenderSchemeFactory* currentModelFactory, m_ModelFactories)
     {
         currentModelFactory->Setup(p_CommandBuffer);
     }
@@ -65,7 +63,7 @@ void Scene3D::Setup(VkCommandBuffer& p_CommandBuffer)
 
 void Scene3D::Update()
 {
-    foreach(AbstractRenderSchemeFactory* currentModelFactory, m_ModelFactories)
+    foreach(RenderSchemeFactory* currentModelFactory, m_ModelFactories)
     {
         currentModelFactory->SetRefProjectViewMatrix(*m_Transform.GetProjectionMatrix() * *m_Transform.GetViewMatrix());
     }
@@ -77,7 +75,7 @@ void Scene3D::Update()
         item->Update();
     }
 
-	foreach(AbstractRenderSchemeFactory* currentModelFactory, m_ModelFactories)
+    foreach(RenderSchemeFactory* currentModelFactory, m_ModelFactories)
 	{
 		currentModelFactory->Update();
 	}
@@ -85,7 +83,7 @@ void Scene3D::Update()
 
 void Scene3D::Render(VkCommandBuffer& p_CommandBuffer)
 {
-    foreach(AbstractRenderSchemeFactory* currentModelFactory, m_ModelFactories)
+    foreach(RenderSchemeFactory* currentModelFactory, m_ModelFactories)
     {
         currentModelFactory->Render(p_CommandBuffer);
     }
@@ -99,7 +97,7 @@ void Scene3D::GatherFlatModelList()
     {
         assert(item);
 
-        item->GatherFlatModelList();
+        item->GatherDrawItemsFlatList();
     }
 }
 
@@ -127,7 +125,7 @@ void Scene3D::Resize(VkCommandBuffer& p_CommandBuffer, int p_Width, int p_Height
     m_ScreenWidth = p_Width;
     m_ScreenHeight = p_Height;
 
-    foreach(AbstractRenderSchemeFactory* currentModelFactory, m_ModelFactories)
+    foreach(RenderSchemeFactory* currentModelFactory, m_ModelFactories)
     {
         currentModelFactory->ResizeWindow(p_CommandBuffer);
     }
@@ -184,7 +182,6 @@ void Scene3D::mouseMoveEvent(QMouseEvent* p_Event)
             }
 
             currentModel->SetColor(glm::vec4(1.0, 1.0, 0.3, 1.0));
-            isDirty = true;
             return;
         }
     }
@@ -195,18 +192,18 @@ void Scene3D::mouseMoveEvent(QMouseEvent* p_Event)
     }
 }
 
-AbstractRenderSchemeFactory* Scene3D::GetFactory(DrawItem* p_Model)
+RenderSchemeFactory* Scene3D::GetFactory(DrawItem* p_Model)
 {
     const SHAPE shapeType = p_Model->GetShapeType();
     if ((shapeType <= SHAPE_NONE) && (shapeType >= SHAPE_COUNT)) return NULL;
 
-    std::map<SHAPE, AbstractRenderSchemeFactory*>::iterator it = m_ShapeRenderSchemeTypeMap.find(shapeType);
+    std::map<SHAPE, RenderSchemeFactory*>::iterator it = m_ShapeRenderSchemeTypeMap.find(shapeType);
     if (it != m_ShapeRenderSchemeTypeMap.end())
     {
         return it->second;
     }
 
-    AbstractRenderSchemeFactory* abstractFactory = p_Model->GetRenderSchemeFactory();
+    RenderSchemeFactory* abstractFactory = p_Model->GetRenderSchemeFactory();
     if (abstractFactory)
     {
         (m_ShapeRenderSchemeTypeMap)[shapeType] = abstractFactory;
