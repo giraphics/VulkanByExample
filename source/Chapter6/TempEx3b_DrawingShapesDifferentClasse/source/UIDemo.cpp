@@ -24,7 +24,7 @@ void UIDemo::Grid(Scene3D* p_Scene, int p_Width, int p_Height)
 	{
 		for (int j = 0; j < parentRow; j++)
 		{
-			Model3D* m_Parent = new RectangleModel(p_Scene, NULL, BoundingRegion((i * parentColWidth), (j * parentColHeight), parentColWidth - 2, parentColHeight));
+			DrawItem* m_Parent = new Rectangl(p_Scene, NULL, BoundingRegion((i * parentColWidth), (j * parentColHeight), parentColWidth - 2, parentColHeight));
 			m_Parent->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
 			m_Parent->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
 
@@ -32,7 +32,7 @@ void UIDemo::Grid(Scene3D* p_Scene, int p_Width, int p_Height)
 			{
 				for (int l = 0; l < Row; l++)
 				{
-					RectangleModel* m_Cube1 = new RectangleModel(p_Scene, m_Parent, BoundingRegion((k * colWidth), (l * colHeight), colWidth, colHeight));
+					Rectangl* m_Cube1 = new Rectangl(p_Scene, m_Parent, BoundingRegion((k * colWidth), (l * colHeight), colWidth, colHeight));
 					m_Cube1->SetColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
 					m_Cube1->SetDefaultColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
 				}
@@ -100,10 +100,10 @@ return false;
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType)
-    : Model3D(p_Scene, p_Parent, p_BoundedRegion, p_Name, p_ShapeType)
+AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, DrawItem* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType)
+    : DrawItem(p_Scene, p_Parent, p_BoundedRegion, p_Name, p_ShapeType)
 {
-    Model3D* background = new RectangleModel(m_Scene, this, BoundingRegion(0, 0, p_BoundedRegion.m_Dimension.x, p_BoundedRegion.m_Dimension.y));
+    DrawItem* background = new Rectangl(m_Scene, this, BoundingRegion(0, 0, p_BoundedRegion.m_Dimension.x, p_BoundedRegion.m_Dimension.y));
     background->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
     background->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
 
@@ -111,7 +111,7 @@ AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const Boundi
     const int activeIndicatorWidth = 7;
     const int activeTrackIndicatorTopMargin = 5.0;
     const int activeTrackIndicatorTopMarginLeftMargin = 4.0;
-    Model3D* activeTrackIndicator = new RectangleModel(m_Scene, background, BoundingRegion(activeTrackIndicatorTopMarginLeftMargin, activeTrackIndicatorTopMargin, p_BoundedRegion.m_Dimension.x - (5 * activeTrackIndicatorTopMarginLeftMargin), activeIndicatorWidth));
+    DrawItem* activeTrackIndicator = new Rectangl(m_Scene, background, BoundingRegion(activeTrackIndicatorTopMarginLeftMargin, activeTrackIndicatorTopMargin, p_BoundedRegion.m_Dimension.x - (5 * activeTrackIndicatorTopMarginLeftMargin), activeIndicatorWidth));
     activeTrackIndicator->SetColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
     activeTrackIndicator->SetDefaultColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
 
@@ -122,11 +122,11 @@ AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const Boundi
     const int channelWidth = (p_BoundedRegion.m_Dimension.x / formatType) / 2;
     for (int i = 0; i < formatType; i++)
     {
-        Model3D* channelBackground = new RectangleModel(m_Scene, background, BoundingRegion((i * channelWidth) + channelLeftMargin, channelTopMargin, ((i == (formatType - 1)) ? 2 : 0) + channelWidth, p_BoundedRegion.m_Dimension.y - channelTopMargin - 5.0));
+        DrawItem* channelBackground = new Rectangl(m_Scene, background, BoundingRegion((i * channelWidth) + channelLeftMargin, channelTopMargin, ((i == (formatType - 1)) ? 2 : 0) + channelWidth, p_BoundedRegion.m_Dimension.y - channelTopMargin - 5.0));
         channelBackground->SetColor(glm::vec4(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0));
         channelBackground->SetDefaultColor(glm::vec4(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0));
 
-        Model3D* channel = new RectangleModel(m_Scene, channelBackground, BoundingRegion(2, 2, channelWidth - 2, p_BoundedRegion.m_Dimension.y - channelTopMargin - 5.0 - 4));
+        DrawItem* channel = new Rectangl(m_Scene, channelBackground, BoundingRegion(2, 2, channelWidth - 2, p_BoundedRegion.m_Dimension.y - channelTopMargin - 5.0 - 4));
         channel->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
         channel->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
 
@@ -138,7 +138,7 @@ AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const Boundi
         const int yellowIndicatorRange = totalRangeIndicator * 0.20;
         for (int j = 0; j < totalRangeIndicator; j++)
         {
-            Model3D* levelIndicator = new RectangleModel(m_Scene, channel, BoundingRegion(2, j * 4, channelWidth - 4.0, 2.0));
+            DrawItem* levelIndicator = new Rectangl(m_Scene, channel, BoundingRegion(2, j * 4, channelWidth - 4.0, 2.0));
 
             const glm::vec4 color = (j <= redIndicatorRange) ? red : ((j <= yellowIndicatorRange) ? yellow : green);
             levelIndicator->SetColor(color);

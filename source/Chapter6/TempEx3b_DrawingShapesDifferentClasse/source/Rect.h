@@ -5,27 +5,27 @@
 #include "../TempEx2_SceneGraph/Scene3D.h"
 #include "../TempEx2_SceneGraph/Model3D.h"
 
-class RectangleModel : public Model3D
+class Rectangl : public DrawItem
 {
 public:
     enum DRAW_TYPE
     {
         FILLED = 0,
-        OUTLINE, 
+        OUTLINE,
         ROUNDED,
         DRAW_TYPE_COUNT
     };
 
 public:
-    RectangleModel(Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "");
-    virtual ~RectangleModel() {}
+    Rectangl(Scene3D* p_Scene, DrawItem* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "");
+    virtual ~Rectangl() {}
 
     GETSET(DRAW_TYPE, DrawType)
         
 protected:
-    virtual void Update(Model3D* p_Item = NULL)
+    virtual void Update(DrawItem* p_Item = NULL)
     {
-        Model3D::Update(p_Item);
+        DrawItem::Update(p_Item);
 
         CreateRectVertexBuffer();
     }
@@ -36,7 +36,7 @@ public:
         Update(this);
     }
 
-    AbstractModelFactory* GetRenderScemeFactory();
+    AbstractRenderSchemeFactory* GetRenderSchemeFactory();
 
     virtual void Setup();
     void CreateRectVertexBuffer();
@@ -108,7 +108,7 @@ private:
     VulkanApp*		 m_VulkanApplication;
 };
 
-class RectangleMultiDrawFactory : public AbstractModelFactory
+class RectangleMultiDrawFactory : public AbstractRenderSchemeFactory
 {
 public:
     RectangleMultiDrawFactory(VulkanApp* p_VulkanApp);
@@ -117,9 +117,9 @@ public:
 public:
     virtual void Setup(VkCommandBuffer& p_CommandBuffer);
     virtual void Update();
-    virtual void Render(VkCommandBuffer& p_CmdBuffer);
+    virtual void Render(VkCommandBuffer& p_CommandBuffer);
 
-    void ResizeWindow(VkCommandBuffer& p_CmdBuffer);
+    void ResizeWindow(VkCommandBuffer& p_CommandBuffer);
     virtual void Prepare(Scene3D* p_Scene);
 
 private:
@@ -131,7 +131,7 @@ private:
 
     void CreateVertexLayoutBinding();
 
-    virtual void UpdateModelList(Model3D* p_Item);
+    virtual void UpdateModelList(DrawItem* p_Item);
 
     enum RECTANGLE_GRAPHICS_PIPELINES
     {
@@ -143,8 +143,8 @@ private:
     std::vector<VkVertexInputBindingDescription>   m_VertexInputBinding[PIPELINE_COUNT];   // 0 for (position and color) 1 for ()
     std::vector<VkVertexInputAttributeDescription> m_VertexInputAttribute[PIPELINE_COUNT]; // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
 
-    typedef std::vector<Model3D*> ModelVector;
+    typedef std::vector<DrawItem*> ModelVector;
     ModelVector m_PipelineTypeModelVector[PIPELINE_COUNT];
 
-    std::shared_ptr<RectangleDescriptorSet> CDS;
+    std::shared_ptr<RectangleDescriptorSet> m_DescriptorSet;
 };

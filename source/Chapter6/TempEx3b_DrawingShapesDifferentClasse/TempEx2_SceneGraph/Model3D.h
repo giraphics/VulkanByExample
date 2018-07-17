@@ -6,17 +6,17 @@
 
 class VulkanApp;
 
-class AbstractModelFactory
+class AbstractRenderSchemeFactory
 {
 public:
-    AbstractModelFactory() {}
-    virtual ~AbstractModelFactory() {}
+    AbstractRenderSchemeFactory() {}
+    virtual ~AbstractRenderSchemeFactory() {}
 
     virtual void Setup(VkCommandBuffer& p_CommandBuffer) {}
     virtual void Update() {}
     virtual void Render(VkCommandBuffer& p_CommandBuffer) {}
     virtual void Prepare(Scene3D* p_Scene) {}
-    virtual void UpdateModelList(Model3D* p_Parent) {}
+    virtual void UpdateModelList(DrawItem* p_Parent) {}
     virtual void ResizeWindow(VkCommandBuffer& p_CommandBuffer) {}
 
     GETSET(glm::mat4x4, ProjectViewMatrix);
@@ -44,15 +44,15 @@ struct BoundingRegion
     glm::vec3 m_Dimension;
 };
 
-class Model3D
+class DrawItem
 {
 public:
-    Model3D(Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
+    DrawItem(Scene3D* p_Scene, DrawItem* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
 
     virtual void Setup();
-    virtual void Update(Model3D* p_Item = NULL);
+    virtual void Update(DrawItem* p_Item = NULL);
 
-    virtual AbstractModelFactory* GetRenderScemeFactory() { return NULL; } // Custom model class do not need to implement it as they are made of basic model classes.
+    virtual AbstractRenderSchemeFactory* GetRenderSchemeFactory() { return NULL; } // Custom model class do not need to implement it as they are made of basic model classes.
 
     virtual void Rotate(float p_Angle, float p_X, float p_Y, float p_Z) 
     { 
@@ -87,10 +87,10 @@ public:
     GETSET(glm::vec4, DefaultColor)
     GETSET(glm::mat4, Model)		// Owned by drawable item
     GETSET(Scene3D*, Scene)
-    GETSET(Model3D*, Parent)
+    GETSET(DrawItem*, Parent)
     GETSET(glm::vec3, OriginOffset)
     GETSET(glm::mat4, TransformedModel)		// Owned by drawable item
-    GETSET(QList<Model3D*>, ChildList)
+    GETSET(QList<DrawItem*>, ChildList)
 
     virtual void mousePressEvent(QMouseEvent* p_Event);
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
@@ -102,10 +102,10 @@ public:
     // Application Window resizing
     virtual void ResizeWindow(int width, int height) {}
 
-    inline Model3D* GetParent() const { return m_Parent; }
+    inline DrawItem* GetParent() const { return m_Parent; }
     void ApplyTransformation() { *m_Scene->Transform().GetModelMatrix() *= m_Model; }
     glm::mat4 GetRelativeTransformations() const { return GetParentsTransformation(GetParent()) * m_Model; }
-    glm::mat4 GetParentsTransformation(Model3D* p_Parent) const { return p_Parent ? (GetParentsTransformation(p_Parent->GetParent()) * p_Parent->m_Model) : glm::mat4(); }
+    glm::mat4 GetParentsTransformation(DrawItem* p_Parent) const { return p_Parent ? (GetParentsTransformation(p_Parent->GetParent()) * p_Parent->m_Model) : glm::mat4(); }
 
     void GatherFlatModelList(); // Rename: GatherFlatRenderItemList
 

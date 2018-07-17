@@ -7,10 +7,10 @@
 #include "../../../common/VulkanHelper.h"
 #include "SGCommon.h"
 
-class Model3D;
+class DrawItem;
 class Scene3D;
 class QMouseEvent;
-class AbstractModelFactory;
+class AbstractRenderSchemeFactory;
 class AbstractApp;
 
 class Scene3D
@@ -23,8 +23,8 @@ public:
     void Update();
     void Render(VkCommandBuffer& p_CommandBuffer);
 
-    void AddModel(Model3D* p_Model);
-    void RemoveModel(Model3D *p_Model);
+    void AddModel(DrawItem* p_Model);
+    void RemoveModel(DrawItem *p_Model);
 
     virtual void Resize(VkCommandBuffer& p_CommandBuffer, int p_Width, int p_Height);
     virtual void SetUpProjection();
@@ -38,10 +38,10 @@ public:
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
     virtual void mouseMoveEvent(QMouseEvent* p_Event);
 
-    GETSET(Model3D*, CurrentHoverItem)  // Not owned by Scene
+    GETSET(DrawItem*, CurrentHoverItem)  // Not owned by Scene
     GETSET(AbstractApp*, Application)
 
-    AbstractModelFactory* GetFactory(Model3D* p_Model);
+    AbstractRenderSchemeFactory* GetFactory(DrawItem* p_Model);
 
 private:
     void GatherFlatModelList();
@@ -50,13 +50,13 @@ public:
     int m_ScreenHeight;
     int m_ScreenWidth;
 
-    std::vector<Model3D*> m_ModelList;
+    std::vector<DrawItem*> m_ModelList;
     Transformation3D m_Transform;
     int m_Frame;
 
     std::vector<QMatrix4x4> m_MatrixVector;
-    std::vector<Model3D*> m_FlatList;
-    std::set<AbstractModelFactory*> m_ModelFactories;
+    std::vector<DrawItem*> m_FlatList;
+    std::set<AbstractRenderSchemeFactory*> m_ModelFactories;
 
-    std::map<SHAPE, AbstractModelFactory*> m_ShapeRenderSchemeTypeMap;
+    std::map<SHAPE, AbstractRenderSchemeFactory*> m_ShapeRenderSchemeTypeMap;
 };

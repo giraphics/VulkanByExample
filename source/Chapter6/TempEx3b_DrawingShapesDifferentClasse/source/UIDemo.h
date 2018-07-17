@@ -13,7 +13,7 @@ public:
 //	void ProgressBarFunc(Scene3D* m_Scene);
 };
     
-class RectangleModel;
+class Rectangl;
 //class QMouseEvent;
 //class ProgressBar : public Model3D
 //{
@@ -26,10 +26,10 @@ class RectangleModel;
 //    RectangleModel* bar;
 //};
 
-class AudioMixerItem : public Model3D
+class AudioMixerItem : public DrawItem
 {
 public:
-    AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
+    AudioMixerItem(Scene3D* p_Scene, DrawItem* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
     virtual ~AudioMixerItem() {}
 
     //virtual bool mouseMoveEvent(QMouseEvent* p_Event);

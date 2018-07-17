@@ -16,7 +16,7 @@ Scene3D::Scene3D(AbstractApp* p_Application)
 
 Scene3D::~Scene3D()
 {
-    std::map<SHAPE, AbstractModelFactory*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
+    std::map<SHAPE, AbstractRenderSchemeFactory*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
 
     while (itSRST != m_ShapeRenderSchemeTypeMap.end())
     {
@@ -25,7 +25,7 @@ Scene3D::~Scene3D()
         ++itSRST;
     }
 
-    foreach (Model3D* currentModel, m_ModelList)
+    foreach (DrawItem* currentModel, m_ModelList)
     {
         delete currentModel;
     }
@@ -35,20 +35,20 @@ void Scene3D::Setup(VkCommandBuffer& p_CommandBuffer)
 {
     GatherFlatModelList(); // Assuming all nodes are added into the scenes by now
 
-    foreach (Model3D* currentModel, m_ModelList)
+    foreach (DrawItem* currentModel, m_ModelList)
     {
         currentModel->Setup();
     }
 
-    foreach(Model3D* currentModel, m_FlatList)
+    foreach(DrawItem* currentModel, m_FlatList)
     {
-        AbstractModelFactory* factory = GetFactory(currentModel); // Populate factories
+        AbstractRenderSchemeFactory* factory = GetFactory(currentModel); // Populate factories
         if (!factory) continue;
 
         factory->UpdateModelList(currentModel);
     }
 
-    std::map<SHAPE, AbstractModelFactory*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
+    std::map<SHAPE, AbstractRenderSchemeFactory*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
     while (itSRST != m_ShapeRenderSchemeTypeMap.end())
     {
         m_ModelFactories.insert(itSRST->second);
@@ -57,7 +57,7 @@ void Scene3D::Setup(VkCommandBuffer& p_CommandBuffer)
     }
 
 	assert(m_ModelFactories.size());
-	foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+	foreach(AbstractRenderSchemeFactory* currentModelFactory, m_ModelFactories)
     {
         currentModelFactory->Setup(p_CommandBuffer);
     }
@@ -65,19 +65,19 @@ void Scene3D::Setup(VkCommandBuffer& p_CommandBuffer)
 
 void Scene3D::Update()
 {
-    foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+    foreach(AbstractRenderSchemeFactory* currentModelFactory, m_ModelFactories)
     {
         currentModelFactory->SetRefProjectViewMatrix(*m_Transform.GetProjectionMatrix() * *m_Transform.GetViewMatrix());
     }
 
-    foreach (Model3D* item, m_ModelList)
+    foreach (DrawItem* item, m_ModelList)
     {
         assert(item);
 
         item->Update();
     }
 
-	foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+	foreach(AbstractRenderSchemeFactory* currentModelFactory, m_ModelFactories)
 	{
 		currentModelFactory->Update();
 	}
@@ -85,7 +85,7 @@ void Scene3D::Update()
 
 void Scene3D::Render(VkCommandBuffer& p_CommandBuffer)
 {
-    foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+    foreach(AbstractRenderSchemeFactory* currentModelFactory, m_ModelFactories)
     {
         currentModelFactory->Render(p_CommandBuffer);
     }
@@ -95,7 +95,7 @@ void Scene3D::GatherFlatModelList()
 {
     m_FlatList.clear();
 
-    foreach (Model3D* item, m_ModelList)
+    foreach (DrawItem* item, m_ModelList)
     {
         assert(item);
 
@@ -103,7 +103,7 @@ void Scene3D::GatherFlatModelList()
     }
 }
 
-void Scene3D::AddModel(Model3D* p_Model)
+void Scene3D::AddModel(DrawItem* p_Model)
 {
     if (p_Model && !p_Model->GetParent())
     {
@@ -111,7 +111,7 @@ void Scene3D::AddModel(Model3D* p_Model)
     }
 }
 
-void Scene3D::RemoveModel(Model3D* p_Model)
+void Scene3D::RemoveModel(DrawItem* p_Model)
 {
     while (true)
     {
@@ -127,7 +127,7 @@ void Scene3D::Resize(VkCommandBuffer& p_CommandBuffer, int p_Width, int p_Height
     m_ScreenWidth = p_Width;
     m_ScreenHeight = p_Height;
 
-    foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+    foreach(AbstractRenderSchemeFactory* currentModelFactory, m_ModelFactories)
     {
         currentModelFactory->ResizeWindow(p_CommandBuffer);
     }
@@ -149,7 +149,7 @@ void Scene3D::SetUpProjection()
 
 void Scene3D::mousePressEvent(QMouseEvent* p_Event)
 {
-    foreach (Model3D* item, m_ModelList)
+    foreach (DrawItem* item, m_ModelList)
     {
         assert(item);
 
@@ -159,7 +159,7 @@ void Scene3D::mousePressEvent(QMouseEvent* p_Event)
 
 void Scene3D::mouseReleaseEvent(QMouseEvent* p_Event)
 {
-    foreach (Model3D* item, m_ModelList)
+    foreach (DrawItem* item, m_ModelList)
     {
         assert(item);
 
@@ -169,15 +169,15 @@ void Scene3D::mouseReleaseEvent(QMouseEvent* p_Event)
 
 void Scene3D::mouseMoveEvent(QMouseEvent* p_Event)
 {
-    Model3D* oldModelItem = GetCurrentHoverItem();
+    DrawItem* oldModelItem = GetCurrentHoverItem();
     for (int i = m_ModelList.size() - 1; i >= 0; i--)
     {
-        Model3D* item = m_ModelList.at(i);
+        DrawItem* item = m_ModelList.at(i);
         assert(item);
 
         if (item->mouseMoveEvent(p_Event))
         {
-            Model3D* currentModel = GetCurrentHoverItem();
+            DrawItem* currentModel = GetCurrentHoverItem();
             if (oldModelItem && oldModelItem != currentModel)
             {
                 oldModelItem->SetColor(oldModelItem->GetDefaultColor());
@@ -195,18 +195,18 @@ void Scene3D::mouseMoveEvent(QMouseEvent* p_Event)
     }
 }
 
-AbstractModelFactory* Scene3D::GetFactory(Model3D* p_Model)
+AbstractRenderSchemeFactory* Scene3D::GetFactory(DrawItem* p_Model)
 {
     const SHAPE shapeType = p_Model->GetShapeType();
     if ((shapeType <= SHAPE_NONE) && (shapeType >= SHAPE_COUNT)) return NULL;
 
-    std::map<SHAPE, AbstractModelFactory*>::iterator it = m_ShapeRenderSchemeTypeMap.find(shapeType);
+    std::map<SHAPE, AbstractRenderSchemeFactory*>::iterator it = m_ShapeRenderSchemeTypeMap.find(shapeType);
     if (it != m_ShapeRenderSchemeTypeMap.end())
     {
         return it->second;
     }
 
-    AbstractModelFactory* abstractFactory = p_Model->GetRenderScemeFactory();
+    AbstractRenderSchemeFactory* abstractFactory = p_Model->GetRenderSchemeFactory();
     if (abstractFactory)
     {
         (m_ShapeRenderSchemeTypeMap)[shapeType] = abstractFactory;

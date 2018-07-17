@@ -2,7 +2,7 @@
 #include<QMouseEvent>
 #include<glm/gtx/string_cast.hpp>
 
-Model3D::Model3D(Scene3D *p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType)
+DrawItem::DrawItem(Scene3D *p_Scene, DrawItem* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType)
     : m_Scene(p_Scene)
     , m_Parent(p_Parent)
     , m_Name(p_Name)
@@ -16,11 +16,11 @@ Model3D::Model3D(Scene3D *p_Scene, Model3D* p_Parent, const BoundingRegion& p_Bo
     SetGeometry(m_BoundedRegion.m_Position.x, m_BoundedRegion.m_Position.y, m_BoundedRegion.m_Dimension.x, m_BoundedRegion.m_Dimension.y, m_BoundedRegion.m_Position.z);
 }
 
-void Model3D::Setup()
+void DrawItem::Setup()
 {
-    foreach(Model3D* currentModel, m_ChildList)
+    foreach(DrawItem* currentModel, m_ChildList)
     {
-        Model3D* model = /*dynamic_cast<Model3D*>*/(currentModel);
+        DrawItem* model = /*dynamic_cast<Model3D*>*/(currentModel);
 
         if (!model) continue;
 
@@ -28,73 +28,72 @@ void Model3D::Setup()
     }
 }
 
-void Model3D::mousePressEvent(QMouseEvent* p_Event)
+void DrawItem::mousePressEvent(QMouseEvent* p_Event)
 {
-	glm::vec4 posStart((0 * m_BoundedRegion.m_Dimension.x), (0 * m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
-	glm::vec4 posStartResult = m_TransformedModel * posStart;
+    glm::vec4 posStart((0 * m_BoundedRegion.m_Dimension.x), (0 * m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
+    glm::vec4 posStartResult = m_TransformedModel * posStart;
 
-	glm::vec4 posEnd((m_BoundedRegion.m_Dimension.x), (m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
-	glm::vec4 posEndResult = m_TransformedModel * posEnd;
+    glm::vec4 posEnd((m_BoundedRegion.m_Dimension.x), (m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
+    glm::vec4 posEndResult = m_TransformedModel * posEnd;
 
-	cout << "\n##### mousePressEventS" << glm::to_string(posStartResult);// << posEndResult;
-	cout << "\n##### mousePressEventE" << glm::to_string(posEndResult);// << posEndResult;
+    cout << "\n##### mousePressEventS" << glm::to_string(posStartResult);// << posEndResult;
+    cout << "\n##### mousePressEventE" << glm::to_string(posEndResult);// << posEndResult;
 
-	QRect rect(QPoint(posStartResult.x, posStartResult.y), QPoint(posEndResult.x, posEndResult.y));
-	if (rect.contains(p_Event->x(), p_Event->y()))
-		cout << "\n***************";
-	
+    QRect rect(QPoint(posStartResult.x, posStartResult.y), QPoint(posEndResult.x, posEndResult.y));
+    if (rect.contains(p_Event->x(), p_Event->y()))
+        cout << "\n***************";
 
-	foreach(Model3D* item, m_ChildList)
-	{
-		assert(item);
 
-		item->mousePressEvent(p_Event);
-	}
+    foreach(DrawItem* item, m_ChildList)
+    {
+        assert(item);
+
+        item->mousePressEvent(p_Event);
+    }
 }
 
-void Model3D::mouseReleaseEvent(QMouseEvent* p_Event)
+void DrawItem::mouseReleaseEvent(QMouseEvent* p_Event)
 {
-	//cout << "\n##### mouseReleaseEvent";
-	foreach(Model3D* item, m_ChildList)
-	{
-		assert(item);
+    foreach(DrawItem* item, m_ChildList)
+    {
+        assert(item);
 
-		item->mouseReleaseEvent(p_Event);
-	}
+        item->mouseReleaseEvent(p_Event);
+    }
 }
 
-bool Model3D::mouseMoveEvent(QMouseEvent* p_Event)
+bool DrawItem::mouseMoveEvent(QMouseEvent* p_Event)
 {
-	glm::vec4 posStart((0 * m_BoundedRegion.m_Dimension.x), (0 * m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
-	glm::vec4 posStartResult = /*GetParentsTransformation(GetParent()) **/ m_TransformedModel * posStart;
+    glm::vec4 posStart((0 * m_BoundedRegion.m_Dimension.x), (0 * m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
+    glm::vec4 posStartResult = /*GetParentsTransformation(GetParent()) **/ m_TransformedModel * posStart;
 
-	glm::vec4 posEnd((m_BoundedRegion.m_Dimension.x), (m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
-	glm::vec4 posEndResult = /*GetParentsTransformation(GetParent()) **/ m_TransformedModel * posEnd;
+    glm::vec4 posEnd((m_BoundedRegion.m_Dimension.x), (m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
+    glm::vec4 posEndResult = /*GetParentsTransformation(GetParent()) **/ m_TransformedModel * posEnd;
 
-	QRect rect(QPoint(posStartResult.x, posStartResult.y), QPoint(posEndResult.x, posEndResult.y));
-	if (rect.contains(p_Event->x(), p_Event->y()))
-	{
-		m_Scene->SetCurrentHoverItem(this);
+    QRect rect(QPoint(posStartResult.x, posStartResult.y), QPoint(posEndResult.x, posEndResult.y));
+    if (rect.contains(p_Event->x(), p_Event->y()))
+    {
+        m_Scene->SetCurrentHoverItem(this);
 
-		//cout << "\n##### mouseMoveEvent";
-		for (int i = m_ChildList.size() - 1; i >= 0; i--)
-		{
-			Model3D* item = m_ChildList.at(i);
-			assert(item);
+        //cout << "\n##### mouseMoveEvent";
+        for (int i = m_ChildList.size() - 1; i >= 0; i--)
+        {
+            DrawItem* item = m_ChildList.at(i);
+            assert(item);
 
-			if (item->mouseMoveEvent(p_Event))
-			{
-				return true;
-			}
-		}
+            if (item->mouseMoveEvent(p_Event))
+            {
+                return true;
+            }
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
-void Model3D::Update(Model3D* p_Item)
+void DrawItem::Update(DrawItem* p_Item)
 {
     m_Scene->PushMatrix();
     if (p_Item)
@@ -108,8 +107,8 @@ void Model3D::Update(Model3D* p_Item)
 
     m_TransformedModel = *m_Scene->m_Transform.GetModelMatrix();
     
-    QList<Model3D*>& childList = (p_Item ? p_Item->m_ChildList : m_ChildList);
-    Q_FOREACH(Model3D* child, childList )
+    QList<DrawItem*>& childList = (p_Item ? p_Item->m_ChildList : m_ChildList);
+    Q_FOREACH(DrawItem* child, childList )
     {
         assert(child);
         child->Update();
@@ -118,7 +117,7 @@ void Model3D::Update(Model3D* p_Item)
     m_Scene->PopMatrix();
 }
 
-void Model3D::SetGeometry(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder/*=0*/)
+void DrawItem::SetGeometry(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder/*=0*/)
 {
     Translate(p_X, p_Y, p_ZOrder);
 
@@ -130,7 +129,7 @@ void Model3D::SetGeometry(float p_X, float p_Y, float p_Width, float p_Height, f
     m_BoundedRegion.m_Dimension.y = p_Height;
 }
 
-void Model3D::SetZOrder(float p_ZOrder)
+void DrawItem::SetZOrder(float p_ZOrder)
 {
     m_BoundedRegion.m_Position.z = p_ZOrder;
 
@@ -138,7 +137,7 @@ void Model3D::SetZOrder(float p_ZOrder)
     Translate(m_BoundedRegion.m_Position.x, m_BoundedRegion.m_Position.y, m_BoundedRegion.m_Position.z);
 }
 
-void Model3D::SetPosition(float p_X, float p_Y)
+void DrawItem::SetPosition(float p_X, float p_Y)
 {
     glm::vec4 posStart((0 * m_BoundedRegion.m_Dimension.x), (0 * m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
     glm::vec4 posStartResult = m_TransformedModel * posStart;
@@ -154,13 +153,13 @@ void Model3D::SetPosition(float p_X, float p_Y)
     m_TransformedModel = m_Model * GetParentsTransformation(GetParent());
 }
 
-void Model3D::GatherFlatModelList()
+void DrawItem::GatherFlatModelList()
 {
     if (!m_Scene) return;
 
     m_Scene->m_FlatList.push_back(this);
 
-    Q_FOREACH(Model3D* child, m_ChildList)
+    Q_FOREACH(DrawItem* child, m_ChildList)
     {
         assert(child);
         child->GatherFlatModelList();

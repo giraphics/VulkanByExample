@@ -1,64 +1,104 @@
 #include "Rect.h"
 
-#include "../../../common/VulkanHelper.h"
-
-#include <QMainWindow>
-#include <QHBoxLayout>
-#include <QApplication>
-#include <QMouseEvent>
-
-#include <memory> // For shared ptr
-using namespace std;
+//#include "../../../common/VulkanHelper.h"
 
 #define VERTEX_BUFFER_BIND_IDX 0
 
 static char* PIPELINE_RECT_FILLED = "RectFilled";
 static char* PIPELINE_RECT_OUTLINE = "RectOutline";
 
-//std::shared_ptr<RectangleDescriptorSet> CDS = NULL;// std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
-
 struct Vertex
 {
-    glm::vec3 m_Position; // Vertex Position => x, y, z
-    glm::vec3 m_Color;    // Color format => r, g, b
-    unsigned int m_DrawType;    // Color format => r, g, b
+    glm::vec3 m_Position;       // Vertex Position => x, y, z
+    glm::vec3 m_Color;          // Color format => r, g, b
+    unsigned int m_DrawType;
 };
 
 static const Vertex rectFilledVertices[] =
 {
-    { glm::vec3(1, 0, 0),	glm::vec3(0.f, 0.f, 0.f), 0 },
-    { glm::vec3(0, 0, 0),	glm::vec3(1.f, 0.f, 0.f), 0 },
-    { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f), 0 },
-    { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f), 0 },
-    { glm::vec3(0, 0, 0),	glm::vec3(1.f, 0.f, 0.f), 0 },
-    { glm::vec3(0, 1, 0),	glm::vec3(1.f, 1.f, 0.f), 0 },
+    { glm::vec3(1, 0, 0),   glm::vec3(0.f, 0.f, 0.f), 0 },
+    { glm::vec3(0, 0, 0),   glm::vec3(1.f, 0.f, 0.f), 0 },
+    { glm::vec3(1, 1, 0),   glm::vec3(0.f, 1.f, 0.f), 0 },
+    { glm::vec3(1, 1, 0),   glm::vec3(0.f, 1.f, 0.f), 0 },
+    { glm::vec3(0, 0, 0),   glm::vec3(1.f, 0.f, 0.f), 0 },
+    { glm::vec3(0, 1, 0),   glm::vec3(1.f, 1.f, 0.f), 0 },
 };
-
-//static const Vertex rectFilledVertices[] =
-//{
-//    { glm::vec3(1, 0, 0),	glm::vec2(0.f, 0.f), 0 },
-//    { glm::vec3(0, 0, 0),	glm::vec2(1.f, 0.f), 0 },
-//    { glm::vec3(1, 1, 0),	glm::vec2(0.f, 1.f), 0 },
-//    { glm::vec3(1, 1, 0),	glm::vec2(0.f, 1.f), 0 },
-//    { glm::vec3(0, 0, 0),	glm::vec2(1.f, 0.f), 0 },
-//    { glm::vec3(0, 1, 0),	glm::vec2(1.f, 1.f), 0 },
-//};
 
 static const Vertex rectOutlineVertices[] =
 {
-    { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f), 0 },
-    { glm::vec3(1, 0, 0),	glm::vec3(1.f, 0.f, 0.f), 0 },
-    { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f), 0 },
-    { glm::vec3(0, 1, 0),	glm::vec3(0.f, 1.f, 0.f), 0 },
-    { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f), 0 },
+    { glm::vec3(0, 0, 0),   glm::vec3(0.f, 0.f, 0.f), 0 },
+    { glm::vec3(1, 0, 0),   glm::vec3(1.f, 0.f, 0.f), 0 },
+    { glm::vec3(1, 1, 0),   glm::vec3(0.f, 1.f, 0.f), 0 },
+    { glm::vec3(0, 1, 0),   glm::vec3(0.f, 1.f, 0.f), 0 },
+    { glm::vec3(0, 0, 0),   glm::vec3(0.f, 0.f, 0.f), 0 },
 };
+
+
+Rectangl::Rectangl(Scene3D *p_Scene, DrawItem *p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name)
+    : DrawItem(p_Scene, p_Parent, p_BoundedRegion, p_Name, SHAPE_RECTANGLE_MULTIDRAW)
+    , m_DrawType(FILLED)
+{
+}
+
+AbstractRenderSchemeFactory* Rectangl::GetRenderSchemeFactory()
+{
+    return new RectangleMultiDrawFactory(static_cast<VulkanApp*>(m_Scene->GetApplication()));
+}
+
+void Rectangl::Setup()
+{
+    CreateRectVertexBuffer();
+
+    DrawItem::Setup();
+}
+
+void Rectangl::CreateRectVertexBuffer()
+{
+    glm::mat4 parentTransform = GetTransformedModel();//m_Model * GetParentsTransformation(GetParent());
+
+    Vertex rectVertices[6];
+    memcpy(rectVertices, rectFilledVertices, sizeof(Vertex) * 6);
+    uint32_t dataSize = sizeof(rectVertices);
+    uint32_t dataStride = sizeof(rectVertices[0]);
+    const int vertexCount = dataSize / dataStride;
+    for (int i = 0; i < vertexCount; ++i)
+    {
+        glm::vec4 pos(rectFilledVertices[i].m_Position, 1.0);
+        pos.x = pos.x * m_BoundedRegion.m_Dimension.x;
+        pos.y = pos.y * m_BoundedRegion.m_Dimension.y;
+
+        pos = parentTransform * pos;
+        //std::cout << m_Name.toStdString() << "=+ x:" << pos.x << ", y:" << pos.y << ", z:" << pos.z << endl;
+
+        rectVertices[i].m_Position.x = pos.x;
+        rectVertices[i].m_Position.y = pos.y;
+        rectVertices[i].m_Position.z = pos.z;
+    }
+
+    VulkanApp* app = static_cast<VulkanApp*>(m_Scene->GetApplication());
+    const VkDevice& device = app->m_hDevice;
+
+    if (m_VertexBuffer.m_Buffer != VK_NULL_HANDLE)
+    {
+        vkDestroyBuffer(device, m_VertexBuffer.m_Buffer, NULL);
+        vkFreeMemory(device, m_VertexBuffer.m_Memory, NULL);
+    }
+
+    m_VertexBuffer.m_DataSize = dataSize;
+    m_VertexBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+
+    const VkPhysicalDeviceMemoryProperties& memProp = app->m_physicalDeviceInfo.memProp;
+    VulkanHelper::CreateBuffer(device, memProp, m_VertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, rectVertices);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 RectangleMultiDrawFactory::RectangleMultiDrawFactory(VulkanApp* p_VulkanApp)
 {
-	assert(p_VulkanApp);
+    assert(p_VulkanApp);
     m_VulkanApplication = p_VulkanApp;
 
-    CDS = NULL;
+    m_DescriptorSet = NULL;
 }
 
 RectangleMultiDrawFactory::~RectangleMultiDrawFactory()
@@ -74,7 +114,7 @@ RectangleMultiDrawFactory::~RectangleMultiDrawFactory()
         {
             if (m_ModelList.at(j)->GetRefShapeType() == SHAPE_RECTANGLE_MULTIDRAW)
             {
-                RectangleModel* model = (static_cast<RectangleModel*>(m_ModelList.at(j)));
+                Rectangl* model = (static_cast<Rectangl*>(m_ModelList.at(j)));
                 if (!model) return;
 
                 vkDestroyBuffer(m_VulkanApplication->m_hDevice, model->m_VertexBuffer.m_Buffer, NULL);
@@ -83,16 +123,16 @@ RectangleMultiDrawFactory::~RectangleMultiDrawFactory()
         }
     }
 
-	//// Destroy descriptors
-	//for (int i = 0; i < descLayout.size(); i++) {
- //       vkDestroyDescriptorSetLayout(m_VulkanApplication->m_hDevice, descLayout[i], NULL);
-	//}
-	//descLayout.clear();
+    //// Destroy descriptors
+    //for (int i = 0; i < descLayout.size(); i++) {
+    //       vkDestroyDescriptorSetLayout(m_VulkanApplication->m_hDevice, descLayout[i], NULL);
+    //}
+    //descLayout.clear();
 
     //vkFreeDescriptorSets(m_VulkanApplication->m_hDevice, descriptorPool, (uint32_t)descriptorSet.size(), &descriptorSet[0]);
     //vkDestroyDescriptorPool(m_VulkanApplication->m_hDevice, descriptorPool, NULL);
 
-    RectangleDescriptorSet::UniformBufferObj* UniformBuffer = CDS->UniformBuffer;
+    RectangleDescriptorSet::UniformBufferObj* UniformBuffer = m_DescriptorSet->UniformBuffer;
     vkUnmapMemory(m_VulkanApplication->m_hDevice, UniformBuffer->m_BufObj.m_Memory);
     vkDestroyBuffer(m_VulkanApplication->m_hDevice, UniformBuffer->m_BufObj.m_Buffer, NULL);
     vkFreeMemory(m_VulkanApplication->m_hDevice, UniformBuffer->m_BufObj.m_Memory, NULL);
@@ -100,7 +140,7 @@ RectangleMultiDrawFactory::~RectangleMultiDrawFactory()
 
 void RectangleMultiDrawFactory::Setup(VkCommandBuffer& p_CommandBuffer)
 {
-    CDS = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
+    m_DescriptorSet = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
 
     CreateVertexLayoutBinding();
 
@@ -114,7 +154,7 @@ void RectangleMultiDrawFactory::Setup(VkCommandBuffer& p_CommandBuffer)
 
 void RectangleMultiDrawFactory::Update()
 {
-    RectangleDescriptorSet::UniformBufferObj* UniformBuffer = CDS->UniformBuffer;
+    RectangleDescriptorSet::UniformBufferObj* UniformBuffer = m_DescriptorSet->UniformBuffer;
     VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice,
         UniformBuffer->m_MappedMemory,
         UniformBuffer->m_MappedRange,
@@ -159,7 +199,7 @@ void RectangleMultiDrawFactory::CreateRectOutlinePipeline()
     vertexInputInfo.pVertexBindingDescriptions = m_VertexInputBinding[PIPELINE_OUTLINE].data();
     vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)m_VertexInputAttribute[PIPELINE_OUTLINE].size();
     vertexInputInfo.pVertexAttributeDescriptions = m_VertexInputAttribute[PIPELINE_OUTLINE].data();
-    
+
     // Setup input assembly
     // We will be rendering 1 triangle using triangle strip topology
     VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
@@ -251,8 +291,8 @@ void RectangleMultiDrawFactory::CreateRectOutlinePipeline()
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 0;
     pipelineLayoutInfo.pushConstantRangeCount = 0;
-    pipelineLayoutInfo.setLayoutCount = (uint32_t)CDS->descLayout.size();
-    pipelineLayoutInfo.pSetLayouts = CDS->descLayout.data();
+    pipelineLayoutInfo.setLayoutCount = (uint32_t)m_DescriptorSet->descLayout.size();
+    pipelineLayoutInfo.pSetLayouts = m_DescriptorSet->descLayout.data();
 
     VkPipelineLayout graphicsPipelineLayout = VK_NULL_HANDLE;
     VkResult vkResult = vkCreatePipelineLayout(m_VulkanApplication->m_hDevice, &pipelineLayoutInfo, nullptr, &graphicsPipelineLayout);
@@ -299,7 +339,7 @@ void RectangleMultiDrawFactory::CreateRectFillPipeline()
 {
     // Compile the vertex shader
     VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/RectInstanceVert.spv"); // Relative path to binary output dir
-    // Setup the vertex shader stage create info structures
+
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -308,7 +348,7 @@ void RectangleMultiDrawFactory::CreateRectFillPipeline()
 
     // Compile the fragment shader
     VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/RectInstanceFrag.spv"); // Relative path to binary output dir
-    // Setup the fragment shader stage create info structures
+
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
     fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -320,9 +360,9 @@ void RectangleMultiDrawFactory::CreateRectFillPipeline()
     // Setup the vertex input
     VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount = (uint32_t)m_VertexInputBinding[PIPELINE_FILLED].size();// sizeof(m_VertexInputBinding[PIPELINE_FILLED]) / sizeof(VkVertexInputBindingDescription);
+    vertexInputInfo.vertexBindingDescriptionCount = (uint32_t)m_VertexInputBinding[PIPELINE_FILLED].size();
     vertexInputInfo.pVertexBindingDescriptions = m_VertexInputBinding[PIPELINE_FILLED].data();
-    vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)m_VertexInputAttribute[PIPELINE_FILLED].size();// sizeof(m_VertexInputAttribute[PIPELINE_FILLED]) / sizeof(VkVertexInputAttributeDescription);
+    vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)m_VertexInputAttribute[PIPELINE_FILLED].size();
     vertexInputInfo.pVertexAttributeDescriptions = m_VertexInputAttribute[PIPELINE_FILLED].data();
 
     // Setup input assembly
@@ -434,8 +474,8 @@ void RectangleMultiDrawFactory::CreateRectFillPipeline()
     pipelineLayoutInfo.setLayoutCount = 0;
     pipelineLayoutInfo.pushConstantRangeCount = pushConstantRangeCount;
     pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges;
-    pipelineLayoutInfo.setLayoutCount = (uint32_t)CDS->descLayout.size();
-    pipelineLayoutInfo.pSetLayouts = CDS->descLayout.data();
+    pipelineLayoutInfo.setLayoutCount = (uint32_t)m_DescriptorSet->descLayout.size();
+    pipelineLayoutInfo.pSetLayouts = m_DescriptorSet->descLayout.data();
 
     VkPipelineLayout graphicsPipelineLayout = VK_NULL_HANDLE;
     VkResult vkResult = vkCreatePipelineLayout(m_VulkanApplication->m_hDevice, &pipelineLayoutInfo, nullptr, &graphicsPipelineLayout);
@@ -559,9 +599,6 @@ void RectangleMultiDrawFactory::CreateVertexLayoutBinding()
     {
         if (pipelineIdx == PIPELINE_FILLED)
         {
-            //VkVertexInputBindingDescription		m_VertexInputBinding[1];   // 0 for (position and color)
-            //VkVertexInputAttributeDescription	m_VertexInputAttribute[2]; // Why 2 = 2(for position and color)
-
             m_VertexInputBinding[pipelineIdx].resize(1);   // 0 for position and 1 for color
             m_VertexInputAttribute[pipelineIdx].resize(3); // Why 2 = 2(for position and color
 
@@ -612,9 +649,9 @@ void RectangleMultiDrawFactory::CreateVertexLayoutBinding()
     }
 }
 
-void RectangleMultiDrawFactory::UpdateModelList(Model3D *p_Item)
+void RectangleMultiDrawFactory::UpdateModelList(DrawItem *p_Item)
 {
-    RectangleModel* rectangle = dynamic_cast<RectangleModel*>(p_Item);
+    Rectangl* rectangle = dynamic_cast<Rectangl*>(p_Item);
     assert(rectangle);
 
     // Note: Based on the draw type push the model in respective pipelines
@@ -622,15 +659,15 @@ void RectangleMultiDrawFactory::UpdateModelList(Model3D *p_Item)
     // they may be in one-to-one correspondence but that is not necessary.
     switch (rectangle->GetDrawType())
     {
-    case RectangleModel::FILLED:
-    m_PipelineTypeModelVector[PIPELINE_FILLED].push_back(p_Item);
-    break;
+    case Rectangl::FILLED:
+        m_PipelineTypeModelVector[PIPELINE_FILLED].push_back(p_Item);
+        break;
 
-    case RectangleModel::OUTLINE:
-    m_PipelineTypeModelVector[PIPELINE_OUTLINE].push_back(p_Item);
-    break;
+    case Rectangl::OUTLINE:
+        m_PipelineTypeModelVector[PIPELINE_OUTLINE].push_back(p_Item);
+        break;
 
-    case RectangleModel::ROUNDED:
+    case Rectangl::ROUNDED:
         // TODO
         break;
 
@@ -687,12 +724,12 @@ void RectangleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
             assert(false);
         }
 
-        vkCmdBindDescriptorSets(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineLayout, 0, 1, CDS->descriptorSet.data(), 0, NULL);
+        vkCmdBindDescriptorSets(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineLayout, 0, 1, m_DescriptorSet->descriptorSet.data(), 0, NULL);
         vkCmdBindPipeline(p_CmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
         for (int j = 0; j < modelSize; j++)
         {
-            RectangleModel* model = (static_cast<RectangleModel*>(m_ModelList.at(j)));
+            Rectangl* model = (static_cast<Rectangl*>(m_ModelList.at(j)));
             if (!model) continue;
 
             //////////////////////////////////////////////////////////////////////////////////
@@ -716,7 +753,7 @@ void RectangleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
             vkCmdPushConstants(p_CmdBuffer, graphicsPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PC), &PC);
             ////////////////////////////////////////////////////////////////////////////////
 
-            if (model->GetDrawType() == RectangleModel::FILLED)
+            if (model->GetDrawType() == Rectangl::FILLED)
             {
 
                 // Specify vertex buffer information
@@ -727,7 +764,7 @@ void RectangleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
                 const int vertexCount = sizeof(rectFilledVertices) / sizeof(Vertex);
                 vkCmdDraw(p_CmdBuffer, vertexCount, /*INSTANCE_COUNT*/1, 0, 0);
             }
-            else if (model->GetDrawType() == RectangleModel::OUTLINE)
+            else if (model->GetDrawType() == Rectangl::OUTLINE)
             {
                 // Specify vertex buffer information
                 const VkDeviceSize offsets[1] = { 0 };
@@ -885,62 +922,4 @@ void RectangleDescriptorSet::CreateDescriptorSet()
 
     // Update the uniform buffer into the allocated descriptor set
     vkUpdateDescriptorSets(m_VulkanApplication->m_hDevice, 1, writes, 0, NULL);
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-
-RectangleModel::RectangleModel(Scene3D *p_Scene, Model3D *p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name)
-    : Model3D(p_Scene, p_Parent, p_BoundedRegion, p_Name, SHAPE_RECTANGLE_MULTIDRAW)
-    , m_DrawType(FILLED)
-{
-}
-
-AbstractModelFactory* RectangleModel::GetRenderScemeFactory()
-{
-    return new RectangleMultiDrawFactory(static_cast<VulkanApp*>(m_Scene->GetApplication()));
-}
-
-void RectangleModel::CreateRectVertexBuffer()
-{
-    glm::mat4 parentTransform = GetTransformedModel();//m_Model * GetParentsTransformation(GetParent());
-
-    Vertex rectVertices[6];
-    memcpy(rectVertices, rectFilledVertices, sizeof(Vertex) * 6);
-    uint32_t dataSize = sizeof(rectVertices);
-    uint32_t dataStride = sizeof(rectVertices[0]);
-    const int vertexCount = dataSize / dataStride;
-    for (int i = 0; i < vertexCount; ++i)
-    {
-        glm::vec4 pos(rectFilledVertices[i].m_Position, 1.0);
-        pos.x = pos.x * m_BoundedRegion.m_Dimension.x;
-        pos.y = pos.y * m_BoundedRegion.m_Dimension.y;
-
-        pos = parentTransform * pos;
-        //std::cout << m_Name.toStdString() << "=+ x:" << pos.x << ", y:" << pos.y << ", z:" << pos.z << endl;
-        
-        rectVertices[i].m_Position.x = pos.x;
-        rectVertices[i].m_Position.y = pos.y;
-        rectVertices[i].m_Position.z = pos.z;
-    }
-    VulkanApp* app = static_cast<VulkanApp*>(m_Scene->GetApplication());
-    const VkDevice& device = app->m_hDevice;
-
-    if (m_VertexBuffer.m_Buffer != VK_NULL_HANDLE)
-    {
-        vkDestroyBuffer(device, m_VertexBuffer.m_Buffer, NULL);
-        vkFreeMemory(device, m_VertexBuffer.m_Memory, NULL);
-    }
-
-    m_VertexBuffer.m_DataSize = dataSize;
-	m_VertexBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-
-	const VkPhysicalDeviceMemoryProperties& memProp = app->m_physicalDeviceInfo.memProp;
-	VulkanHelper::CreateBuffer(device, memProp, m_VertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, rectVertices);
-}
-
-void RectangleModel::Setup()
-{
-    CreateRectVertexBuffer();
-
-	Model3D::Setup();
 }

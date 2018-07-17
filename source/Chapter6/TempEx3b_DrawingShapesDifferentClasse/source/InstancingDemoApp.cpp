@@ -8,7 +8,7 @@ int main(int argc, char **argv)
 {
     QApplication qtApp(argc, argv);
 
-    InstancingDemoApp* instanceDemo = new InstancingDemoApp();
+    UIDemoApp* instanceDemo = new UIDemoApp();
     instanceDemo->SetWindowDimension(800, 600);
     instanceDemo->EnableDepthBuffer(true);
     instanceDemo->EnableWindowResize(true);
@@ -19,26 +19,26 @@ int main(int argc, char **argv)
     return 0;
 }
 
-InstancingDemoApp::InstancingDemoApp()
+UIDemoApp::UIDemoApp()
 {
     VulkanHelper::GetInstanceLayerExtensionProperties();
 
     m_Scene = new Scene3D(this);
 
-    m_Cube1 = new RectangleModel(m_Scene, NULL, BoundingRegion(200, 200, 100, 100));
+    m_Cube1 = new Rectangl(m_Scene, NULL, BoundingRegion(200, 200, 100, 100));
     m_Cube1->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
     m_Cube1->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
     m_Cube1->SetZOrder(1.1);
 
-    m_Cube2 = new RectangleModel(m_Scene, m_Cube1, BoundingRegion(100, 100, 50, 50));
+    m_Cube2 = new Rectangl(m_Scene, m_Cube1, BoundingRegion(100, 100, 50, 50));
     m_Cube2->SetColor(glm::vec4(0.0, 0.0, 1.0, 1.0));
     m_Cube2->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
    
-    m_Cube3 = new RectangleModel(m_Scene, m_Cube1, BoundingRegion(0, 0, 50, 50));
+    m_Cube3 = new Rectangl(m_Scene, m_Cube1, BoundingRegion(0, 0, 50, 50));
     m_Cube3->SetColor(glm::vec4(0.6, 0.0, 1.0, 1.0));
     m_Cube3->SetDefaultColor(glm::vec4(0.2, 0.55, 0.20, 1.0));
 
-    m_Cube4 = new RectangleModel(m_Scene, m_Cube1, BoundingRegion(75, -25, 50, 50));
+    m_Cube4 = new Rectangl(m_Scene, m_Cube1, BoundingRegion(75, -25, 50, 50));
     m_Cube4->SetZOrder(-10.1);
     m_Cube4->SetOriginOffset(glm::vec3(25, 25, 0));
     m_Cube4->SetColor(glm::vec4(0.0, 0.2, 1.0, 1.0));
@@ -53,36 +53,37 @@ InstancingDemoApp::InstancingDemoApp()
     {
         float x = 0;
         float y = 0;
-        item1 = new RectangleModel(m_Scene, NULL, BoundingRegion(x, y, 100, 100, -1), "Item1");
+        item1 = new Rectangl(m_Scene, NULL, BoundingRegion(x, y, 100, 100, -1), "Item1");
         item1->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
         item1->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
         x += 50;
 
-        item2 = new RectangleModel(m_Scene, item1, BoundingRegion(x, y, 100, 100, -1), "Item2");
+        item2 = new Rectangl(m_Scene, item1, BoundingRegion(x, y, 100, 100, -1), "Item2");
         item2->SetColor(glm::vec4(1.0, 0.2, 0.20, 1.0));
         item2->SetDefaultColor(glm::vec4(1.42, 0.15, 0.60, 1.0));
         x += 50;
 
-        item3 = new RectangleModel(m_Scene, item1, BoundingRegion(x, y, 100, 100, 10), "Item3");
+        item3 = new Rectangl(m_Scene, item1, BoundingRegion(x, y, 100, 100, 10), "Item3");
         item3->SetColor(glm::vec4(1.0, 1.2, 0.20, 1.0));
         item3->SetDefaultColor(glm::vec4(1.42, 1.15, 0.60, 1.0));
         x += 50;
 
-        item4 = new RectangleModel(m_Scene, item1, BoundingRegion(x, y, 100, 100, -1000), "Item4");
+        item4 = new Rectangl(m_Scene, item1, BoundingRegion(x, y, 100, 100, -1000), "Item4");
         item4->SetColor(glm::vec4(1.0, 1.2, 1.0, 1.0));
         item4->SetDefaultColor(glm::vec4(1., 0.5, 0.60, 1.0));
         x += 50;
     }
-//    m_UIDemo.Grid(m_Scene, m_windowDim.width, m_windowDim.height);
-//    m_UIDemo.MixerView(m_Scene, m_windowDim.width, m_windowDim.height);
+
+    //m_UIDemo.Grid(m_Scene, m_windowDim.width, m_windowDim.height);
+    //m_UIDemo.MixerView(m_Scene, m_windowDim.width, m_windowDim.height);
 }
 
-InstancingDemoApp::~InstancingDemoApp()
+UIDemoApp::~UIDemoApp()
 {
     delete m_Scene;
 }
 
-void InstancingDemoApp::Configure()
+void UIDemoApp::Configure()
 {
     SetApplicationName("Instancing Demo");
     SetWindowDimension(800, 600);
@@ -96,7 +97,7 @@ void InstancingDemoApp::Configure()
     AddInstanceExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 }
 
-void InstancingDemoApp::Setup()
+void UIDemoApp::Setup()
 {
     // Note: We are overidding the default Create Command pool with VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
     // because we need to re-record the command buffer when the instance data size changes. 
@@ -116,7 +117,7 @@ void InstancingDemoApp::Setup()
     m_Scene->Update();
 }
 
-void InstancingDemoApp::SetupPrivate()
+void UIDemoApp::SetupPrivate()
 {
     // Specify the clear color value
     VkClearValue clearColor[2];
@@ -172,26 +173,26 @@ void InstancingDemoApp::SetupPrivate()
     }
 }
 
-void InstancingDemoApp::Update()
+void UIDemoApp::Update()
 {
     static float rot = 0.0;
-    //if (m_Cube1)
-    //{
-    //    m_Cube1->Rotate(.001, 0.0, 0.0, 1.0);
-    // 
-    //    m_Cube2->Reset();
-    //    m_Cube2->SetPosition(100, 100);// = new RectangleModel(m_Scene, m_Cube1, BoundingRegion(100, 100, 50, 50));
-    //    m_Cube2->Rotate(rot += .1, 0.0, 0.0, 1.0);
-    //    
-    //    m_Cube3->Rotate(.003, 0.0, 0.0, 1.0);
-    //    m_Cube4->Rotate(.003, 0.0, 0.0, 1.0);
-    //    m_Cube5->Rotate(.003, 0.0, 0.0, 1.0);
-    //}
+    if (m_Cube1)
     {
-        //item1->Rotate(.003, 0.0, 0.0, 1.0);
-        //item2->Rotate(.003, 0.0, 0.0, 1.0);
-        //item3->Rotate(.003, 0.0, 0.0, 1.0);
-        //item4->Rotate(.003, 0.0, 0.0, 1.0);
+        m_Cube1->Rotate(.001, 0.0, 0.0, 1.0);
+     
+        m_Cube2->Reset();
+        m_Cube2->SetPosition(100, 100);// = new RectangleModel(m_Scene, m_Cube1, BoundingRegion(100, 100, 50, 50));
+        m_Cube2->Rotate(rot += .1, 0.0, 0.0, 1.0);
+        
+        m_Cube3->Rotate(.003, 0.0, 0.0, 1.0);
+        m_Cube4->Rotate(.003, 0.0, 0.0, 1.0);
+        m_Cube5->Rotate(.003, 0.0, 0.0, 1.0);
+    }
+    {
+        item1->Rotate(.003, 0.0, 0.0, 1.0);
+        item2->Rotate(.003, 0.0, 0.0, 1.0);
+        item3->Rotate(.003, 0.0, 0.0, 1.0);
+        item4->Rotate(.003, 0.0, 0.0, 1.0);
     }
 
     // Note: There are two ways to apply update
@@ -204,7 +205,7 @@ void InstancingDemoApp::Update()
     // Note: 
 }
 
-bool InstancingDemoApp::Render()
+bool UIDemoApp::Render()
 {
     // Important: Uncomment below line only if there are updates for model expected in the Model
     // 1. It has been observed that the re-recording of command buffer in case of non-instance drawing is expensive
@@ -215,7 +216,7 @@ bool InstancingDemoApp::Render()
     return VulkanApp::Render();
 }
 
-void InstancingDemoApp::RecordRenderPass()
+void UIDemoApp::RecordRenderPass()
 {
     // Specify the clear color value
     VkClearValue clearColor[2];
@@ -271,22 +272,22 @@ void InstancingDemoApp::RecordRenderPass()
     }
 }
 
-void InstancingDemoApp::mousePressEvent(QMouseEvent* p_Event)
+void UIDemoApp::mousePressEvent(QMouseEvent* p_Event)
 {
     m_Scene->mousePressEvent(p_Event);
 }
 
-void InstancingDemoApp::mouseReleaseEvent(QMouseEvent* p_Event)
+void UIDemoApp::mouseReleaseEvent(QMouseEvent* p_Event)
 {
     m_Scene->mouseReleaseEvent(p_Event);
 }
 
-void InstancingDemoApp::mouseMoveEvent(QMouseEvent* p_Event)
+void UIDemoApp::mouseMoveEvent(QMouseEvent* p_Event)
 {
     m_Scene->mouseMoveEvent(p_Event);
 }
 
-void InstancingDemoApp::ResizeWindow(int width, int height)
+void UIDemoApp::ResizeWindow(int width, int height)
 {
     VulkanApp::ResizeWindow(width, height);
 

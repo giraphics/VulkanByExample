@@ -7,7 +7,7 @@
 #include "../TempEx2_SceneGraph/Model3D.h"
 class CircleMultiDrawFactory;
 
-class Circle : public Model3D
+class Circle : public DrawItem
 {
 public:
     enum DRAW_TYPE
@@ -19,24 +19,16 @@ public:
     };
 
 public:
-    Circle(Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "") 
-//        : RectangleModel(p_Scene, p_Parent, p_BoundedRegion, p_Name)
-        : Model3D(p_Scene, p_Parent, p_BoundedRegion, p_Name, SHAPE_CIRCLE_MULTIDRAW)
-        , m_DrawType(FILLED)
-    {
-        //SetShapeType(SHAPE::SHAPE_CIRCLE_MULTIDRAW);
-    }
+    Circle(Scene3D* p_Scene, DrawItem* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "");
+    Circle(Scene3D* p_Scene, DrawItem* p_Parent, glm::vec2 m_Center, float radius, const QString& p_Name = "");
+    virtual ~Circle() {}
 
-    Circle(Scene3D* p_Scene, Model3D* p_Parent, glm::vec2 m_Center, float radius, const QString& p_Name = "")
-        : Model3D(p_Scene, p_Parent, BoundingRegion(m_Center.x - (radius * 0.5f), m_Center.y - (radius * 0.5f), radius, radius), p_Name, SHAPE_CIRCLE_MULTIDRAW)
-        , m_DrawType(FILLED)
-    {
-    }
-
+    GETSET(DRAW_TYPE, DrawType)
+        
 protected:
-    virtual void Update(Model3D* p_Item = NULL)
+    virtual void Update(DrawItem* p_Item = NULL)
     {
-        Model3D::Update(p_Item);
+        DrawItem::Update(p_Item);
 
         CreateCircleVertexBuffer();
     }
@@ -47,11 +39,7 @@ public:
         Update(this);
     }
 
-    virtual ~Circle() {}
-
-    GETSET(DRAW_TYPE, DrawType)
-
-    AbstractModelFactory* GetRenderScemeFactory();
+    AbstractRenderSchemeFactory* GetRenderSchemeFactory();
 
     virtual void Setup();
     void CreateCircleVertexBuffer();
@@ -61,12 +49,10 @@ public:
 struct CircleDescriptorSet : public RectangleDescriptorSet
 {
     CircleDescriptorSet(VulkanApp* p_VulkanApplication)
-        : RectangleDescriptorSet(p_VulkanApplication)
-    {
-    }
+        : RectangleDescriptorSet(p_VulkanApplication) {}
 };
 
-class CircleMultiDrawFactory : public AbstractModelFactory
+class CircleMultiDrawFactory : public AbstractRenderSchemeFactory
 {
 public:
     CircleMultiDrawFactory(VulkanApp* p_VulkanApp);
@@ -75,7 +61,7 @@ public:
 public:
     virtual void Setup(VkCommandBuffer& p_CommandBuffer);
     virtual void Update();
-    virtual void Render(VkCommandBuffer& p_CmdBuffer);
+    virtual void Render(VkCommandBuffer& p_CommandBuffer);
 
     void ResizeWindow(VkCommandBuffer& p_CommandBuffer);
     virtual void Prepare(Scene3D* p_Scene);
@@ -89,8 +75,7 @@ private:
 
     void CreateVertexLayoutBinding();
 
-    virtual void UpdateModelList(Model3D* p_Item);
-
+    virtual void UpdateModelList(DrawItem* p_Item);
 
     enum CIRCLE_GRAPHICS_PIPELINES
     {
@@ -102,8 +87,8 @@ private:
     std::vector<VkVertexInputBindingDescription>   m_VertexInputBinding[PIPELINE_COUNT];   // 0 for (position and color) 1 for ()
     std::vector<VkVertexInputAttributeDescription> m_VertexInputAttribute[PIPELINE_COUNT]; // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
 
-    typedef std::vector<Model3D*> ModelVector;
+    typedef std::vector<DrawItem*> ModelVector;
     ModelVector m_PipelineTypeModelVector[PIPELINE_COUNT];
 
-    std::shared_ptr<CircleDescriptorSet> CDS;
+    std::shared_ptr<CircleDescriptorSet> m_DescriptorSet;
 };

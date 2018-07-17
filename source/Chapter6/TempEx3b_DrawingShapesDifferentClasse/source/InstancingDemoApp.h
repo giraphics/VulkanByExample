@@ -3,13 +3,13 @@
 #include "../TempEx2_SceneGraph/Scene3D.h"
 #include "UIDemo.h"
 
-class RectangleModel;
+class Rectangl;
 class Circle;
-class InstancingDemoApp : public VulkanApp
+class UIDemoApp : public VulkanApp
 {
 public:
-    InstancingDemoApp();
-    virtual ~InstancingDemoApp();
+    UIDemoApp();
+    virtual ~UIDemoApp();
 
     // Core virtual methods used by derived classes
     virtual void Configure();
@@ -26,15 +26,14 @@ public:
 
 private:
 	Scene3D* m_Scene;
-    RectangleModel* m_Cube1;
-    RectangleModel* m_Cube2;
-    RectangleModel* m_Cube3;
-    RectangleModel* m_Cube4;
-    RectangleModel* item1;
-    RectangleModel* item2;
-    RectangleModel* item3;
-    RectangleModel* item4;
+    Rectangl* m_Cube1;
+    Rectangl* m_Cube2;
+    Rectangl* m_Cube3;
+    Rectangl* m_Cube4;
+    Rectangl* item1;
+    Rectangl* item2;
+    Rectangl* item3;
+    Rectangl* item4;
     Circle* m_Cube5;
     UIDemo m_UIDemo;
 };
-    
