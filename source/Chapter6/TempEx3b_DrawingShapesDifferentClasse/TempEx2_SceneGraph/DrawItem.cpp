@@ -1,4 +1,4 @@
-#include "Model3D.h"
+#include "DrawItem.h"
 #include<QMouseEvent>
 #include<glm/gtx/string_cast.hpp>
 
@@ -127,7 +127,7 @@ void DrawItem::Update(DrawItem* p_Item)
     m_TransformedModel = *m_Scene->GetRefTransform().GetModelMatrix();
     
     QList<DrawItem*>& childList = (p_Item ? p_Item->m_ChildList : m_ChildList);
-    Q_FOREACH(DrawItem* child, childList )
+    Q_FOREACH(DrawItem* child, childList)
     {
         assert(child);
         child->Update();

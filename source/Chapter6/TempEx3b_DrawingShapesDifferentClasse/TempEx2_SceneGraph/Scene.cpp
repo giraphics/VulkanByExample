@@ -1,5 +1,5 @@
-﻿#include "Scene3D.h"
-#include "Model3D.h"
+﻿#include "Scene.h"
+#include "DrawItem.h"
 #include "../../common/VulkanApp.h"
 
 Scene::Scene(AbstractApp* p_Application)

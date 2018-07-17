@@ -1,5 +1,5 @@
 #pragma once
-#include "../TempEx2_SceneGraph/Scene3D.h"
+#include "../TempEx2_SceneGraph/Scene.h"
 #include "Rect.h"
 
 class UIDemo

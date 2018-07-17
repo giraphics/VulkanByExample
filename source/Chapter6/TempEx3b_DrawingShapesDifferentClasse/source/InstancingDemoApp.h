@@ -1,6 +1,6 @@
 #pragma once
 #include "../../../common/VulkanApp.h"
-#include "../TempEx2_SceneGraph/Scene3D.h"
+#include "../TempEx2_SceneGraph/Scene.h"
 #include "UIDemo.h"
 
 class Rectangl;

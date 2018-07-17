@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Transformation3D.h"
+#include <QObject>
+#include <QMap>
+#include "Transformation.h"
 #include "../../../common/VulkanHelper.h"
 #include "SGCommon.h"
 
@@ -42,7 +44,7 @@ private:
     void GatherDrawItemsFlatList();
 
     std::vector<DrawItem*>                  m_ModelList;
-    std::vector<QMatrix4x4>                 m_MatrixVector;
+    //std::vector<QMatrix4x4>                 m_MatrixVector;
     std::vector<DrawItem*>                  m_FlatList;
     std::set<RenderSchemeFactory*>          m_ModelFactories;
     std::map<SHAPE, RenderSchemeFactory*>   m_ShapeRenderSchemeTypeMap;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Scene3D.h"
+#include "Scene.h"
 #include "../common/VulkanHelper.h"
 #include "SGCommon.h"
 
