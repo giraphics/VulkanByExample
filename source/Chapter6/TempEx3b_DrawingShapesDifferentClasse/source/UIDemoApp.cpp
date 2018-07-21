@@ -111,67 +111,10 @@ void UIDemoApp::Setup()
 
     m_Scene->SetUpProjection();
 
-	//m_Scene->Setup();
-    SetupPrivate();
+    RecordRenderPass(1, SG_STATE_UPDATE);
 
     // At least update the scene once so that in case UpdateMeAndMyChildren() is being used it has all transformation readily available
     m_Scene->Update();
-}
-
-void UIDemoApp::SetupPrivate()
-{
-    // Specify the clear color value
-    VkClearValue clearColor[2];
-    clearColor[0].color.float32[0] = 0.0f;
-    clearColor[0].color.float32[1] = 0.0f;
-    clearColor[0].color.float32[2] = 0.0f;
-    clearColor[0].color.float32[3] = 0.0f;
-
-    // Specify the depth/stencil clear value
-    clearColor[1].depthStencil.depth = 1.0f;
-    clearColor[1].depthStencil.stencil = 0;
-
-    // Offset to render in the frame buffer
-    VkOffset2D   renderOffset = { 0, 0 };
-    // Width & Height to render in the frame buffer
-    VkExtent2D   renderExtent = m_swapChainExtent;
-
-    // For each command buffers in the command buffer list
-    for (size_t i = 0; i < m_hCommandBufferList.size(); i++)
-    {
-        VkCommandBufferBeginInfo beginInfo = {};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        // Indicate that the command buffer can be resubmitted to the queue
-        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-
-        // Begin command buffer
-        vkBeginCommandBuffer(m_hCommandBufferList[i], &beginInfo);
-
-        VkRenderPassBeginInfo renderPassInfo = {};
-        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = m_hRenderPass;
-        renderPassInfo.framebuffer = m_hFramebuffers[i];
-        renderPassInfo.renderArea.offset = renderOffset;
-        renderPassInfo.renderArea.extent = renderExtent;
-        renderPassInfo.clearValueCount = 2;
-        renderPassInfo.pClearValues = clearColor;
-
-        // Begin render pass
-        vkCmdBeginRenderPass(m_hCommandBufferList[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-        m_Scene->Setup(m_hCommandBufferList[i]);
-
-        // End the Render pass
-        vkCmdEndRenderPass(m_hCommandBufferList[i]);
-
-        // End the Command buffer
-        VkResult vkResult = vkEndCommandBuffer(m_hCommandBufferList[i]);
-        if (vkResult != VK_SUCCESS)
-        {
-            VulkanHelper::LogError("vkEndCommandBuffer() failed!");
-            assert(false);
-        }
-    }
 }
 
 void UIDemoApp::Update()
@@ -202,75 +145,13 @@ void UIDemoApp::Update()
 
     // 2. Model Update: This update will not bother the all model nodes to update but only the intended one with its children.
     //m_Cube2->UpdateMeAndMyChildren();
-
-    // Note: 
 }
 
 bool UIDemoApp::Render()
 {
-    // Important: Uncomment below line only if there are updates for model expected in the Model
-    // 1. It has been observed that the re-recording of command buffer in case of non-instance drawing is expensive
-    
-    //m_Scene->Render(); //Read the note before uncommenting
-    RecordRenderPass();
+    RecordRenderPass(1, SG_STATE_RENDER);
 
     return VulkanApp::Render();
-}
-
-void UIDemoApp::RecordRenderPass()
-{
-    // Specify the clear color value
-    VkClearValue clearColor[2];
-    clearColor[0].color.float32[0] = 0.0f;
-    clearColor[0].color.float32[1] = 0.0f;
-    clearColor[0].color.float32[2] = 0.0f;
-    clearColor[0].color.float32[3] = 0.0f;
-
-    // Specify the depth/stencil clear value
-    clearColor[1].depthStencil.depth = 1.0f;
-    clearColor[1].depthStencil.stencil = 0;
-
-    // Offset to render in the frame buffer
-    VkOffset2D   renderOffset = { 0, 0 };
-    // Width & Height to render in the frame buffer
-    VkExtent2D   renderExtent = m_swapChainExtent;
-
-    // For each command buffers in the command buffer list
-    for (size_t i = 0; i < m_hCommandBufferList.size(); i++)
-    {
-        VkCommandBufferBeginInfo beginInfo = {};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        // Indicate that the command buffer can be resubmitted to the queue
-        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-
-        // Begin command buffer
-        vkBeginCommandBuffer(m_hCommandBufferList[i], &beginInfo);
-
-        VkRenderPassBeginInfo renderPassInfo = {};
-        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = m_hRenderPass;
-        renderPassInfo.framebuffer = m_hFramebuffers[i];
-        renderPassInfo.renderArea.offset = renderOffset;
-        renderPassInfo.renderArea.extent = renderExtent;
-        renderPassInfo.clearValueCount = 2;
-        renderPassInfo.pClearValues = clearColor;
-
-        // Begin render pass
-        vkCmdBeginRenderPass(m_hCommandBufferList[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-        m_Scene->Render(m_hCommandBufferList[i]); //Read the note before uncommenting
-
-        // End the Render pass
-        vkCmdEndRenderPass(m_hCommandBufferList[i]);
-
-        // End the Command buffer
-        VkResult vkResult = vkEndCommandBuffer(m_hCommandBufferList[i]);
-        if (vkResult != VK_SUCCESS)
-        {
-            VulkanHelper::LogError("vkEndCommandBuffer() failed!");
-            assert(false);
-        }
-    }
 }
 
 void UIDemoApp::mousePressEvent(QMouseEvent* p_Event)
@@ -288,9 +169,43 @@ void UIDemoApp::mouseMoveEvent(QMouseEvent* p_Event)
     m_Scene->mouseMoveEvent(p_Event);
 }
 
-void UIDemoApp::ResizeWindow(int width, int height)
+void UIDemoApp::ResizeWindow(int p_Width, int p_Height)
 {
-    VulkanApp::ResizeWindow(width, height);
+    VulkanApp::ResizeWindow(p_Width, p_Height);
+
+    RecordRenderPass(3, SG_STATE_RESIZE, p_Width, p_Height);
+}
+
+void UIDemoApp::RecordRenderPass(int p_Argcount, ...)
+{
+    va_list list;
+    va_start(list, p_Argcount);
+    SCENE_GRAPH_STATES currentState = SG_STATE_NONE;
+    QSize resizedDimension;
+
+    for (int i = 0; i < p_Argcount; ++i)
+    {
+        switch (i)
+        {
+        case 0:
+            currentState = static_cast<SCENE_GRAPH_STATES>(va_arg(list, int));
+            break;
+
+        case 1:
+            resizedDimension.setWidth(va_arg(list, int));
+            break;
+
+        case 2:
+            resizedDimension.setHeight(va_arg(list, int));
+            break;
+
+        default:
+            if (currentState == SG_STATE_NONE)
+                return;
+            break;
+        }
+    }
+    va_end(list);
 
     // Specify the clear color value
     VkClearValue clearColor[2];
@@ -331,7 +246,23 @@ void UIDemoApp::ResizeWindow(int width, int height)
         // Begin render pass
         vkCmdBeginRenderPass(m_hCommandBufferList[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        m_Scene->Resize(m_hCommandBufferList[i], width, height);
+        switch (currentState)
+        {
+        case SG_STATE_UPDATE:
+            m_Scene->Setup(m_hCommandBufferList[i]);
+            break;
+
+        case SG_STATE_RENDER:
+            m_Scene->Render(m_hCommandBufferList[i]);
+            break;
+
+        case SG_STATE_RESIZE:
+            m_Scene->Resize(m_hCommandBufferList[i], resizedDimension.width(), resizedDimension.height());
+            break;
+
+        default:
+            break;
+        }
 
         // End the Render pass
         vkCmdEndRenderPass(m_hCommandBufferList[i]);

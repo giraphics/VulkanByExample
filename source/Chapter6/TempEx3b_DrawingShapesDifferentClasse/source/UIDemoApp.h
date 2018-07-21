@@ -14,15 +14,18 @@ public:
     // Core virtual methods used by derived classes
     virtual void Configure();
     virtual void Setup();
-    void SetupPrivate();
     virtual void Update();
     virtual bool Render();
-    void RecordRenderPass();
-    void ResizeWindow(int width, int height);
 
+    void ResizeWindow(int p_Width, int p_Height);
+
+protected:
     virtual void mousePressEvent(QMouseEvent* p_Event);
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
     virtual void mouseMoveEvent(QMouseEvent* p_Event);
+
+private:
+    void RecordRenderPass(int p_Argcount, ...);
 
 private:
     Scene* m_Scene;

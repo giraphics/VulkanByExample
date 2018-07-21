@@ -1,5 +1,17 @@
 #pragma once
 
+enum SCENE_GRAPH_STATES
+{
+    SG_STATE_NONE = -1,
+
+    SG_STATE_INIT,
+    SG_STATE_RESIZE,
+    SG_STATE_UPDATE,
+    SG_STATE_RENDER,
+
+    SG_STATE_CUSTOM
+};
+
 enum SHAPE
 {
     SHAPE_NONE = -1,
