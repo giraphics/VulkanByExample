@@ -16,8 +16,7 @@ public:
     virtual void Setup();
     virtual void Update();
     virtual bool Render();
-
-    void ResizeWindow(int p_Width, int p_Height);
+    virtual void ResizeWindow(int p_Width, int p_Height);
 
 protected:
     virtual void mousePressEvent(QMouseEvent* p_Event);
