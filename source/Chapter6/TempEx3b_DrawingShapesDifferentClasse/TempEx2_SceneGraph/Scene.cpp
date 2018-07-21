@@ -2,6 +2,8 @@
 #include "Node.h"
 #include "../../common/VulkanApp.h"
 
+#include <QMouseEvent>
+
 Scene::Scene(AbstractApp* p_Application)
     : m_Application(p_Application)
     , m_Frame(0)
@@ -163,7 +165,7 @@ void Scene::mouseReleaseEvent(QMouseEvent* p_Event)
         item->mouseReleaseEvent(p_Event);
     }
 }
-#include <QMouseEvent>
+
 void Scene::mouseMoveEvent(QMouseEvent* p_Event)
 {
     static Node* oldModelItem = NULL;

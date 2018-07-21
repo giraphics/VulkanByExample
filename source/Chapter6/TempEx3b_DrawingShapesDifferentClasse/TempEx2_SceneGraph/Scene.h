@@ -4,7 +4,7 @@
 #include <QMap>
 #include "Transformation.h"
 #include "../../../common/VulkanHelper.h"
-#include "SGCommon.h"
+#include "Common.h"
 
 class Node;
 class Scene;
