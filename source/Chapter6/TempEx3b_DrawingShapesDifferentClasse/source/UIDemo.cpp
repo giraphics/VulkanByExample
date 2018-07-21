@@ -86,19 +86,31 @@ ProgressBar::ProgressBar(Scene* p_Scene, Node* p_Parent, const BoundingRegion& p
     progressIndicator->SetDefaultColor(glm::vec4(0.2, 0.15, 0.60, 1.0));
 }
 
-bool ProgressBar::mouseMoveEvent(QMouseEvent* p_Event)
+void ProgressBar::mousePressEvent(QMouseEvent *p_Event)
 {
-if (bar->mouseMoveEvent(p_Event))
-{
-//progressIndicator->Translate(p_Event->x(), 0.0, 0.0);
-//progressIndicator->SetPosition(p_Event->x(),  GetPosition().y());
-//progressIndicator->SetPosition(p_Event->x(), progressIndicator->GetPosition().y);
-return true;
+
 }
 
-return false;
+void ProgressBar::mouseMoveEvent(QMouseEvent* p_Event)
+{
+    bar->mouseMoveEvent(p_Event);
+    {
+        //progressIndicator->Translate(p_Event->x(), 0.0, 0.0);
+        //progressIndicator->SetPosition(p_Event->x(),  GetPosition().y());
+        //progressIndicator->SetPosition(p_Event->x(), progressIndicator->GetPosition().y);
+        //return true;
+    }
 }
 
+void ProgressBar::mouseReleaseEvent(QMouseEvent *p_Event)
+{
+
+}
+
+void ProgressBar::EmitValueChanged(int p_NewValue)
+{
+
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -4,7 +4,7 @@
 
 #include "../TempEx2_SceneGraph/Transformation.h"
 #include "../TempEx2_SceneGraph/Scene.h"
-#include "../TempEx2_SceneGraph/DrawItem.h"
+#include "../TempEx2_SceneGraph/Node.h"
 
 class CircleMultiDrawFactory;
 

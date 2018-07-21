@@ -1,4 +1,4 @@
-#include "DrawItem.h"
+#include "Node.h"
 #include<QMouseEvent>
 #include<glm/gtx/string_cast.hpp>
 
@@ -59,7 +59,7 @@ void Node::mouseReleaseEvent(QMouseEvent* p_Event)
     }
 }
 
-bool Node::mouseMoveEvent(QMouseEvent* p_Event)
+void Node::mouseMoveEvent(QMouseEvent* p_Event)
 {
     glm::vec4 posStart((0 * m_BoundedRegion.m_Dimension.x), (0 * m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
     glm::vec4 posStartResult = /*GetParentsTransformation(GetParent()) **/ m_TransformedModel * posStart;
@@ -72,22 +72,19 @@ bool Node::mouseMoveEvent(QMouseEvent* p_Event)
     {
         m_Scene->SetCurrentHoverItem(this);
 
-        //cout << "\n##### mouseMoveEvent";
         for (int i = m_ChildList.size() - 1; i >= 0; i--)
         {
             Node* childItem = m_ChildList.at(i);
             assert(childItem);
 
-            if (childItem->mouseMoveEvent(p_Event))
-            {
-                return true;
-            }
+            childItem->mouseMoveEvent(p_Event);
         }
 
-        return true;
+        p_Event->accept();
+        return;
     }
 
-    return false;
+    p_Event->ignore();
 }
 
 Node* Node::GetParent() const

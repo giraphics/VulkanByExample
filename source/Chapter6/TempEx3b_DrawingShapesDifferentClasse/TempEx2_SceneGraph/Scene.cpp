@@ -1,5 +1,5 @@
 ﻿#include "Scene.h"
-#include "DrawItem.h"
+#include "Node.h"
 #include "../../common/VulkanApp.h"
 
 Scene::Scene(AbstractApp* p_Application)
@@ -163,16 +163,17 @@ void Scene::mouseReleaseEvent(QMouseEvent* p_Event)
         item->mouseReleaseEvent(p_Event);
     }
 }
-
+#include <QMouseEvent>
 void Scene::mouseMoveEvent(QMouseEvent* p_Event)
 {
-    Node* oldModelItem = GetCurrentHoverItem();
+    static Node* oldModelItem = NULL;
     for (int i = m_NodeList.size() - 1; i >= 0; i--)
     {
         Node* item = m_NodeList.at(i);
         assert(item);
 
-        if (item->mouseMoveEvent(p_Event))
+        item->mouseMoveEvent(p_Event);
+        if (p_Event->isAccepted())
         {
             Node* currentModel = GetCurrentHoverItem();
             if (oldModelItem && oldModelItem != currentModel)
@@ -181,6 +182,7 @@ void Scene::mouseMoveEvent(QMouseEvent* p_Event)
             }
 
             currentModel->SetColor(glm::vec4(1.0, 1.0, 0.3, 1.0));
+            oldModelItem = GetCurrentHoverItem();
             return;
         }
     }
