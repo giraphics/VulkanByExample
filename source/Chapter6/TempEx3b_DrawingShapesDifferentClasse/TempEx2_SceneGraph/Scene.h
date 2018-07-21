@@ -6,7 +6,7 @@
 #include "../../../common/VulkanHelper.h"
 #include "SGCommon.h"
 
-class DrawItem;
+class Node;
 class Scene;
 class QMouseEvent;
 class RenderSchemeFactory;
@@ -22,8 +22,8 @@ public:
     void Update();
     void Render(VkCommandBuffer& p_CommandBuffer);
 
-    void AddItem(DrawItem* p_Item);
-    void RemoveItem(DrawItem* p_Item);
+    void AddItem(Node* p_Item);
+    void RemoveItem(Node* p_Item);
 
     virtual void Resize(VkCommandBuffer& p_CommandBuffer, int p_Width, int p_Height);
     virtual void SetUpProjection();
@@ -37,18 +37,18 @@ public:
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
     virtual void mouseMoveEvent(QMouseEvent* p_Event);
 
-    RenderSchemeFactory* GetFactory(DrawItem* p_Item);
-    void AppendToDrawItemsFlatList(DrawItem* p_Item);
+    RenderSchemeFactory* GetFactory(Node* p_Item);
+    void AppendToFlatNodeList(Node* p_Item);
 
 private:
-    void GatherDrawItemsFlatList();
+    void GatherFlatNodesList();
 
-    std::vector<DrawItem*>                  m_DrawItemList;
-    std::vector<DrawItem*>                  m_FlatList;
+    std::vector<Node*>                      m_NodeList;
+    std::vector<Node*>                      m_FlatList;
     std::set<RenderSchemeFactory*>          m_RenderSchemeFactorySet;
     std::map<SHAPE, RenderSchemeFactory*>   m_ShapeRenderSchemeTypeMap;
 
-    GETSET(DrawItem*,                       CurrentHoverItem)  // Not owned by Scene
+    GETSET(Node*,                           CurrentHoverItem)  // Not owned by Scene
     GETSET(AbstractApp*,                    Application)
     GETSET(int,                             ScreenHeight);
     GETSET(int,                             ScreenWidth);

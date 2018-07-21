@@ -8,7 +8,7 @@
 
 class CircleMultiDrawFactory;
 
-class Circle : public DrawItem
+class Circle : public Node
 {
 public:
     enum DRAW_TYPE
@@ -20,16 +20,16 @@ public:
     };
 
 public:
-    Circle(Scene* p_Scene, DrawItem* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "");
-    Circle(Scene* p_Scene, DrawItem* p_Parent, glm::vec2 m_Center, float radius, const QString& p_Name = "");
+    Circle(Scene* p_Scene, Node* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "");
+    Circle(Scene* p_Scene, Node* p_Parent, glm::vec2 m_Center, float radius, const QString& p_Name = "");
     virtual ~Circle() {}
 
     GETSET(DRAW_TYPE, DrawType)
         
 protected:
-    virtual void Update(DrawItem* p_Item = NULL)
+    virtual void Update(Node* p_Item = NULL)
     {
-        DrawItem::Update(p_Item);
+        Node::Update(p_Item);
 
         CreateCircleVertexBuffer();
     }
@@ -76,7 +76,7 @@ private:
     void createPushConstants();
 
 
-    virtual void UpdateModelList(DrawItem* p_Item);
+    virtual void UpdateModelList(Node* p_Item);
 
     enum CIRCLE_GRAPHICS_PIPELINES
     {
@@ -88,8 +88,8 @@ private:
     std::vector<VkVertexInputBindingDescription>   m_VertexInputBinding[PIPELINE_COUNT];   // 0 for (position and color) 1 for ()
     std::vector<VkVertexInputAttributeDescription> m_VertexInputAttribute[PIPELINE_COUNT]; // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
 
-    typedef std::vector<DrawItem*> DrawItemVector;
-    DrawItemVector m_PipelineTypeModelVector[PIPELINE_COUNT];
+    typedef std::vector<Node*> NodeVector;
+    NodeVector m_PipelineTypeModelVector[PIPELINE_COUNT];
 
     std::shared_ptr<CircleDescriptorSet> m_DescriptorSet;
 };

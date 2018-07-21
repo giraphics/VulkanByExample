@@ -31,14 +31,14 @@ static const CircleVertex rectOutlineVertices[] =
     { glm::vec3(0, 0, 0),   glm::vec3(0.f, 0.f, 0.f) },
 };
 
-Circle::Circle(Scene *p_Scene, DrawItem *p_Parent, const BoundingRegion &p_BoundedRegion, const QString &p_Name)
-    : DrawItem(p_Scene, p_Parent, p_BoundedRegion, p_Name, SHAPE_CIRCLE_MULTIDRAW)
+Circle::Circle(Scene *p_Scene, Node *p_Parent, const BoundingRegion &p_BoundedRegion, const QString &p_Name)
+    : Node(p_Scene, p_Parent, p_BoundedRegion, p_Name, SHAPE_CIRCLE_MULTIDRAW)
     , m_DrawType(FILLED)
 {
 }
 
-Circle::Circle(Scene *p_Scene, DrawItem *p_Parent, glm::vec2 m_Center, float radius, const QString &p_Name)
-    : DrawItem(p_Scene, p_Parent, BoundingRegion(m_Center.x - (radius * 0.5f), m_Center.y - (radius * 0.5f), radius, radius), p_Name, SHAPE_CIRCLE_MULTIDRAW)
+Circle::Circle(Scene *p_Scene, Node *p_Parent, glm::vec2 m_Center, float radius, const QString &p_Name)
+    : Node(p_Scene, p_Parent, BoundingRegion(m_Center.x - (radius * 0.5f), m_Center.y - (radius * 0.5f), radius, radius), p_Name, SHAPE_CIRCLE_MULTIDRAW)
     , m_DrawType(FILLED)
 {
 }
@@ -52,7 +52,7 @@ void Circle::Setup()
 {
     CreateCircleVertexBuffer();
 
-    DrawItem::Setup();
+    Node::Setup();
 }
 
 void Circle::CreateCircleVertexBuffer()
@@ -108,7 +108,7 @@ CircleMultiDrawFactory::~CircleMultiDrawFactory()
 {
     for (int pipelineIdx = 0; pipelineIdx < CIRCLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
     {
-        DrawItemVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
+        NodeVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
         const int modelSize = m_ModelList.size();
         if (!modelSize) continue;
 
@@ -652,7 +652,7 @@ void CircleMultiDrawFactory::CreateVertexLayoutBinding()
     }
 }
 
-void CircleMultiDrawFactory::UpdateModelList(DrawItem *p_Item)
+void CircleMultiDrawFactory::UpdateModelList(Node *p_Item)
 {
     Circle* rectangle = dynamic_cast<Circle*>(p_Item);
     assert(rectangle);
@@ -700,7 +700,7 @@ void CircleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
 {
     for (int pipelineIdx = 0; pipelineIdx < CIRCLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
     {
-        DrawItemVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
+        NodeVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
         const int modelSize = m_ModelList.size();
         if (!modelSize) continue;
 

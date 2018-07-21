@@ -412,7 +412,6 @@ void Transformation::GetNormalMatrix( glm::mat3* mat3Obj )
     memcpy(&(*mat3Obj)[2], &mat4Obj[0], sizeof(glm::mat3));
 }
 
-
 void Transformation::Ortho( float left, float right, float bottom, float top, float clip_start, float clip_end )
 {
     switch( TransformMemData.matrix_mode )
@@ -488,20 +487,9 @@ void Transformation::SetPerspective( float fovy, float aspect_ratio, float clip_
     }
 }
 
-void Transformation::SetView(glm::mat4 mat)
-{
-    //TransformMemData.view_matrix = mat;
-}
-
 void Transformation::LookAt( glm::vec3 *eye, glm::vec3 *center, glm::vec3 *up )
 {
     *GetViewMatrix() = glm::lookAt(*eye, *center, *up);
-
-    //glm::vec3 f, s, u;
-    //static glm::mat4 mat = glm::lookAt(*eye, *center, *up);
-    ////TransformSetView(mat);
-    ////*GetViewMatrix() = (mat);
-    //MultiplyMatrix( &mat );
 }
 
 int Transformation::TransformProject( float objextx, float objecty, float objectz, glm::mat4 *modelview_matrix, glm::mat4 *projection_matrix, int *viewport_matrix, float *windowx, float *windowy, float *windowz )

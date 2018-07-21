@@ -24,6 +24,7 @@ UIDemoApp::UIDemoApp()
     VulkanHelper::GetInstanceLayerExtensionProperties();
 
     m_Scene = new Scene(this);
+    m_UIDemo.ProgressBarFunc(m_Scene);
 
     m_Cube1 = new Rectangl(m_Scene, NULL, BoundingRegion(200, 200, 100, 100));
     m_Cube1->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
@@ -181,7 +182,7 @@ void UIDemoApp::Update()
         m_Cube1->Rotate(.001, 0.0, 0.0, 1.0);
      
         m_Cube2->Reset();
-        m_Cube2->SetPosition(100, 100);// = new RectangleModel(m_Scene, m_Cube1, BoundingRegion(100, 100, 50, 50));
+        m_Cube2->SetPosition(100, 100);
         m_Cube2->Rotate(rot += .1, 0.0, 0.0, 1.0);
         
         m_Cube3->Rotate(.003, 0.0, 0.0, 1.0);

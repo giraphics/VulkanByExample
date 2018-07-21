@@ -22,7 +22,7 @@ Scene::~Scene()
         ++itSRST;
     }
 
-    foreach (DrawItem* currentModel, m_DrawItemList)
+    foreach (Node* currentModel, m_NodeList)
     {
         delete currentModel;
     }
@@ -30,14 +30,14 @@ Scene::~Scene()
 
 void Scene::Setup(VkCommandBuffer& p_CommandBuffer)
 {
-    GatherDrawItemsFlatList(); // Assuming all nodes are added into the scenes by now
+    GatherFlatNodesList(); // Assuming all nodes are added into the scenes by now
 
-    foreach (DrawItem* currentModel, m_DrawItemList)
+    foreach (Node* currentModel, m_NodeList)
     {
         currentModel->Setup();
     }
 
-    foreach(DrawItem* currentModel, m_FlatList)
+    foreach(Node* currentModel, m_FlatList)
     {
         RenderSchemeFactory* factory = GetFactory(currentModel); // Populate factories
         if (!factory) continue;
@@ -67,7 +67,7 @@ void Scene::Update()
         currentModelFactory->SetRefProjectViewMatrix(*m_Transform.GetProjectionMatrix() * *m_Transform.GetViewMatrix());
     }
 
-    foreach (DrawItem* item, m_DrawItemList)
+    foreach (Node* item, m_NodeList)
     {
         assert(item);
 
@@ -88,34 +88,34 @@ void Scene::Render(VkCommandBuffer& p_CommandBuffer)
     }
 }
 
-void Scene::GatherDrawItemsFlatList()
+void Scene::GatherFlatNodesList()
 {
     m_FlatList.clear();
 
-    foreach (DrawItem* item, m_DrawItemList)
+    foreach (Node* item, m_NodeList)
     {
         assert(item);
 
-        item->GatherDrawItemsFlatList();
+        item->GatherFlatNodesList();
     }
 }
 
-void Scene::AddItem(DrawItem* p_Item)
+void Scene::AddItem(Node* p_Item)
 {
     if (p_Item && !p_Item->GetParent())
     {
-        m_DrawItemList.push_back(p_Item);
+        m_NodeList.push_back(p_Item);
     }
 }
 
-void Scene::RemoveItem(DrawItem* p_Item)
+void Scene::RemoveItem(Node* p_Item)
 {
     while (true)
     {
-        auto result = std::find(std::begin(m_DrawItemList), std::end(m_DrawItemList), p_Item);
-        if (result == std::end(m_DrawItemList)) break;
+        auto result = std::find(std::begin(m_NodeList), std::end(m_NodeList), p_Item);
+        if (result == std::end(m_NodeList)) break;
 
-        m_DrawItemList.erase(result);
+        m_NodeList.erase(result);
     }
 }
 
@@ -146,7 +146,7 @@ void Scene::SetUpProjection()
 
 void Scene::mousePressEvent(QMouseEvent* p_Event)
 {
-    foreach (DrawItem* item, m_DrawItemList)
+    foreach (Node* item, m_NodeList)
     {
         assert(item);
 
@@ -156,7 +156,7 @@ void Scene::mousePressEvent(QMouseEvent* p_Event)
 
 void Scene::mouseReleaseEvent(QMouseEvent* p_Event)
 {
-    foreach (DrawItem* item, m_DrawItemList)
+    foreach (Node* item, m_NodeList)
     {
         assert(item);
 
@@ -166,15 +166,15 @@ void Scene::mouseReleaseEvent(QMouseEvent* p_Event)
 
 void Scene::mouseMoveEvent(QMouseEvent* p_Event)
 {
-    DrawItem* oldModelItem = GetCurrentHoverItem();
-    for (int i = m_DrawItemList.size() - 1; i >= 0; i--)
+    Node* oldModelItem = GetCurrentHoverItem();
+    for (int i = m_NodeList.size() - 1; i >= 0; i--)
     {
-        DrawItem* item = m_DrawItemList.at(i);
+        Node* item = m_NodeList.at(i);
         assert(item);
 
         if (item->mouseMoveEvent(p_Event))
         {
-            DrawItem* currentModel = GetCurrentHoverItem();
+            Node* currentModel = GetCurrentHoverItem();
             if (oldModelItem && oldModelItem != currentModel)
             {
                 oldModelItem->SetColor(oldModelItem->GetDefaultColor());
@@ -191,7 +191,7 @@ void Scene::mouseMoveEvent(QMouseEvent* p_Event)
     }
 }
 
-RenderSchemeFactory* Scene::GetFactory(DrawItem* p_Item)
+RenderSchemeFactory* Scene::GetFactory(Node* p_Item)
 {
     const SHAPE shapeType = p_Item->GetShapeType();
     if ((shapeType <= SHAPE_NONE) && (shapeType >= SHAPE_COUNT)) return NULL;
@@ -211,7 +211,7 @@ RenderSchemeFactory* Scene::GetFactory(DrawItem* p_Item)
     return abstractFactory;
 }
 
-void Scene::AppendToDrawItemsFlatList(DrawItem* p_Item)
+void Scene::AppendToFlatNodeList(Node* p_Item)
 {
     m_FlatList.push_back(p_Item);
 }

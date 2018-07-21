@@ -24,7 +24,7 @@ void UIDemo::Grid(Scene* p_Scene, int p_Width, int p_Height)
 	{
 		for (int j = 0; j < parentRow; j++)
 		{
-			DrawItem* m_Parent = new Rectangl(p_Scene, NULL, BoundingRegion((i * parentColWidth), (j * parentColHeight), parentColWidth - 2, parentColHeight));
+            Node* m_Parent = new Rectangl(p_Scene, NULL, BoundingRegion((i * parentColWidth), (j * parentColHeight), parentColWidth - 2, parentColHeight));
 			m_Parent->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
 			m_Parent->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
 
@@ -58,30 +58,32 @@ void UIDemo::MixerView(Scene* p_Scene, int p_Width, int p_Height)
     }
 }
 
+void UIDemo::ProgressBarFunc(Scene* p_Scene)
+{
+    BoundingRegion boundedRegion(200, 400, 400, 100);
+    new ProgressBar(p_Scene, NULL, boundedRegion, "", SHAPE_CUSTOM);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-/*
-ProgressBar::ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, SHAPE p_ShapeType)
-: Model3D(p_Scene, p_Parent, p_Name, p_ShapeType)
+
+ProgressBar::ProgressBar(Scene* p_Scene, Node* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType)
+: Node(p_Scene, p_Parent, p_BoundedRegion, p_Name, p_ShapeType)
 {
-RectangleModel* background = new RectangleModel(NULL, m_Scene, this, "Rectangle 1", SHAPE_RECTANGLE);
-background->Rectangle(10, 10, 400, 50);
-background->SetColor(glm::vec4(0.6, 01.0, 0.0, 1.0));
-background->SetDefaultColor(glm::vec4(0.42, 0.65, 0.60, 1.0));
-//background->SetDrawType(RectangleModel::OUTLINE);
+    BoundingRegion bgDim(10, 10, 400, 50);
+    Node* background = new Rectangl(p_Scene, this, bgDim);
+    background->SetColor(glm::vec4(0.6, 1.0, 0.0, 1.0));
+    background->SetDefaultColor(glm::vec4(0.42, 0.65, 0.60, 1.0));
 
-bar = new RectangleModel(NULL, m_Scene, background, "Bar", SHAPE_RECTANGLE);
-bar->Rectangle(0, (background->GetDimension().y * 0.25f), 400, 25);
-bar->SetColor(glm::vec4(0.6, 0.52, 0.320, 1.0));
-bar->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
-bar->SetDrawType(RectangleModel::OUTLINE);
+    BoundingRegion barDim(0, (bgDim.m_Dimension.y * 0.25f), 400, 25);
+    bar = new Rectangl(p_Scene, background, barDim, "Bar");
+    bar->SetColor(glm::vec4(0.6, 0.52, 0.320, 1.0));
+    bar->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
 
-progressIndicator = new RectangleModel(NULL, m_Scene, bar, "ProgressIndicator", SHAPE_RECTANGLE);
-progressIndicator->Rectangle(0, 0, 20, background->GetDimension().y);
-progressIndicator->Translate(0, -(background->GetDimension().y * 0.25f), 0);
-progressIndicator->SetColor(glm::vec4(0.1, 0.52, 0.320, 1.0));
-progressIndicator->SetDefaultColor(glm::vec4(0.2, 0.15, 0.60, 1.0));
-progressIndicator->SetDrawType(RectangleModel::OUTLINE);
+    BoundingRegion piDim(0, 0, 20, bgDim.m_Dimension.y);
+    progressIndicator = new Rectangl(p_Scene, bar, piDim, "ProgressIndicator");
+    progressIndicator->Translate(0, -((bgDim.m_Dimension.y * 0.25f) * 0.25f), 0);
+    progressIndicator->SetColor(glm::vec4(0.1, 0.52, 0.320, 1.0));
+    progressIndicator->SetDefaultColor(glm::vec4(0.2, 0.15, 0.60, 1.0));
 }
 
 bool ProgressBar::mouseMoveEvent(QMouseEvent* p_Event)
@@ -90,20 +92,20 @@ if (bar->mouseMoveEvent(p_Event))
 {
 //progressIndicator->Translate(p_Event->x(), 0.0, 0.0);
 //progressIndicator->SetPosition(p_Event->x(),  GetPosition().y());
-progressIndicator->SetPosition(p_Event->x(), progressIndicator->GetPosition().y);
+//progressIndicator->SetPosition(p_Event->x(), progressIndicator->GetPosition().y);
 return true;
 }
 
 return false;
 }
-*/
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-AudioMixerItem::AudioMixerItem(Scene* p_Scene, DrawItem* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType)
-    : DrawItem(p_Scene, p_Parent, p_BoundedRegion, p_Name, p_ShapeType)
+AudioMixerItem::AudioMixerItem(Scene* p_Scene, Node* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType)
+    : Node(p_Scene, p_Parent, p_BoundedRegion, p_Name, p_ShapeType)
 {
-    DrawItem* background = new Rectangl(m_Scene, this, BoundingRegion(0, 0, p_BoundedRegion.m_Dimension.x, p_BoundedRegion.m_Dimension.y));
+    Node* background = new Rectangl(m_Scene, this, BoundingRegion(0, 0, p_BoundedRegion.m_Dimension.x, p_BoundedRegion.m_Dimension.y));
     background->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
     background->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
 
@@ -111,7 +113,7 @@ AudioMixerItem::AudioMixerItem(Scene* p_Scene, DrawItem* p_Parent, const Boundin
     const int activeIndicatorWidth = 7;
     const int activeTrackIndicatorTopMargin = 5.0;
     const int activeTrackIndicatorTopMarginLeftMargin = 4.0;
-    DrawItem* activeTrackIndicator = new Rectangl(m_Scene, background, BoundingRegion(activeTrackIndicatorTopMarginLeftMargin, activeTrackIndicatorTopMargin, p_BoundedRegion.m_Dimension.x - (5 * activeTrackIndicatorTopMarginLeftMargin), activeIndicatorWidth));
+    Node* activeTrackIndicator = new Rectangl(m_Scene, background, BoundingRegion(activeTrackIndicatorTopMarginLeftMargin, activeTrackIndicatorTopMargin, p_BoundedRegion.m_Dimension.x - (5 * activeTrackIndicatorTopMarginLeftMargin), activeIndicatorWidth));
     activeTrackIndicator->SetColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
     activeTrackIndicator->SetDefaultColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
 
@@ -122,11 +124,11 @@ AudioMixerItem::AudioMixerItem(Scene* p_Scene, DrawItem* p_Parent, const Boundin
     const int channelWidth = (p_BoundedRegion.m_Dimension.x / formatType) / 2;
     for (int i = 0; i < formatType; i++)
     {
-        DrawItem* channelBackground = new Rectangl(m_Scene, background, BoundingRegion((i * channelWidth) + channelLeftMargin, channelTopMargin, ((i == (formatType - 1)) ? 2 : 0) + channelWidth, p_BoundedRegion.m_Dimension.y - channelTopMargin - 5.0));
+        Node* channelBackground = new Rectangl(m_Scene, background, BoundingRegion((i * channelWidth) + channelLeftMargin, channelTopMargin, ((i == (formatType - 1)) ? 2 : 0) + channelWidth, p_BoundedRegion.m_Dimension.y - channelTopMargin - 5.0));
         channelBackground->SetColor(glm::vec4(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0));
         channelBackground->SetDefaultColor(glm::vec4(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0));
 
-        DrawItem* channel = new Rectangl(m_Scene, channelBackground, BoundingRegion(2, 2, channelWidth - 2, p_BoundedRegion.m_Dimension.y - channelTopMargin - 5.0 - 4));
+        Node* channel = new Rectangl(m_Scene, channelBackground, BoundingRegion(2, 2, channelWidth - 2, p_BoundedRegion.m_Dimension.y - channelTopMargin - 5.0 - 4));
         channel->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
         channel->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
 
@@ -138,7 +140,7 @@ AudioMixerItem::AudioMixerItem(Scene* p_Scene, DrawItem* p_Parent, const Boundin
         const int yellowIndicatorRange = totalRangeIndicator * 0.20;
         for (int j = 0; j < totalRangeIndicator; j++)
         {
-            DrawItem* levelIndicator = new Rectangl(m_Scene, channel, BoundingRegion(2, j * 4, channelWidth - 4.0, 2.0));
+            Node* levelIndicator = new Rectangl(m_Scene, channel, BoundingRegion(2, j * 4, channelWidth - 4.0, 2.0));
 
             const glm::vec4 color = (j <= redIndicatorRange) ? red : ((j <= yellowIndicatorRange) ? yellow : green);
             levelIndicator->SetColor(color);

@@ -16,7 +16,7 @@ public:
     virtual void Update() {}
     virtual void Render(VkCommandBuffer& p_CommandBuffer) {}
     virtual void Prepare(Scene* p_Scene) {}
-    virtual void UpdateModelList(DrawItem* p_Parent) {}
+    virtual void UpdateModelList(Node* p_Parent) {}
     virtual void ResizeWindow(VkCommandBuffer& p_CommandBuffer) {}
 
     GETSET(glm::mat4x4, ProjectViewMatrix);
@@ -26,13 +26,13 @@ protected:
     QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
 };
 
-class DrawItem
+class Node
 {
 public:
-    DrawItem(Scene* p_Scene, DrawItem* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
+    Node(Scene* p_Scene, Node* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
 
     virtual void Setup();
-    virtual void Update(DrawItem* p_Item = NULL);
+    virtual void Update(Node* p_Item = NULL);
     virtual RenderSchemeFactory* GetRenderSchemeFactory() { return NULL; } // Custom model class do not need to implement it as they are made of basic model classes.
 
     void Rotate(float p_Angle, float p_X, float p_Y, float p_Z);
@@ -44,11 +44,11 @@ public:
     void SetPosition(float p_X, float p_Y);
     void SetGeometry(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder = 0.0f);
 
-    inline DrawItem* GetParent() const;
+    inline Node* GetParent() const;
     void ApplyTransformation();
     glm::mat4 GetRelativeTransformations() const;
-    glm::mat4 GetParentsTransformation(DrawItem* p_Parent) const;
-    void GatherDrawItemsFlatList();
+    glm::mat4 GetParentsTransformation(Node* p_Parent) const;
+    void GatherFlatNodesList();
 
     virtual void mousePressEvent(QMouseEvent* p_Event);
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
@@ -65,6 +65,6 @@ public:
     GETSET(glm::vec3,                   OriginOffset)
     GETSET(glm::mat4,                   TransformedModel)   // Owned by drawable item
     GETSET(Scene*,                      Scene)
-    GETSET(DrawItem*,                   Parent)
-    GETSET(QList<DrawItem*>,            ChildList)
+    GETSET(Node*,                       Parent)
+    GETSET(QList<Node*>,                ChildList)
 };

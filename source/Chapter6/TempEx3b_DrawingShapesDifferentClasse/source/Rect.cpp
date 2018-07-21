@@ -34,8 +34,8 @@ static const Vertex rectOutlineVertices[] =
 };
 
 
-Rectangl::Rectangl(Scene *p_Scene, DrawItem *p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name)
-    : DrawItem(p_Scene, p_Parent, p_BoundedRegion, p_Name, SHAPE_RECTANGLE_MULTIDRAW)
+Rectangl::Rectangl(Scene *p_Scene, Node *p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name)
+    : Node(p_Scene, p_Parent, p_BoundedRegion, p_Name, SHAPE_RECTANGLE_MULTIDRAW)
     , m_DrawType(FILLED)
 {
 }
@@ -49,7 +49,7 @@ void Rectangl::Setup()
 {
     CreateRectVertexBuffer();
 
-    DrawItem::Setup();
+    Node::Setup();
 }
 
 void Rectangl::CreateRectVertexBuffer()
@@ -105,7 +105,7 @@ RectangleMultiDrawFactory::~RectangleMultiDrawFactory()
 {
     for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
     {
-        DrawItemVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
+        NodeVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
         const int modelSize = m_ModelList.size();
         if (!modelSize) continue;
 
@@ -649,7 +649,7 @@ void RectangleMultiDrawFactory::CreateVertexLayoutBinding()
     }
 }
 
-void RectangleMultiDrawFactory::UpdateModelList(DrawItem *p_Item)
+void RectangleMultiDrawFactory::UpdateModelList(Node *p_Item)
 {
     Rectangl* rectangle = dynamic_cast<Rectangl*>(p_Item);
     assert(rectangle);
@@ -697,7 +697,7 @@ void RectangleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
 {
     for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
     {
-        DrawItemVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
+        NodeVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
         const int modelSize = m_ModelList.size();
         if (!modelSize) continue;
 
