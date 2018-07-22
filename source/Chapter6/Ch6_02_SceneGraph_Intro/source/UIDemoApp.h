@@ -1,6 +1,6 @@
 #pragma once
 #include "../../../common/VulkanApp.h"
-#include "../TempEx2_SceneGraph/Scene.h"
+#include "../TempEx2_SceneGraphIntro/Scene.h"
 
 class Rectangl;
 class UIDemoApp : public VulkanApp

@@ -1,9 +1,9 @@
 #pragma once
 #include "../../../common/VulkanApp.h"
 
-#include "../TempEx2_SceneGraph/Transformation.h"
-#include "../TempEx2_SceneGraph/Scene.h"
-#include "../TempEx2_SceneGraph/Node.h"
+#include "../TempEx2_SceneGraphIntro/Transformation.h"
+#include "../TempEx2_SceneGraphIntro/Scene.h"
+#include "../TempEx2_SceneGraphIntro/Node.h"
 
 class Rectangl : public Node
 {
