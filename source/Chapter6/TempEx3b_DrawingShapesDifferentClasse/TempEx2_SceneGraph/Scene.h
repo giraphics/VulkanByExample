@@ -15,7 +15,7 @@ class AbstractApp;
 class Scene
 {
 public:
-    Scene(AbstractApp* p_Application = NULL);
+    Scene(AbstractApp* p_Application = NULL, const QString& p_Name = QString());
     virtual ~Scene();
 
     void Setup();
@@ -49,6 +49,7 @@ private:
     std::set<RenderSchemeFactory*>          m_RenderSchemeFactorySet;
     std::map<SHAPE, RenderSchemeFactory*>   m_ShapeRenderSchemeTypeMap;
 
+    GETSET(QString,                         Name)
     GETSET(Node*,                           CurrentHoverItem)  // Not owned by Scene
     GETSET(AbstractApp*,                    Application)
     GETSET(int,                             ScreenHeight);

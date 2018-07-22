@@ -28,14 +28,15 @@ private:
 private:
     std::vector<std::shared_ptr<Scene>> m_SceneVector;
     Scene* m_Scene;
-    Rectangl* m_Cube1;
-    Rectangl* m_Cube2;
-    Rectangl* m_Cube3;
-    Rectangl* m_Cube4;
-    Rectangl* item1;
-    Rectangl* item2;
-    Rectangl* item3;
-    Rectangl* item4;
-    Circle* m_Cube5;
+    Rectangl* m_RectTr1;
+    Rectangl* m_RectTr2;
+    Rectangl* m_RectTr3;
+    Rectangl* m_RectTr4;
+    Circle*   m_CircleTr5;
+
+    Rectangl* m_Rect1;
+    Rectangl* m_Rect2;
+    Rectangl* m_Rect3;
+    Rectangl* m_Rect4;
     UIDemo m_UIDemo;
 };

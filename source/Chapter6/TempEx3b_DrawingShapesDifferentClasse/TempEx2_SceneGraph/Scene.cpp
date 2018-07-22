@@ -4,8 +4,9 @@
 
 #include <QMouseEvent>
 
-Scene::Scene(AbstractApp* p_Application)
+Scene::Scene(AbstractApp* p_Application, const QString& p_Name)
     : m_Application(p_Application)
+    , m_Name(p_Name)
     , m_Frame(0)
     , m_ScreenWidth(800)
     , m_ScreenHeight(600)
@@ -29,7 +30,7 @@ Scene::~Scene()
         delete currentModel;
     }
 
-    std::cout << "\n Scene Destructed";
+    std::cout << "\n Scene " << m_Name.toStdString() << " Destructed.\n";
 }
 
 void Scene::Setup()
@@ -193,7 +194,7 @@ void Scene::mouseMoveEvent(QMouseEvent* p_Event)
                 oldModelItem->SetColor(oldModelItem->GetDefaultColor());
             }
 
-            currentModel->SetColor(glm::vec4(1.0, 1.0, 0.3, 1.0));
+            currentModel->SetColor(glm::vec4(1.0, 1.0, 0.3, 0.5));
             oldModelItem = GetCurrentHoverItem();
             return;
         }

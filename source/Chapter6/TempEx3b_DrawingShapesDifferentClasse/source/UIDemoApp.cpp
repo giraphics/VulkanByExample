@@ -23,57 +23,56 @@ UIDemoApp::UIDemoApp()
 {
     VulkanHelper::GetInstanceLayerExtensionProperties();
 
-    //m_SceneVector.push_back(std::make_shared<Scene>(this));
-    //m_SceneVector.push_back(std::make_shared<Scene>(this));
-    m_Scene = new Scene(this);
+    m_SceneVector.push_back(std::make_shared<Scene>(this));
+    m_Scene = m_SceneVector[0].get();
     m_UIDemo.ProgressBarFunc(m_Scene);
 
-    m_Cube1 = new Rectangl(m_Scene, NULL, BoundingRegion(200, 200, 100, 100));
-    m_Cube1->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
-    m_Cube1->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
-    m_Cube1->SetZOrder(1.1);
+    m_RectTr1 = new Rectangl(m_Scene, NULL, BoundingRegion(200, 200, 100, 100));
+    m_RectTr1->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
+    m_RectTr1->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+    m_RectTr1->SetZOrder(1.1);
 
-    m_Cube2 = new Rectangl(m_Scene, m_Cube1, BoundingRegion(100, 100, 50, 50));
-    m_Cube2->SetColor(glm::vec4(0.0, 0.0, 1.0, 1.0));
-    m_Cube2->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+    m_RectTr2 = new Rectangl(m_Scene, m_RectTr1, BoundingRegion(100, 100, 50, 50));
+    m_RectTr2->SetColor(glm::vec4(0.0, 0.0, 1.0, 1.0));
+    m_RectTr2->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
    
-    m_Cube3 = new Rectangl(m_Scene, m_Cube1, BoundingRegion(0, 0, 50, 50));
-    m_Cube3->SetColor(glm::vec4(0.6, 0.0, 1.0, 1.0));
-    m_Cube3->SetDefaultColor(glm::vec4(0.2, 0.55, 0.20, 1.0));
+    m_RectTr3 = new Rectangl(m_Scene, m_RectTr1, BoundingRegion(0, 0, 50, 50));
+    m_RectTr3->SetColor(glm::vec4(0.6, 0.0, 1.0, 1.0));
+    m_RectTr3->SetDefaultColor(glm::vec4(0.2, 0.55, 0.20, 1.0));
 
-    m_Cube4 = new Rectangl(m_Scene, m_Cube1, BoundingRegion(75, -25, 50, 50));
-    m_Cube4->SetZOrder(-10.1);
-    m_Cube4->SetOriginOffset(glm::vec3(25, 25, 0));
-    m_Cube4->SetColor(glm::vec4(0.0, 0.2, 1.0, 1.0));
-    m_Cube4->SetDefaultColor(glm::vec4(0.2, 0.35, 0.30, 1.0));
+    m_RectTr4 = new Rectangl(m_Scene, m_RectTr1, BoundingRegion(75, -25, 50, 50));
+    m_RectTr4->SetZOrder(-10.1);
+    m_RectTr4->SetOriginOffset(glm::vec3(25, 25, 0));
+    m_RectTr4->SetColor(glm::vec4(0.0, 0.2, 1.0, 1.0));
+    m_RectTr4->SetDefaultColor(glm::vec4(0.2, 0.35, 0.30, 1.0));
 
-    m_Cube5 = new Circle(m_Scene, m_Cube1, glm::vec2(0, 0), 50.0f);
-    m_Cube5->SetOriginOffset(glm::vec3(25, 25, 0));
-    m_Cube5->SetColor(glm::vec4(0.0, 0.5, 1.0, 1.0));
-    m_Cube5->SetDefaultColor(glm::vec4(0.62, 0.25, 0.60, 1.0));
-    m_Cube5->SetZOrder(10.1);
+    m_CircleTr5 = new Circle(m_Scene, m_RectTr1, glm::vec2(0, 0), 50.0f);
+    m_CircleTr5->SetOriginOffset(glm::vec3(25, 25, 0));
+    m_CircleTr5->SetColor(glm::vec4(0.0, 0.5, 1.0, 1.0));
+    m_CircleTr5->SetDefaultColor(glm::vec4(0.62, 0.25, 0.60, 1.0));
+    m_CircleTr5->SetZOrder(10.1);
 
     {
         float x = 0;
         float y = 0;
-        item1 = new Rectangl(m_Scene, NULL, BoundingRegion(x, y, 100, 100, -1), "Item1");
-        item1->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
-        item1->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+        m_Rect1 = new Rectangl(m_Scene, NULL, BoundingRegion(x, y, 100, 100, -1), "Item1");
+        m_Rect1->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
+        m_Rect1->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
         x += 50;
 
-        item2 = new Rectangl(m_Scene, item1, BoundingRegion(x, y, 100, 100, -1), "Item2");
-        item2->SetColor(glm::vec4(1.0, 0.2, 0.20, 1.0));
-        item2->SetDefaultColor(glm::vec4(1.42, 0.15, 0.60, 1.0));
+        m_Rect2 = new Rectangl(m_Scene, m_Rect1, BoundingRegion(x, y, 100, 100, -1), "Item2");
+        m_Rect2->SetColor(glm::vec4(1.0, 0.2, 0.20, 1.0));
+        m_Rect2->SetDefaultColor(glm::vec4(1.42, 0.15, 0.60, 1.0));
         x += 50;
 
-        item3 = new Rectangl(m_Scene, item1, BoundingRegion(x, y, 100, 100, 10), "Item3");
-        item3->SetColor(glm::vec4(1.0, 1.2, 0.20, 1.0));
-        item3->SetDefaultColor(glm::vec4(1.42, 1.15, 0.60, 1.0));
+        m_Rect3 = new Rectangl(m_Scene, m_Rect1, BoundingRegion(x, y, 100, 100, 10), "Item3");
+        m_Rect3->SetColor(glm::vec4(1.0, 1.2, 0.20, 1.0));
+        m_Rect3->SetDefaultColor(glm::vec4(1.42, 1.15, 0.60, 1.0));
         x += 50;
 
-        item4 = new Rectangl(m_Scene, item1, BoundingRegion(x, y, 100, 100, -1000), "Item4");
-        item4->SetColor(glm::vec4(1.0, 1.2, 1.0, 1.0));
-        item4->SetDefaultColor(glm::vec4(1., 0.5, 0.60, 1.0));
+        m_Rect4 = new Rectangl(m_Scene, m_Rect1, BoundingRegion(x, y, 100, 100, -1000), "Item4");
+        m_Rect4->SetColor(glm::vec4(1.0, 1.2, 1.0, 1.0));
+        m_Rect4->SetDefaultColor(glm::vec4(1., 0.5, 0.60, 1.0));
         x += 50;
     }
 
@@ -114,23 +113,23 @@ void UIDemoApp::Setup()
 void UIDemoApp::Update()
 {
     static float rot = 0.0;
-    if (m_Cube1)
+    if (m_RectTr1)
     {
-        m_Cube1->Rotate(.001, 0.0, 0.0, 1.0);
+        m_RectTr1->Rotate(.001, 0.0, 0.0, 1.0);
      
-        m_Cube2->Reset();
-        m_Cube2->SetPosition(100, 100);
-        m_Cube2->Rotate(rot += .1, 0.0, 0.0, 1.0);
+        m_RectTr2->Reset();
+        m_RectTr2->SetPosition(100, 100);
+        m_RectTr2->Rotate(rot += .1, 0.0, 0.0, 1.0);
         
-        m_Cube3->Rotate(.003, 0.0, 0.0, 1.0);
-        m_Cube4->Rotate(.003, 0.0, 0.0, 1.0);
-        m_Cube5->Rotate(.003, 0.0, 0.0, 1.0);
+        m_RectTr3->Rotate(.003, 0.0, 0.0, 1.0);
+        m_RectTr4->Rotate(.003, 0.0, 0.0, 1.0);
+        m_CircleTr5->Rotate(.003, 0.0, 0.0, 1.0);
     }
     {
-        item1->Rotate(.003, 0.0, 0.0, 1.0);
-        item2->Rotate(.003, 0.0, 0.0, 1.0);
-        item3->Rotate(.003, 0.0, 0.0, 1.0);
-        item4->Rotate(.003, 0.0, 0.0, 1.0);
+        m_Rect1->Rotate(.003, 0.0, 0.0, 1.0);
+        m_Rect2->Rotate(.003, 0.0, 0.0, 1.0);
+        m_Rect3->Rotate(.003, 0.0, 0.0, 1.0);
+        m_Rect4->Rotate(.003, 0.0, 0.0, 1.0);
     }
 
     // Note: There are two ways to apply update

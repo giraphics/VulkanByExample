@@ -738,6 +738,7 @@ void RectangleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
             }PC;
 
             PC.inColor = model->GetColor();
+            //PC.inColor.a = 0.5;
             //PC.modelMatrix = /*(*model->GetScene()->GetProjection()) * (*model->GetScene()->GetView()) */ model->GetTransformedModel();
             //PC.modelMatrix = (*GetProjection()) * (*GetView()) model->GetModel();// GetTransformedModel();
 

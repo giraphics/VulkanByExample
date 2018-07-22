@@ -60,9 +60,9 @@ public:
     GETSET(BoundingRegion,              BoundedRegion)
     GETSET(glm::vec4,                   Color)
     GETSET(glm::vec4,                   DefaultColor)
-    GETSET(glm::mat4,                   Model)              // Owned by drawable item
+    GETSET(glm::mat4,                   Model)
     GETSET(glm::vec3,                   OriginOffset)
-    GETSET(glm::mat4,                   TransformedModel)   // Owned by drawable item
+    GETSET(glm::mat4,                   TransformedModel)
     GETSET(Scene*,                      Scene)
     GETSET(Node*,                       Parent)
     GETSET(QList<Node*>,                ChildList)
