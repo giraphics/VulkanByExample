@@ -4,10 +4,9 @@ enum SCENE_GRAPH_STATES
 {
     SG_STATE_NONE = -1,
 
-    SG_STATE_INIT,
-    SG_STATE_RESIZE,
-    SG_STATE_UPDATE,
-    SG_STATE_RENDER,
+    SG_STATE_SETUP,     // Initial setup
+    SG_STATE_RESIZE,    // Resize of window
+    SG_STATE_RENDER,    // Scene Rendering
 
     SG_STATE_CUSTOM
 };

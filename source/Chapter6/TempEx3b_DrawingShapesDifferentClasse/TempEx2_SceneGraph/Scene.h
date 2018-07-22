@@ -18,7 +18,8 @@ public:
     Scene(AbstractApp* p_Application = NULL);
     virtual ~Scene();
 
-    void Setup(VkCommandBuffer& p_CommandBuffer);
+    void Setup();
+    void SetupRenderFactory(VkCommandBuffer& p_CommandBuffer);
     void Update();
     void Render(VkCommandBuffer& p_CommandBuffer);
 
@@ -37,11 +38,11 @@ public:
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
     virtual void mouseMoveEvent(QMouseEvent* p_Event);
 
-    RenderSchemeFactory* GetFactory(Node* p_Item);
+    RenderSchemeFactory* GetRenderSchemeFactory(Node* p_Item);
     void AppendToFlatNodeList(Node* p_Item);
 
 private:
-    void GatherFlatNodesList();
+    void GatherFlatNodeList();
 
     std::vector<Node*>                      m_NodeList;
     std::vector<Node*>                      m_FlatList;

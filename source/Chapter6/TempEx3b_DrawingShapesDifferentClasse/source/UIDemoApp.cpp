@@ -23,6 +23,8 @@ UIDemoApp::UIDemoApp()
 {
     VulkanHelper::GetInstanceLayerExtensionProperties();
 
+    //m_SceneVector.push_back(std::make_shared<Scene>(this));
+    //m_SceneVector.push_back(std::make_shared<Scene>(this));
     m_Scene = new Scene(this);
     m_UIDemo.ProgressBarFunc(m_Scene);
 
@@ -100,18 +102,10 @@ void UIDemoApp::Configure()
 
 void UIDemoApp::Setup()
 {
-    // Note: We are overidding the default Create Command pool with VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
-    // because we need to re-record the command buffer when the instance data size changes. 
-    // This need to recreate the command buffer. 
-    VkCommandPoolCreateInfo poolInfo = {};
-    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    poolInfo.queueFamilyIndex = m_physicalDeviceInfo.graphicsFamilyIndex;
-    VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo, &poolInfo);
-
     m_Scene->SetUpProjection();
+    m_Scene->Setup();
 
-    RecordRenderPass(1, SG_STATE_UPDATE);
+    RecordRenderPass(1, SG_STATE_SETUP);
 
     // At least update the scene once so that in case UpdateMeAndMyChildren() is being used it has all transformation readily available
     m_Scene->Update();
@@ -248,8 +242,8 @@ void UIDemoApp::RecordRenderPass(int p_Argcount, ...)
 
         switch (currentState)
         {
-        case SG_STATE_UPDATE:
-            m_Scene->Setup(m_hCommandBufferList[i]);
+        case SG_STATE_SETUP:
+            m_Scene->SetupRenderFactory(m_hCommandBufferList[i]);
             break;
 
         case SG_STATE_RENDER:

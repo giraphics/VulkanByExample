@@ -60,7 +60,7 @@ public:
     virtual ~CircleMultiDrawFactory();
 
 public:
-    virtual void Setup(VkCommandBuffer& p_CommandBuffer);
+    virtual void Setup();
     virtual void Update();
     virtual void Render(VkCommandBuffer& p_CommandBuffer);
 
@@ -76,7 +76,7 @@ private:
     void createPushConstants();
 
 
-    virtual void UpdateModelList(Node* p_Item);
+    virtual void UpdateNodeList(Node* p_Item);
 
     enum CIRCLE_GRAPHICS_PIPELINES
     {

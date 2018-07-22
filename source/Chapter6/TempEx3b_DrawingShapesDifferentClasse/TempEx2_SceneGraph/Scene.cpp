@@ -28,11 +28,13 @@ Scene::~Scene()
     {
         delete currentModel;
     }
+
+    std::cout << "\n Scene Destructed";
 }
 
-void Scene::Setup(VkCommandBuffer& p_CommandBuffer)
+void Scene::Setup()
 {
-    GatherFlatNodesList(); // Assuming all nodes are added into the scenes by now
+    GatherFlatNodeList(); // Assuming all nodes are added into the scenes by now
 
     foreach (Node* currentModel, m_NodeList)
     {
@@ -41,10 +43,10 @@ void Scene::Setup(VkCommandBuffer& p_CommandBuffer)
 
     foreach(Node* currentModel, m_FlatList)
     {
-        RenderSchemeFactory* factory = GetFactory(currentModel); // Populate factories
-        if (!factory) continue;
+        RenderSchemeFactory* renderSchemeFactory = GetRenderSchemeFactory(currentModel); // Populate factories
+        if (!renderSchemeFactory) continue;
 
-        factory->UpdateModelList(currentModel);
+        renderSchemeFactory->UpdateNodeList(currentModel);
     }
 
     std::map<SHAPE, RenderSchemeFactory*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
@@ -58,7 +60,15 @@ void Scene::Setup(VkCommandBuffer& p_CommandBuffer)
     assert(m_RenderSchemeFactorySet.size());
     foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
     {
-        currentModelFactory->Setup(p_CommandBuffer);
+        currentModelFactory->Setup();
+    }
+}
+
+void Scene::SetupRenderFactory(VkCommandBuffer& p_CommandBuffer)
+{
+    foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
+    {
+        currentModelFactory->Render(p_CommandBuffer);
     }
 }
 
@@ -90,7 +100,7 @@ void Scene::Render(VkCommandBuffer& p_CommandBuffer)
     }
 }
 
-void Scene::GatherFlatNodesList()
+void Scene::GatherFlatNodeList()
 {
     m_FlatList.clear();
 
@@ -98,7 +108,7 @@ void Scene::GatherFlatNodesList()
     {
         assert(item);
 
-        item->GatherFlatNodesList();
+        item->GatherFlatNodeList();
     }
 }
 
@@ -195,7 +205,7 @@ void Scene::mouseMoveEvent(QMouseEvent* p_Event)
     }
 }
 
-RenderSchemeFactory* Scene::GetFactory(Node* p_Item)
+RenderSchemeFactory* Scene::GetRenderSchemeFactory(Node* p_Item)
 {
     const SHAPE shapeType = p_Item->GetShapeType();
     if ((shapeType <= SHAPE_NONE) && (shapeType >= SHAPE_COUNT)) return NULL;
@@ -206,13 +216,13 @@ RenderSchemeFactory* Scene::GetFactory(Node* p_Item)
         return it->second;
     }
 
-    RenderSchemeFactory* abstractFactory = p_Item->GetRenderSchemeFactory();
-    if (abstractFactory)
+    RenderSchemeFactory* renderFactory = p_Item->GetRenderSchemeFactory();
+    if (renderFactory)
     {
-        (m_ShapeRenderSchemeTypeMap)[shapeType] = abstractFactory;
+        (m_ShapeRenderSchemeTypeMap)[shapeType] = renderFactory;
     }
 
-    return abstractFactory;
+    return renderFactory;
 }
 
 void Scene::AppendToFlatNodeList(Node* p_Item)

@@ -11,11 +11,11 @@ public:
     RenderSchemeFactory() {}
     virtual ~RenderSchemeFactory() {}
 
-    virtual void Setup(VkCommandBuffer& p_CommandBuffer) {}
+    virtual void Setup() {}
     virtual void Update() {}
     virtual void Render(VkCommandBuffer& p_CommandBuffer) {}
     virtual void Prepare(Scene* p_Scene) {}
-    virtual void UpdateModelList(Node* p_Parent) {}
+    virtual void UpdateNodeList(Node* p_Parent) {}
     virtual void ResizeWindow(VkCommandBuffer& p_CommandBuffer) {}
 
     GETSET(glm::mat4x4, ProjectViewMatrix);
@@ -47,7 +47,7 @@ public:
     void ApplyTransformation();
     glm::mat4 GetRelativeTransformations() const;
     glm::mat4 GetParentsTransformation(Node* p_Parent) const;
-    void GatherFlatNodesList();
+    void GatherFlatNodeList();
 
     virtual void mousePressEvent(QMouseEvent* p_Event);
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);

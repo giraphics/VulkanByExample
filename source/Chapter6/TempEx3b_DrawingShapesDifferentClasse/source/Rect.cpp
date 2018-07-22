@@ -138,7 +138,7 @@ RectangleMultiDrawFactory::~RectangleMultiDrawFactory()
     vkFreeMemory(m_VulkanApplication->m_hDevice, UniformBuffer->m_BufObj.m_Memory, NULL);
 }
 
-void RectangleMultiDrawFactory::Setup(VkCommandBuffer& p_CommandBuffer)
+void RectangleMultiDrawFactory::Setup()
 {
     m_DescriptorSet = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
 
@@ -148,8 +148,6 @@ void RectangleMultiDrawFactory::Setup(VkCommandBuffer& p_CommandBuffer)
 
     // Build the push constants
     createPushConstants();
-
-    Render(p_CommandBuffer);
 }
 
 void RectangleMultiDrawFactory::Update()
@@ -649,7 +647,7 @@ void RectangleMultiDrawFactory::CreateVertexLayoutBinding()
     }
 }
 
-void RectangleMultiDrawFactory::UpdateModelList(Node *p_Item)
+void RectangleMultiDrawFactory::UpdateNodeList(Node *p_Item)
 {
     Rectangl* rectangle = dynamic_cast<Rectangl*>(p_Item);
     assert(rectangle);

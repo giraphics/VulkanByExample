@@ -141,7 +141,7 @@ CircleMultiDrawFactory::~CircleMultiDrawFactory()
     vkFreeMemory(m_VulkanApplication->m_hDevice, UniformBuffer->m_BufObj.m_Memory, NULL);
 }
 
-void CircleMultiDrawFactory::Setup(VkCommandBuffer& p_CommandBuffer)
+void CircleMultiDrawFactory::Setup()
 {
     m_DescriptorSet = std::make_shared<CircleDescriptorSet>(m_VulkanApplication);
 
@@ -151,8 +151,6 @@ void CircleMultiDrawFactory::Setup(VkCommandBuffer& p_CommandBuffer)
 
     // Build the push constants
     createPushConstants();
-
-    Render(p_CommandBuffer);
 }
 
 void CircleMultiDrawFactory::Update()
@@ -652,7 +650,7 @@ void CircleMultiDrawFactory::CreateVertexLayoutBinding()
     }
 }
 
-void CircleMultiDrawFactory::UpdateModelList(Node *p_Item)
+void CircleMultiDrawFactory::UpdateNodeList(Node *p_Item)
 {
     Circle* rectangle = dynamic_cast<Circle*>(p_Item);
     assert(rectangle);

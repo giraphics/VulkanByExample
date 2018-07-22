@@ -213,7 +213,7 @@ void Node::SetPosition(float p_X, float p_Y)
     m_TransformedModel = m_Model * GetParentsTransformation(GetParent());
 }
 
-void Node::GatherFlatNodesList()
+void Node::GatherFlatNodeList()
 {
     if (!m_Scene) return;
 
@@ -222,6 +222,6 @@ void Node::GatherFlatNodesList()
     Q_FOREACH(Node* childItem, m_ChildList)
     {
         assert(childItem);
-        childItem->GatherFlatNodesList();
+        childItem->GatherFlatNodeList();
     }
 }

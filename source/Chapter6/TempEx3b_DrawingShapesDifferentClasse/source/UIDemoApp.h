@@ -11,7 +11,6 @@ public:
     UIDemoApp();
     virtual ~UIDemoApp();
 
-    // Core virtual methods used by derived classes
     virtual void Configure();
     virtual void Setup();
     virtual void Update();
@@ -27,6 +26,7 @@ private:
     void RecordRenderPass(int p_Argcount, ...);
 
 private:
+    std::vector<std::shared_ptr<Scene>> m_SceneVector;
     Scene* m_Scene;
     Rectangl* m_Cube1;
     Rectangl* m_Cube2;
