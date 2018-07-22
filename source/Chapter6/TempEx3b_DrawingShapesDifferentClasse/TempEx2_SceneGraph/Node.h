@@ -38,7 +38,7 @@ public:
     void Translate(float p_X, float p_Y, float p_Z);
     void Scale(float p_X, float p_Y, float p_Z);
 
-    void Reset() { m_Model = glm::mat4(); }
+    void Reset() { m_ModelTransformation = glm::mat4(); }
     void SetZOrder(float p_ZOrder);
     void SetPosition(float p_X, float p_Y);
     void SetGeometry(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder = 0.0f);
@@ -61,7 +61,7 @@ public:
     GETSET(BoundingRegion,              BoundedRegion)
     GETSET(glm::vec4,                   Color)
     GETSET(glm::vec4,                   DefaultColor)
-    GETSET(glm::mat4,                   Model)
+    GETSET(glm::mat4,                   ModelTransformation)
     GETSET(glm::vec3,                   OriginOffset)
     GETSET(glm::mat4,                   AbsoluteTransformation)
     GETSET(Scene*,                      Scene)

@@ -94,17 +94,17 @@ Node* Node::GetParent() const
 
 void Node::ApplyTransformation()
 {
-    *m_Scene->Transform().GetModelMatrix() *= m_Model;
+    *m_Scene->Transform().GetModelMatrix() *= m_ModelTransformation;
 }
 
 glm::mat4 Node::GetAbsoluteTransformations() const
 {
-    return GetParentsTransformation(GetParent()) * m_Model;
+    return GetParentsTransformation(GetParent()) * m_ModelTransformation;
 }
 
 glm::mat4 Node::GetParentsTransformation(Node *p_Parent) const
 {
-    return p_Parent ? (GetParentsTransformation(p_Parent->GetParent()) * p_Parent->m_Model) : glm::mat4();
+    return p_Parent ? (GetParentsTransformation(p_Parent->GetParent()) * p_Parent->m_ModelTransformation) : glm::mat4();
 }
 
 // p_Item != NULL => Update is performed w.r.t. root parent
@@ -114,11 +114,11 @@ void Node::Update(Node* p_Item)
     m_Scene->PushMatrix();
     if (p_Item)
     {
-        m_Scene->ApplyTransformation(p_Item->GetParentsTransformation(GetParent()) * m_Model); // This retrives all the transformation from the parent
+        m_Scene->ApplyTransformation(p_Item->GetParentsTransformation(GetParent()) * m_ModelTransformation); // This retrives all the transformation from the parent
     }
     else
     {
-        m_Scene->ApplyTransformation(m_Model);
+        m_Scene->ApplyTransformation(m_ModelTransformation);
     }
 
     m_AbsoluteTransformation = *m_Scene->GetRefTransform().GetModelMatrix();
@@ -138,14 +138,14 @@ void Node::Rotate(float p_Angle, float p_X, float p_Y, float p_Z)
 {
     if (m_OriginOffset != glm::vec3(0.0f, 0.0f, 0.0f))
     {
-        m_Model = glm::translate(m_Model, m_OriginOffset);
+        m_ModelTransformation = glm::translate(m_ModelTransformation, m_OriginOffset);
     }
 
-    m_Model = glm::rotate(m_Model, p_Angle, glm::vec3(p_X, p_Y, p_Z));
+    m_ModelTransformation = glm::rotate(m_ModelTransformation, p_Angle, glm::vec3(p_X, p_Y, p_Z));
 
     if (m_OriginOffset != glm::vec3(0.0f, 0.0f, 0.0f))
     {
-        m_Model = glm::translate(m_Model, -m_OriginOffset);
+        m_ModelTransformation = glm::translate(m_ModelTransformation, -m_OriginOffset);
     }
 }
 
@@ -153,14 +153,14 @@ void Node::Translate(float p_X, float p_Y, float p_Z)
 {
     if (m_OriginOffset != glm::vec3(0.0f, 0.0f, 0.0f))
     {
-        m_Model = glm::translate(m_Model, m_OriginOffset);
+        m_ModelTransformation = glm::translate(m_ModelTransformation, m_OriginOffset);
     }
 
-    m_Model = glm::translate(m_Model, glm::vec3(p_X, p_Y, p_Z));
+    m_ModelTransformation = glm::translate(m_ModelTransformation, glm::vec3(p_X, p_Y, p_Z));
 
     if (m_OriginOffset != glm::vec3(0.0f, 0.0f, 0.0f))
     {
-        m_Model = glm::translate(m_Model, -m_OriginOffset);
+        m_ModelTransformation = glm::translate(m_ModelTransformation, -m_OriginOffset);
     }
 }
 
@@ -168,14 +168,14 @@ void Node::Scale(float p_X, float p_Y, float p_Z)
 {
     if (m_OriginOffset != glm::vec3(0.0f, 0.0f, 0.0f))
     {
-        m_Model = glm::translate(m_Model, m_OriginOffset);
+        m_ModelTransformation = glm::translate(m_ModelTransformation, m_OriginOffset);
     }
 
-    m_Model = glm::scale(m_Model, glm::vec3(p_X, p_Y, p_Z));
+    m_ModelTransformation = glm::scale(m_ModelTransformation, glm::vec3(p_X, p_Y, p_Z));
 
     if (m_OriginOffset != glm::vec3(0.0f, 0.0f, 0.0f))
     {
-        m_Model = glm::translate(m_Model, -m_OriginOffset);
+        m_ModelTransformation = glm::translate(m_ModelTransformation, -m_OriginOffset);
     }
 }
 
@@ -212,7 +212,7 @@ void Node::SetPosition(float p_X, float p_Y)
 
     Reset();
     Translate(m_BoundedRegion.m_Position.x, m_BoundedRegion.m_Position.y, m_BoundedRegion.m_Position.z);
-    m_AbsoluteTransformation = m_Model * GetParentsTransformation(GetParent());
+    m_AbsoluteTransformation = m_ModelTransformation * GetParentsTransformation(GetParent());
 }
 
 void Node::GatherFlatNodeList()
