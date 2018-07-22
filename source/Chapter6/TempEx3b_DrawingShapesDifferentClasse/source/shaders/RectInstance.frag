@@ -18,7 +18,6 @@ void main()
 {
     // Pass through fragment color input as output
     outColor = fragColor;
-	outColor.w = 0.5;
 	return;
 	///////////////////////////////
 
