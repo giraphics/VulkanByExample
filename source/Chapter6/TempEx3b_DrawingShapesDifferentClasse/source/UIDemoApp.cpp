@@ -9,7 +9,6 @@ int main(int argc, char **argv)
     QApplication qtApp(argc, argv);
 
     UIDemoApp* instanceDemo = new UIDemoApp();
-    instanceDemo->SetWindowDimension(800, 600);
     instanceDemo->EnableDepthBuffer(true);
     instanceDemo->EnableWindowResize(true);
     instanceDemo->Initialize();
@@ -115,10 +114,10 @@ void UIDemoApp::Update()
     static float rot = 0.0;
     if (m_RectTr1)
     {
+        m_RectTr1->ResetPosition();
         m_RectTr1->Rotate(.001, 0.0, 0.0, 1.0);
      
-        m_RectTr2->Reset();
-        m_RectTr2->SetPosition(100, 100);
+        m_RectTr2->ResetPosition();
         m_RectTr2->Rotate(rot += .1, 0.0, 0.0, 1.0);
         
         m_RectTr3->Rotate(.003, 0.0, 0.0, 1.0);

@@ -37,16 +37,16 @@ public:
     void Rotate(float p_Angle, float p_X, float p_Y, float p_Z);
     void Translate(float p_X, float p_Y, float p_Z);
     void Scale(float p_X, float p_Y, float p_Z);
-
-    void Reset() { m_ModelTransformation = glm::mat4(); }
+    void Reset() { m_ModelTransformation = glm::mat4(); } // Load identity
+    void ResetPosition(); // Reset the tranformation to identity first, then set the position m_BoundedRegion.m_Position.x/y/z 
     void SetZOrder(float p_ZOrder);
     void SetPosition(float p_X, float p_Y);
     void SetGeometry(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder = 0.0f);
-
-    inline Node* GetParent() const;
     void ApplyTransformation();
     glm::mat4 GetAbsoluteTransformations() const;
     glm::mat4 GetParentsTransformation(Node* p_Parent) const;
+
+    inline Node* GetParent() const;
     void GatherFlatNodeList();
 
     // Event Management
@@ -54,7 +54,6 @@ public:
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
     virtual void mouseMoveEvent(QMouseEvent* p_Event);
     virtual void keyPressEvent() UNIMPLEMENTED_INTEFACE
-    virtual void ResizeWindow(int width, int height) {}
 
     GETSET(QString,                     Name)
     GETSET(SHAPE,                       ShapeType);
