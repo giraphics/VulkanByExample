@@ -688,8 +688,9 @@ void RectangleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
             }PC;
 
             PC.inColor = model->GetColor();
-            //PC.modelMatrix = /*(*model->GetScene()->GetProjection()) * (*model->GetScene()->GetView()) */ model->GetTransformedModel();
-            //PC.modelMatrix = (*GetProjection()) * (*GetView()) model->GetModel();// GetTransformedModel();
+            //PC.inColor.a = 0.5;
+            //PC.modelMatrix = /*(*model->GetScene()->GetProjection()) * (*model->GetScene()->GetView()) */ model->GetAbsoluteTransformation();
+            //PC.modelMatrix = (*GetProjection()) * (*GetView()) model->GetModelTransformation();// GetAbsoluteTransformation();
 
             // Check if number of push constants does not exceed the allowed size
             int maxPushContantSize = m_VulkanApplication->m_physicalDeviceInfo.prop.limits.maxPushConstantsSize;
