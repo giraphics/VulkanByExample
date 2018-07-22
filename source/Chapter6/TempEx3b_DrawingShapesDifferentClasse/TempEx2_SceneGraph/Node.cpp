@@ -29,10 +29,10 @@ void Node::Setup()
 void Node::mousePressEvent(QMouseEvent* p_Event)
 {
     glm::vec4 posStart((0 * m_BoundedRegion.m_Dimension.x), (0 * m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
-    glm::vec4 posStartResult = m_TransformedModel * posStart;
+    glm::vec4 posStartResult = m_AbsoluteTransformation * posStart;
 
     glm::vec4 posEnd((m_BoundedRegion.m_Dimension.x), (m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
-    glm::vec4 posEndResult = m_TransformedModel * posEnd;
+    glm::vec4 posEndResult = m_AbsoluteTransformation * posEnd;
 
     cout << "\n##### mousePressEventS" << glm::to_string(posStartResult);// << posEndResult;
     cout << "\n##### mousePressEventE" << glm::to_string(posEndResult);// << posEndResult;
@@ -62,10 +62,10 @@ void Node::mouseReleaseEvent(QMouseEvent* p_Event)
 void Node::mouseMoveEvent(QMouseEvent* p_Event)
 {
     glm::vec4 posStart((0 * m_BoundedRegion.m_Dimension.x), (0 * m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
-    glm::vec4 posStartResult = /*GetParentsTransformation(GetParent()) **/ m_TransformedModel * posStart;
+    glm::vec4 posStartResult = /*GetParentsTransformation(GetParent()) **/ m_AbsoluteTransformation * posStart;
 
     glm::vec4 posEnd((m_BoundedRegion.m_Dimension.x), (m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
-    glm::vec4 posEndResult = /*GetParentsTransformation(GetParent()) **/ m_TransformedModel * posEnd;
+    glm::vec4 posEndResult = /*GetParentsTransformation(GetParent()) **/ m_AbsoluteTransformation * posEnd;
 
     QRect rect(QPoint(posStartResult.x, posStartResult.y), QPoint(posEndResult.x, posEndResult.y));
     if (rect.contains(p_Event->x(), p_Event->y()))
@@ -97,7 +97,7 @@ void Node::ApplyTransformation()
     *m_Scene->Transform().GetModelMatrix() *= m_Model;
 }
 
-glm::mat4 Node::GetRelativeTransformations() const
+glm::mat4 Node::GetAbsoluteTransformations() const
 {
     return GetParentsTransformation(GetParent()) * m_Model;
 }
@@ -107,6 +107,8 @@ glm::mat4 Node::GetParentsTransformation(Node *p_Parent) const
     return p_Parent ? (GetParentsTransformation(p_Parent->GetParent()) * p_Parent->m_Model) : glm::mat4();
 }
 
+// p_Item != NULL => Update is performed w.r.t. root parent
+// p_Item == NULL => Update is performed w.r.t. p_Item's parent
 void Node::Update(Node* p_Item)
 {
     m_Scene->PushMatrix();
@@ -119,7 +121,7 @@ void Node::Update(Node* p_Item)
         m_Scene->ApplyTransformation(m_Model);
     }
 
-    m_TransformedModel = *m_Scene->GetRefTransform().GetModelMatrix();
+    m_AbsoluteTransformation = *m_Scene->GetRefTransform().GetModelMatrix();
     
     QList<Node*>& childList = (p_Item ? p_Item->m_ChildList : m_ChildList);
     Q_FOREACH(Node* childItem, childList)
@@ -200,17 +202,17 @@ void Node::SetZOrder(float p_ZOrder)
 void Node::SetPosition(float p_X, float p_Y)
 {
     glm::vec4 posStart((0 * m_BoundedRegion.m_Dimension.x), (0 * m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
-    glm::vec4 posStartResult = m_TransformedModel * posStart;
+    glm::vec4 posStartResult = m_AbsoluteTransformation * posStart;
 
     glm::vec4 posEnd((m_BoundedRegion.m_Dimension.x), (m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
-    glm::vec4 posEndResult = m_TransformedModel * posEnd;
+    glm::vec4 posEndResult = m_AbsoluteTransformation * posEnd;
 
     m_BoundedRegion.m_Position.x = p_X;
     m_BoundedRegion.m_Position.y = p_Y;
 
     Reset();
     Translate(m_BoundedRegion.m_Position.x, m_BoundedRegion.m_Position.y, m_BoundedRegion.m_Position.z);
-    m_TransformedModel = m_Model * GetParentsTransformation(GetParent());
+    m_AbsoluteTransformation = m_Model * GetParentsTransformation(GetParent());
 }
 
 void Node::GatherFlatNodeList()

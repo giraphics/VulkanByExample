@@ -45,10 +45,11 @@ public:
 
     inline Node* GetParent() const;
     void ApplyTransformation();
-    glm::mat4 GetRelativeTransformations() const;
+    glm::mat4 GetAbsoluteTransformations() const;
     glm::mat4 GetParentsTransformation(Node* p_Parent) const;
     void GatherFlatNodeList();
 
+    // Event Management
     virtual void mousePressEvent(QMouseEvent* p_Event);
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
     virtual void mouseMoveEvent(QMouseEvent* p_Event);
@@ -62,7 +63,7 @@ public:
     GETSET(glm::vec4,                   DefaultColor)
     GETSET(glm::mat4,                   Model)
     GETSET(glm::vec3,                   OriginOffset)
-    GETSET(glm::mat4,                   TransformedModel)
+    GETSET(glm::mat4,                   AbsoluteTransformation)
     GETSET(Scene*,                      Scene)
     GETSET(Node*,                       Parent)
     GETSET(QList<Node*>,                ChildList)

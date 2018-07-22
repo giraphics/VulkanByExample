@@ -57,7 +57,7 @@ void Circle::Setup()
 
 void Circle::CreateCircleVertexBuffer()
 {
-    glm::mat4 parentTransform = GetTransformedModel();//m_Model * GetParentsTransformation(GetParent());
+    glm::mat4 parentTransform = GetAbsoluteTransformation();//m_Model * GetParentsTransformation(GetParent());
 
     CircleVertex rectVertices[6];
     memcpy(rectVertices, rectFilledVertices, sizeof(CircleVertex) * 6);
@@ -741,8 +741,8 @@ void CircleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
             }PC;
 
             PC.inColor = model->GetColor();
-            //PC.modelMatrix = /*(*model->GetScene()->GetProjection()) * (*model->GetScene()->GetView()) */ model->GetTransformedModel();
-            //PC.modelMatrix = (*GetProjection()) * (*GetView()) model->GetModel();// GetTransformedModel();
+            //PC.modelMatrix = /*(*model->GetScene()->GetProjection()) * (*model->GetScene()->GetView()) */ model->GetAbsoluteTransformation();
+            //PC.modelMatrix = (*GetProjection()) * (*GetView()) model->GetModel();// GetAbsoluteTransformation();
 
             // Check if number of push constants does not exceed the allowed size
             int maxPushContantSize = m_VulkanApplication->m_physicalDeviceInfo.prop.limits.maxPushConstantsSize;
