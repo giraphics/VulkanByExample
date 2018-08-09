@@ -55,6 +55,11 @@ public:
 	virtual void mouseReleaseEvent(QMouseEvent* p_Event) {}
 	virtual void mouseMoveEvent(QMouseEvent* p_Event) {}
 
+    void SetView(void *pView) {
+      m_pView = pView;
+    }
+
+    void* GetWinID(WId p_WinID);
 protected:
 	// Core virtual methods used by derived classes
 	virtual void Configure() = 0; // Application's user configuration prior to Setup()
@@ -137,6 +142,7 @@ public:
 	// Presentation synchronization objects
 	VkSemaphore                     m_hRenderReadySemaphore;
     VkSemaphore                     m_hPresentReadySemaphore;
+    void* m_pView;
 };
 
 class Window : public QWindow

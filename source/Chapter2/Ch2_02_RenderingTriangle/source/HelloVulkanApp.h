@@ -7,7 +7,7 @@ public:
     HelloVulkanApp();
 	virtual ~HelloVulkanApp();
 
-	void SetApplicationName(string name);
+    //void SetApplicationName(string name);
 
 protected:
 	virtual void Configure();

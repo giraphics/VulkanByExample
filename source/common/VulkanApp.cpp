@@ -15,6 +15,12 @@
                             } \
                         }
 
+#ifdef VK_USE_PLATFORM_MACOS_MVK
+extern "C" {
+void makeViewMetalCompatible(void* handle);
+}
+#endif
+
 Window::Window(VulkanApp* vulkanApp) : m_VulkanApp(vulkanApp)
 {
 	assert(vulkanApp);
@@ -199,6 +205,7 @@ void VulkanApp::CreateSurface()
 {
 	m_pWindow = new Window(this); // Create the window to provide display housing
 	m_pWindow->show();
+    m_pView = GetWinID(m_pWindow->winId());
 
 	VkResult  result;
 	// Create the Vulkan surface for the application window
@@ -210,6 +217,14 @@ void VulkanApp::CreateSurface()
 	createInfo.hwnd = HWND(m_pWindow->winId());
 
 	result = vkCreateWin32SurfaceKHR(m_hInstance, &createInfo, NULL, &m_hSurface);
+#elif __APPLE__
+    VkMacOSSurfaceCreateInfoMVK createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
+    createInfo.pNext = nullptr;
+    createInfo.flags = 0;
+    createInfo.pView = m_pView;
+
+    result = vkCreateMacOSSurfaceMVK(m_hInstance, &createInfo, nullptr, &m_hSurface);
 #endif
 
 	if (result != VK_SUCCESS)
@@ -733,7 +748,7 @@ void VulkanApp::CreateCommandBuffers()
 {
     // Create the command buffer pool object
 	if (!m_hCommandPool)
-	{ 
+	{
         // Note: We are overidding the default Create Command pool with VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
         // because we need to re-record the command buffer when the instance data size changes. 
         // This need to recreate the command buffer. 
@@ -823,6 +838,20 @@ void VulkanApp::ResizeWindow(int width, int height)
     m_activeSwapChainImageIndex = 0;
 
     vkDeviceWaitIdle(m_hDevice);
+}
+
+void* VulkanApp::GetWinID(WId p_WinID)
+{
+    void* viewId = NULL;
+
+#ifdef VK_USE_PLATFORM_MACOS_MVK
+    makeViewMetalCompatible(reinterpret_cast<void*>(p_WinID));
+    viewId = reinterpret_cast<void*>(p_WinID);
+#elif VK_USE_PLATFORM_WIN32_KHR
+    viewId = reinterpret_cast<HWND>(p_WinID);
+#endif
+
+    return viewId;
 }
 
 bool VulkanApp::Render()

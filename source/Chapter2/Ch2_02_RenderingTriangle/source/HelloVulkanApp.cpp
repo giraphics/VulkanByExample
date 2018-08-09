@@ -25,10 +25,23 @@ void HelloVulkanApp::Configure()
     SetApplicationName("Hello World!");
     SetWindowDimension(800, 600);
 
+#ifdef _WIN32
     // Add Vulkan instance extensions
     AddInstanceExtension(VK_KHR_SURFACE_EXTENSION_NAME);
     AddInstanceExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
     AddInstanceExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+
+   #ifdef _WIN64
+   #else
+   #endif
+#elif __APPLE__
+    AddInstanceExtension("VK_KHR_surface");
+    AddInstanceExtension("VK_MVK_macos_surface");
+//    static std::vector<const char *> deviceExtensions = {
+//      "VK_KHR_swapchain",
+//    };
+#endif
+
 }
 
 void HelloVulkanApp::Setup()
@@ -42,14 +55,11 @@ void HelloVulkanApp::Setup()
 
 void HelloVulkanApp::Update()
 {
-	// The following code records the commands to draw
-	// a quad in a blue background
-	static float a = 0.00000002;
-	a += 0.0002;
+    static float iTime = 0.0f;
+    iTime += 0.01f;
+    VkClearValue clearColor[1];
+    clearColor[0].color = { cos(iTime), abs(cos(iTime) - sin(iTime)), sin(iTime), 0.0f };
 
-	// Background color (Blue)
-	// The color values are defined in this order (Red,Green,Blue,Alpha)
-	VkClearValue clearColor = { 0.0f + a, 0.0f, 0.0f, 1.0f };
 	// Offset to render in the frame buffer
 	VkOffset2D   renderOffset = { 0, 0 };
 	// Width & Height to render in the frame buffer
@@ -73,7 +83,7 @@ void HelloVulkanApp::Update()
 		renderPassInfo.renderArea.offset = renderOffset;
 		renderPassInfo.renderArea.extent = renderExtent;
 		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearColor;
+        renderPassInfo.pClearValues = clearColor;
 
 		// Step 2: Begin render pass
 		vkCmdBeginRenderPass(m_hCommandBufferList[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -100,7 +110,11 @@ void HelloVulkanApp::Update()
 void HelloVulkanApp::CreateGraphicsPipeline()
 {
     // Compile the vertex shader
+#ifdef _WIN32
 	VkShaderModule vertShader = VulkanHelper::CreateShader(m_hDevice, "../source/shaders/TriangleVert.spv"); // Relative path to binary output dir
+#elif __APPLE__
+    VkShaderModule vertShader = VulkanHelper::CreateShader(m_hDevice,
+#endif
 
 	// Setup the vertex shader stage create info structures
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
@@ -110,7 +124,11 @@ void HelloVulkanApp::CreateGraphicsPipeline()
     vertShaderStageInfo.pName = "main";
 
     // Compile the fragment shader
+#ifdef _WIN32
 	VkShaderModule fragShader = VulkanHelper::CreateShader(m_hDevice, "../source/shaders/TriangleFrag.spv"); // Relative path to binary output dir
+#elif __APPLE__
+    VkShaderModule fragShader = VulkanHelper::CreateShader(m_hDevice, "/Users/parminder/Dev/Metal/QtMetal/VulkanByExample-master/source/MoltenVkSamples/Ch2_02_RenderingTriangle/source/shaders/TriangleFrag.spv"); // Relative path to binary output dir
+#endif
 
 	// Setup the fragment shader stage create info structures
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
