@@ -36,6 +36,7 @@ void MyFirst3DApp::Configure()
     SetApplicationName("My First 3D Application - Depth buffer");
     SetWindowDimension(800, 600);
 
+#ifdef _WIN32
     // Add Validation Layers
     AddValidationLayer("VK_LAYER_LUNARG_standard_validation");
 
@@ -43,6 +44,14 @@ void MyFirst3DApp::Configure()
     AddInstanceExtension(VK_KHR_SURFACE_EXTENSION_NAME);
     AddInstanceExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
     AddInstanceExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+
+   #ifdef _WIN64
+   #else
+   #endif
+#elif __APPLE__
+    AddInstanceExtension("VK_KHR_surface");
+    AddInstanceExtension("VK_MVK_macos_surface");
+#endif
 }
 
 void MyFirst3DApp::Setup()

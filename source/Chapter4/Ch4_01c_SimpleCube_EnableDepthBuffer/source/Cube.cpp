@@ -72,7 +72,12 @@ void Cube::Update()
 void Cube::CreateGraphicsPipeline()
 {
     // Compile the vertex shader
+#ifdef _WIN32
     VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CubeVert.spv"); // Relative path to binary output dir
+#elif __APPLE__
+    VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice,
+    "/Users/parminder/Dev/Giraphics/VulkanByExample/source/Chapter4/Ch4_01c_SimpleCube_EnableDepthBuffer/source/shaders/CubeVert.spv"); // Relative path to binary output dir
+#endif
 
 	// Setup the vertex shader stage create info structures
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
@@ -82,7 +87,12 @@ void Cube::CreateGraphicsPipeline()
     vertShaderStageInfo.pName = "main";
 
     // Compile the fragment shader
-    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CubeFrag.spv"); // Relative path to binary output dir
+#ifdef _WIN32
+    //    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CubeFrag.spv"); // Relative path to binary output dir
+#elif __APPLE__
+    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice,
+    "/Users/parminder/Dev/Giraphics/VulkanByExample/source/Chapter4/Ch4_01c_SimpleCube_EnableDepthBuffer/source/shaders/CubeFrag.spv"); // Relative path to binary output dir
+#endif
 
 	// Setup the fragment shader stage create info structures
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
