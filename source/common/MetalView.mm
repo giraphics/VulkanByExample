@@ -1,3 +1,5 @@
+#ifdef __APPLE__
+
 #import <Cocoa/Cocoa.h>
 
 #include <QuartzCore/CAMetalLayer.h>
@@ -14,3 +16,5 @@ extern "C" void makeViewMetalCompatible(void* handle) {
     [view setWantsLayer:YES];
   }
 }
+
+#endif
