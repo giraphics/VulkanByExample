@@ -113,7 +113,7 @@ void HelloVulkanApp::CreateGraphicsPipeline()
 #ifdef _WIN32
     VkShaderModule vertShader = VulkanHelper::CreateShader(m_hDevice, "../source/shaders/TriangleVert.spv"); // Relative path to binary output dir
 #elif __APPLE__
-    VkShaderModule vertShader = VulkanHelper::CreateShaderFromData(m_hDevice, "://source/shaders/TriangleVert.spv");
+    VkShaderModule vertShader = VulkanHelper::CreateShaderFromQRCResource(m_hDevice, "://source/shaders/TriangleVert.spv");
 #endif
 
 	// Setup the vertex shader stage create info structures
@@ -127,7 +127,7 @@ void HelloVulkanApp::CreateGraphicsPipeline()
 #ifdef _WIN32
     VkShaderModule fragShader = VulkanHelper::CreateShader(m_hDevice, "../source/shaders/TriangleFrag.spv"); // Relative path to binary output dir
 #elif __APPLE__
-    VkShaderModule fragShader = VulkanHelper::CreateShaderFromData(m_hDevice, "://source/shaders/TriangleFrag.spv");
+    VkShaderModule fragShader = VulkanHelper::CreateShaderFromQRCResource(m_hDevice, "://source/shaders/TriangleFrag.spv");
 #endif
 
 	// Setup the fragment shader stage create info structures
@@ -312,6 +312,7 @@ int main(int argc, char **argv)
 
 	VulkanApp* helloVulkanApp = new HelloVulkanApp(); // Create Vulkan app instance
 	helloVulkanApp->Initialize();
+    helloVulkanApp->m_pWindow->show();
 	qtApp.exec();
 	
 	delete helloVulkanApp;

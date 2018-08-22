@@ -32,6 +32,7 @@ HEADERS += \
         ../../../source/common/VulkanApp.h \
         source/HelloVulkanApp.h
 
+CONFIG += c++11
 ParentDirectory = $$PWD
 
 RESOURCES += resource.qrc

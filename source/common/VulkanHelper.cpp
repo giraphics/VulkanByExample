@@ -260,7 +260,7 @@ VkShaderModule VulkanHelper::CreateShader(VkDevice device, const std::string& fi
     return shaderModule;
 }
 
-VkShaderModule VulkanHelper::CreateShaderFromData(VkDevice device, const std::string& filename)
+VkShaderModule VulkanHelper::CreateShaderFromQRCResource(VkDevice device, const std::string& filename)
 {
     QFile shadersFile(QString(filename.c_str()));
     if (!shadersFile.open(QIODevice::ReadOnly))
