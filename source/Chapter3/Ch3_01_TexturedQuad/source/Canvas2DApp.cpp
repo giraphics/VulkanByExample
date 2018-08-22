@@ -34,13 +34,22 @@ void Canvas2DApp::Configure()
 
     VulkanHelper::GetInstanceLayerExtensionProperties();
 
+#ifdef _WIN32
     // Add Validation Layers
     AddValidationLayer("VK_LAYER_LUNARG_standard_validation");
 
-    // Allow the user to specify the Vulkan instance extensions
+    // Add Vulkan instance extensions
     AddInstanceExtension(VK_KHR_SURFACE_EXTENSION_NAME);
     AddInstanceExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
     AddInstanceExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+
+   #ifdef _WIN64
+   #else
+   #endif
+#elif __APPLE__
+    AddInstanceExtension("VK_KHR_surface");
+    AddInstanceExtension("VK_MVK_macos_surface");
+#endif
 }
 
 void Canvas2DApp::Update()
@@ -74,7 +83,13 @@ void Canvas2DApp::CreateTexturedQuad()
 
     // 1: Load the jpg file and retrieve the pixel content.
     int texWidth, texHeight, texChannels;
+
+#ifdef _WIN32
     string filename = "../../../resources/textures/photos/1.jpg";
+#elif __APPLE__
+    string filename = "/Users/parminder/Dev/Metal/QtMetal/VulkanByExample-master/source/resources/textures/photos/1.jpg";
+#endif
+
     stbi_uc* pPixels = stbi_load(filename.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
     if (pPixels)
@@ -212,7 +227,12 @@ bool Canvas2DApp::CreateGraphicsPipeline()
     bool result = true;
 
     // Compile the vertex shader
+#ifdef _WIN32
     VkShaderModule vertShader = VulkanHelper::CreateShader(m_hDevice,"../source/shaders/QuadVert.spv");
+#elif __APPLE__
+    VkShaderModule vertShader = VulkanHelper::CreateShaderFromQRCResource(m_hDevice, "://source/shaders/QuadVert.spv"); // Relative path to binary output dir
+#endif
+
     // Setup the vertex shader stage create info structures
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -221,7 +241,12 @@ bool Canvas2DApp::CreateGraphicsPipeline()
     vertShaderStageInfo.pName = "main";
 
     // Compile the fragment shader
+#ifdef _WIN32
     VkShaderModule fragShader = VulkanHelper::CreateShader(m_hDevice,"../source/shaders/QuadFrag.spv");
+#elif __APPLE__
+    VkShaderModule fragShader = VulkanHelper::CreateShaderFromQRCResource(m_hDevice, "://source/shaders/QuadFrag.spv"); // Relative path to binary output dir
+#endif
+
     // Setup the fragment shader stage create info structures
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
     fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -413,6 +438,7 @@ int main(int argc, char **argv)
     Canvas2DApp* pCanvas2DApp = new Canvas2DApp(); // Create Vulkan app instance
     pCanvas2DApp->EnableDepthBuffer(false);
     pCanvas2DApp->Initialize();
+    pCanvas2DApp->m_pWindow->show();
     qtApp.exec();
 
     delete pCanvas2DApp;
