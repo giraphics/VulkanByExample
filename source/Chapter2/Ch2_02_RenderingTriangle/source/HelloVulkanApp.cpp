@@ -111,12 +111,9 @@ void HelloVulkanApp::CreateGraphicsPipeline()
 {
     // Compile the vertex shader
 #ifdef _WIN32
-	VkShaderModule vertShader = VulkanHelper::CreateShader(m_hDevice, "../source/shaders/TriangleVert.spv"); // Relative path to binary output dir
+    VkShaderModule vertShader = VulkanHelper::CreateShader(m_hDevice, "../source/shaders/TriangleVert.spv"); // Relative path to binary output dir
 #elif __APPLE__
-//    VkShaderModule vertShader = VulkanHelper::CreateShader(m_hDevice,
-//                                                           "/Users/parminder/Dev/Metal/QtMetal/VulkanByExample-master/source/MoltenVkSamples/Ch2_02_RenderingTriangle/source/shaders/TriangleVert.spv"); // Relative path to binary output dir
-    VkShaderModule vertShader = VulkanHelper::CreateShader(m_hDevice,
-                                                           "/Users/parminder/Dev/Giraphics/VulkanByExample/source/Chapter2/Ch2_02_RenderingTriangle/source/shaders/TriangleVert.spv"); // Relative path to binary output dir
+    VkShaderModule vertShader = VulkanHelper::CreateShaderFromData(m_hDevice, "://source/shaders/TriangleVert.spv");
 #endif
 
 	// Setup the vertex shader stage create info structures
@@ -128,9 +125,9 @@ void HelloVulkanApp::CreateGraphicsPipeline()
 
     // Compile the fragment shader
 #ifdef _WIN32
-	VkShaderModule fragShader = VulkanHelper::CreateShader(m_hDevice, "../source/shaders/TriangleFrag.spv"); // Relative path to binary output dir
+    VkShaderModule fragShader = VulkanHelper::CreateShader(m_hDevice, "../source/shaders/TriangleFrag.spv"); // Relative path to binary output dir
 #elif __APPLE__
-    VkShaderModule fragShader = VulkanHelper::CreateShader(m_hDevice, "/Users/parminder/Dev/Giraphics/VulkanByExample/source/Chapter2/Ch2_02_RenderingTriangle/source/shaders/TriangleFrag.spv"); // Relative path to binary output dir
+    VkShaderModule fragShader = VulkanHelper::CreateShaderFromData(m_hDevice, "://source/shaders/TriangleFrag.spv");
 #endif
 
 	// Setup the fragment shader stage create info structures

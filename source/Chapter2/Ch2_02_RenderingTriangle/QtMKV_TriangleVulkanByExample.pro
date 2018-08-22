@@ -22,7 +22,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-
 SOURCES += \
         ../../../source/common/VulkanHelper.cpp \
         ../../../source/common/VulkanApp.cpp \
@@ -33,27 +32,51 @@ HEADERS += \
         ../../../source/common/VulkanApp.h \
         source/HelloVulkanApp.h
 
+ParentDirectory = $$PWD
+
+RESOURCES += resource.qrc
+
+CONFIG(debug, debug|release) {
+    DESTDIR = "$$ParentDirectory/build/debug"
+}
+
+CONFIG(release, debug|release) {
+    DESTDIR = "$$ParentDirectory/build/release"
+}
+
+RCC_DIR = "$$DESTDIR"
+UI_DIR = "$$DESTDIR"
+MOC_DIR = "$$DESTDIR"
+OBJECTS_DIR = "$$DESTDIR"
+
 macx {
-    SOURCES += makeviewmetal.mm
+    OBJECTIVE_SOURCES += ../../../source/common/MetalView.mm
     DEFINES += VK_USE_PLATFORM_MACOS_MVK
-    VULKAN_SDK_PATH = /Users/parminder/Dev/Metal/QtMetal/MoltenVK-master/MoltenVK/macOS
-    VULKAN_DYLIB = $${VULKAN_SDK_PATH}/libMoltenVK.dylib
+    VULKAN_SDK_PATH = /Users/parminder/Dev/Metal/QtMetal/vulkansdk-macos-1.1.82.1
+    VULKAN_SDK_BIN = $${VULKAN_SDK_PATH}/macOS/bin
+    VULKAN_DYLIB = $${VULKAN_SDK_PATH}/MoltenVK/macOS/libMoltenVK.dylib
 
     LIBS += $$VULKAN_DYLIB
     LIBS += -framework Cocoa -framework QuartzCore
+
     # Copy dylib to app bundle
     VULKAN_DATA.path = Contents/Frameworks
     VULKAN_DATA.files = $$VULKAN_DYLIB
     QMAKE_BUNDLE_DATA += VULKAN_DATA
 
-    INCLUDEPATH += /Users/parminder/Dev/Metal/QtMetal/MoltenVK-master/MoltenVK/include
+    #INCLUDEPATH += /Users/parminder/Dev/Metal/QtMetal/MoltenVK-master/MoltenVK/include
+    INCLUDEPATH += $${VULKAN_SDK_PATH}/MoltenVK/include
     INCLUDEPATH += ../../../source/external
 
     # Fix @rpath
     QMAKE_RPATHDIR += @executable_path/../Frameworks
 
-#    QMAKE_POST_LINK += $${VULKAN_SDK_PATH}/macOS/bin/glslangValidator -V $$PWD/shaders/shader.vert;
-#    QMAKE_POST_LINK += $${VULKAN_SDK_PATH}/macOS/bin/glslangValidator -V $$PWD/shaders/shader.frag;
+    QMAKE_POST_LINK += $${VULKAN_SDK_BIN}/glslangValidator -V \
+                       $${PWD}/source/shaders/Triangle.vert -o \
+                       $${PWD}/source/shaders/TriangleVert.spv;
+    QMAKE_POST_LINK += $${VULKAN_SDK_BIN}/glslangValidator -V \
+                       $${PWD}/source/shaders/Triangle.frag -o \
+                       $${PWD}/source/shaders/TriangleFrag.spv;
 #    QMAKE_POST_LINK += $$QMAKE_COPY $$OUT_PWD/vert.spv $$OUT_PWD/$${TARGET}.app/Contents/MacOS;
 #    QMAKE_POST_LINK += $$QMAKE_COPY $$OUT_PWD/frag.spv $$OUT_PWD/$${TARGET}.app/Contents/MacOS;
 }

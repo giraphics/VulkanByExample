@@ -94,7 +94,8 @@ public:
 	static void LogError(string text);
 
 	// Shader helper funcitons
-	static VkShaderModule CreateShader(VkDevice device, const std::string& filename);
+    static VkShaderModule CreateShader(VkDevice device, const std::string& filename);
+    static VkShaderModule CreateShaderFromData(VkDevice device, const std::string& filename);
 
 	static bool MemoryTypeFromProperties(VkPhysicalDeviceMemoryProperties memoryProperties, uint32_t typeBits, VkFlags requirementsMask, uint32_t *typeIndex);
 

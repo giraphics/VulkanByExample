@@ -1,7 +1,7 @@
 #include "VulkanApp.h"
 #include <QElapsedtimer>
 #define FPS_TIME_START { \
-                            static QElapsedTimer FPS; static int m_Frame;\
+                            /*static QElapsedTimer FPS; static int m_Frame;*/\
                             if (!FPS.isValid()) { FPS.start(); }
 
 #define FPS_TIME_END        ++m_Frame; \
@@ -23,24 +23,24 @@ void makeViewMetalCompatible(void* handle);
 
 Window::Window(VulkanApp* vulkanApp) : m_VulkanApp(vulkanApp)
 {
-	assert(vulkanApp);
+    assert(vulkanApp);
 
     VkExtent2D dimension = vulkanApp->GetWindowDimension();
 
-	setWidth(dimension.width);
-	setHeight(dimension.height);
+    setWidth(dimension.width);
+    setHeight(dimension.height);
     setTitle(QString(vulkanApp->GetAppllicationName().c_str()));
 
-	renderTimer = new QTimer();
-	renderTimer->setInterval(1);
+    renderTimer = new QTimer();
+    renderTimer->setInterval(1);
 
-	connect(renderTimer, SIGNAL(timeout()), this, SLOT(Run()));
-	renderTimer->start();
+    connect(renderTimer, SIGNAL(timeout()), this, SLOT(Run()));
+    renderTimer->start();
 }
 
 void Window::Run()
 {
-	m_VulkanApp->Run();
+    m_VulkanApp->Run();
 }
 
 void Window::resizeEvent(QResizeEvent* pEvent)
@@ -60,7 +60,7 @@ VulkanApp::VulkanApp()
 {
     m_pWindow = nullptr;
 
-	m_appName = "Vulkan Application";    // Default application name
+    m_appName = "Vulkan Application";    // Default application name
 
     SetWindowDimension(640, 480);    // Default application window dimension
 
@@ -90,8 +90,8 @@ VulkanApp::VulkanApp()
     // use the selected vulkan device to present rendered output to a window
     m_requiredDeviceExtensionList.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
-	memset(&DepthImage, 0, sizeof(DepthImage));
-	m_DepthEnabled = false;
+    memset(&DepthImage, 0, sizeof(DepthImage));
+    m_DepthEnabled = false;
     m_ReSizeEnabled = false;
 }
 
@@ -137,7 +137,7 @@ void VulkanApp::Initialize()
 
 void VulkanApp::Run()
 {
-	FPS_TIME_START
+    FPS_TIME_START
     Update(); // For derive implementation to update data
     Render(); // Render application specific data
     Present(); // Display the drawing output on presentation window
@@ -204,7 +204,9 @@ void VulkanApp::CreateVulkanInstance()
 void VulkanApp::CreateSurface()
 {
 	m_pWindow = new Window(this); // Create the window to provide display housing
-	m_pWindow->show();
+    #ifdef _WIN32
+	m_pWindow->show(); // This is fatal, on MacOS do not show the window as
+	#endif // Remove this show() once fixed for all example call show from the app itself.
     m_pView = GetWinID(m_pWindow->winId());
 
 	VkResult  result;
@@ -578,108 +580,108 @@ void VulkanApp::CreateSwapChain()
 
 void VulkanApp::CreateDepthImage()
 {
-	DepthImage.m_Format = VK_FORMAT_D16_UNORM;
-	DepthImage.m_Image.in.extent = { static_cast<uint32_t>(m_pWindow->width()), static_cast<uint32_t>(m_pWindow->height()), 1 };
+    DepthImage.m_Format = VK_FORMAT_D16_UNORM;
+    DepthImage.m_Image.in.extent = { static_cast<uint32_t>(m_pWindow->width()), static_cast<uint32_t>(m_pWindow->height()), 1 };
 
-	VkImageCreateInfo imageInfo = {};
-	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	imageInfo.pNext = NULL;
-	imageInfo.imageType = VK_IMAGE_TYPE_2D;
-	imageInfo.format = DepthImage.m_Format;
-	imageInfo.extent = DepthImage.m_Image.in.extent;
-	imageInfo.mipLevels = 1;
-	imageInfo.arrayLayers = 1;
-	imageInfo.samples = NUM_SAMPLES;
-	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-	imageInfo.queueFamilyIndexCount = 0;
-	imageInfo.pQueueFamilyIndices = NULL;
-	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-	imageInfo.flags = 0;
+    VkImageCreateInfo imageInfo = {};
+    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.pNext = NULL;
+    imageInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageInfo.format = DepthImage.m_Format;
+    imageInfo.extent = DepthImage.m_Image.in.extent;
+    imageInfo.mipLevels = 1;
+    imageInfo.arrayLayers = 1;
+    imageInfo.samples = NUM_SAMPLES;
+    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageInfo.queueFamilyIndexCount = 0;
+    imageInfo.pQueueFamilyIndices = NULL;
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    imageInfo.flags = 0;
 
-	VulkanHelper::CreateImage(m_hDevice, m_physicalDeviceInfo.memProp, DepthImage.m_Image, &imageInfo);
+    VulkanHelper::CreateImage(m_hDevice, m_physicalDeviceInfo.memProp, DepthImage.m_Image, &imageInfo);
 
-	VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-	if (DepthImage.m_Format == VK_FORMAT_D16_UNORM_S8_UINT ||
-		DepthImage.m_Format == VK_FORMAT_D24_UNORM_S8_UINT ||
-		DepthImage.m_Format == VK_FORMAT_D32_SFLOAT_S8_UINT) {
-		aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
-	}
+    VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+    if (DepthImage.m_Format == VK_FORMAT_D16_UNORM_S8_UINT ||
+        DepthImage.m_Format == VK_FORMAT_D24_UNORM_S8_UINT ||
+        DepthImage.m_Format == VK_FORMAT_D32_SFLOAT_S8_UINT) {
+        aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+    }
 
-	// Set image layout for depth stencil image
-	if (!m_hCommandPool) { VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo); }
+    // Set image layout for depth stencil image
+    if (!m_hCommandPool) { VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo); }
 
-	VulkanHelper::AllocateCommandBuffer(m_hDevice, m_hCommandPool, &cmdBufferDepthImage);
-	VulkanHelper::BeginCommandBuffer(cmdBufferDepthImage);
+    VulkanHelper::AllocateCommandBuffer(m_hDevice, m_hCommandPool, &cmdBufferDepthImage);
+    VulkanHelper::BeginCommandBuffer(cmdBufferDepthImage);
 
-	VulkanHelper::SetImageLayout(DepthImage.m_Image.out.image, aspectMask,
-		VK_IMAGE_LAYOUT_UNDEFINED,
-		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, (VkAccessFlagBits)0, cmdBufferDepthImage);
+    VulkanHelper::SetImageLayout(DepthImage.m_Image.out.image, aspectMask,
+        VK_IMAGE_LAYOUT_UNDEFINED,
+        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, (VkAccessFlagBits)0, cmdBufferDepthImage);
 
-	VulkanHelper::EndCommandBuffer(cmdBufferDepthImage);
-	VulkanHelper::SubmitCommandBuffer(m_hGraphicsQueue, cmdBufferDepthImage);
+    VulkanHelper::EndCommandBuffer(cmdBufferDepthImage);
+    VulkanHelper::SubmitCommandBuffer(m_hGraphicsQueue, cmdBufferDepthImage);
 
-	// Create the image view and allow the application to use the images.
-	VkImageViewCreateInfo imgViewInfo = {};
-	imgViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	imgViewInfo.pNext = NULL;
-	imgViewInfo.image = DepthImage.m_Image.out.image;
-	imgViewInfo.format = VK_FORMAT_D16_UNORM;
-	imgViewInfo.components = { VK_COMPONENT_SWIZZLE_IDENTITY };
-	imgViewInfo.subresourceRange.aspectMask = aspectMask;
-	imgViewInfo.subresourceRange.baseMipLevel = 0;
-	imgViewInfo.subresourceRange.levelCount = 1;
-	imgViewInfo.subresourceRange.baseArrayLayer = 0;
-	imgViewInfo.subresourceRange.layerCount = 1;
-	imgViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	imgViewInfo.flags = 0;
+    // Create the image view and allow the application to use the images.
+    VkImageViewCreateInfo imgViewInfo = {};
+    imgViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    imgViewInfo.pNext = NULL;
+    imgViewInfo.image = DepthImage.m_Image.out.image;
+    imgViewInfo.format = VK_FORMAT_D16_UNORM;
+    imgViewInfo.components = { VK_COMPONENT_SWIZZLE_IDENTITY };
+    imgViewInfo.subresourceRange.aspectMask = aspectMask;
+    imgViewInfo.subresourceRange.baseMipLevel = 0;
+    imgViewInfo.subresourceRange.levelCount = 1;
+    imgViewInfo.subresourceRange.baseArrayLayer = 0;
+    imgViewInfo.subresourceRange.layerCount = 1;
+    imgViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    imgViewInfo.flags = 0;
 
-	VulkanHelper::CreateImageView(m_hDevice, DepthImage.m_ImageView, &imgViewInfo);
+    VulkanHelper::CreateImageView(m_hDevice, DepthImage.m_ImageView, &imgViewInfo);
 }
 
 void VulkanApp::CreateRenderPass()
 {
-	// Fill in the color attachment
+    // Fill in the color attachment
 
-	VkAttachmentDescription attachments[2] = {};
-	attachments[0].format = m_hSwapChainImageFormat;
-	attachments[0].samples = NUM_SAMPLES;
-	attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	attachments[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	attachments[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    VkAttachmentDescription attachments[2] = {};
+    attachments[0].format = m_hSwapChainImageFormat;
+    attachments[0].samples = NUM_SAMPLES;
+    attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attachments[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    attachments[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-	if (m_DepthEnabled)
-	{
-		attachments[1].format = DepthImage.m_Format;
-		attachments[1].samples = NUM_SAMPLES;
-		attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-		attachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
-		attachments[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		attachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-		attachments[1].flags = VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT;
-	}
+    if (m_DepthEnabled)
+    {
+        attachments[1].format = DepthImage.m_Format;
+        attachments[1].samples = NUM_SAMPLES;
+        attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+        attachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+        attachments[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        attachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        attachments[1].flags = VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT;
+    }
 
-	VkAttachmentReference attachmentRef[2] = {};
-	attachmentRef[0] = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };          // Color attachment
-	if (m_DepthEnabled)
-	{
-		attachmentRef[1] = { 1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };  // Depth attachment
-	}
+    VkAttachmentReference attachmentRef[2] = {};
+    attachmentRef[0] = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };          // Color attachment
+    if (m_DepthEnabled)
+    {
+        attachmentRef[1] = { 1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };  // Depth attachment
+    }
 
-	// Fill in the sub pass
-	VkSubpassDescription subpass = {};
-	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	subpass.colorAttachmentCount = 1;
-	subpass.pColorAttachments = &attachmentRef[0];
-	if (m_DepthEnabled)
-	{
-		subpass.pDepthStencilAttachment = &attachmentRef[1];
-	}
+    // Fill in the sub pass
+    VkSubpassDescription subpass = {};
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &attachmentRef[0];
+    if (m_DepthEnabled)
+    {
+        subpass.pDepthStencilAttachment = &attachmentRef[1];
+    }
 
     // Fill in the sub pass dependency
     VkSubpassDependency dependency = {};
@@ -703,8 +705,8 @@ void VulkanApp::CreateRenderPass()
     // Create the render pass
     if (vkCreateRenderPass(m_hDevice, &renderPassInfo, nullptr, &m_hRenderPass) != VK_SUCCESS)
     {
-		VulkanHelper::LogError("vkCreateRenderPass() failed to create render pass!");
-		assert(false);
+        VulkanHelper::LogError("vkCreateRenderPass() failed to create render pass!");
+        assert(false);
     }
 }
 

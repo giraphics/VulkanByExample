@@ -1,5 +1,7 @@
 #include "VulkanHelper.h"
 
+#include <QFile>
+
 std::vector<LayerProperties> VulkanHelper::m_LayerPropertyList = {};
 
 VulkanHelper::VulkanHelper()
@@ -255,7 +257,36 @@ VkShaderModule VulkanHelper::CreateShader(VkDevice device, const std::string& fi
 		assert(false);
 	}
 
-	return shaderModule;
+    return shaderModule;
+}
+
+VkShaderModule VulkanHelper::CreateShaderFromData(VkDevice device, const std::string& filename)
+{
+    QFile shadersFile(QString(filename.c_str()));
+    if (!shadersFile.open(QIODevice::ReadOnly))
+    {
+        LogError("Failed to create shader!");
+        assert(false);
+    }
+
+    QByteArray shaderCode = shadersFile.readAll();
+    VkShaderModule shaderModule = 0;
+
+    // Now create the shader module
+    VkShaderModuleCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    createInfo.codeSize = shaderCode.size();
+    createInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode.constData());
+
+    VkResult result = vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule);
+
+    if (result != VK_SUCCESS)
+    {
+        LogError("Failed to create shader!");
+        assert(false);
+    }
+
+    return shaderModule;
 }
 
 bool VulkanHelper::MemoryTypeFromProperties(VkPhysicalDeviceMemoryProperties memoryProperties, uint32_t typeBits, 

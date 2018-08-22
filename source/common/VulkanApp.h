@@ -5,8 +5,7 @@
 
 #include <QWindow>
 #include <QTimer>
-#include <QMainWindow>
-#include <QHBoxLayout>
+#include <QElapsedtimer>
 #include <QApplication>
 
 /*********** GLM HEADER FILES ***********/
@@ -143,6 +142,7 @@ public:
 	VkSemaphore                     m_hRenderReadySemaphore;
     VkSemaphore                     m_hPresentReadySemaphore;
     void* m_pView;
+    QElapsedTimer FPS; int m_Frame;
 };
 
 class Window : public QWindow
