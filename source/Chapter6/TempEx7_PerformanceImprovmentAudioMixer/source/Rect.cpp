@@ -114,6 +114,17 @@ void RectangleFactory::Update()
     PrepareInstanceData();
 }
 
+void RectangleFactory::UpdateDirty()
+{
+    VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice,
+        UniformBuffer->m_MappedMemory,
+        UniformBuffer->m_MappedRange,
+        UniformBuffer->m_BufObj.m_MemoryFlags,
+        &m_Transform, sizeof(m_Transform));
+
+    UpdateDirtyInstanceData();
+}
+
 void RectangleFactory::ResizeWindow(int width, int height)
 {
     CreateGraphicsPipeline(true);
@@ -126,8 +137,14 @@ void RectangleFactory::ResizeWindow(int width, int height)
 void RectangleFactory::CreateRectOutlinePipeline()
 {
     // Compile the vertex shader
+#ifdef _WIN32
     VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CubeVert.spv"); // Relative path to binary output dir
                                                                                                                               // Setup the vertex shader stage create info structures
+#elif __APPLE__
+    VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice,
+    "/Users/parminder/Dev/Giraphics/VulkanByExample/source/Chapter6/TempEx7_PerformanceImprovmentAudioMixer/source/shaders/CubeVert.spv"); // Relative path to binary output dir
+#endif
+
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -135,8 +152,13 @@ void RectangleFactory::CreateRectOutlinePipeline()
     vertShaderStageInfo.pName = "main";
 
     // Compile the fragment shader
+#ifdef _WIN32
     VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CubeFrag.spv"); // Relative path to binary output dir
                                                                                                                               // Setup the fragment shader stage create info structures
+#elif __APPLE__
+    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice,
+    "/Users/parminder/Dev/Giraphics/VulkanByExample/source/Chapter6/TempEx7_PerformanceImprovmentAudioMixer/source/shaders/CubeFrag.spv"); // Relative path to binary output dir
+#endif
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
     fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -292,7 +314,13 @@ void RectangleFactory::CreateRectOutlinePipeline()
 void RectangleFactory::CreateRectFillPipeline()
 {
     // Compile the vertex shader
+#ifdef _WIN32
     VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CubeVert.spv"); // Relative path to binary output dir
+#elif __APPLE__
+    VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice,
+    "/Users/parminder/Dev/Giraphics/VulkanByExample/source/Chapter6/TempEx7_PerformanceImprovmentAudioMixer/source/shaders/CubeVert.spv"); // Relative path to binary output dir
+#endif
+
     // Setup the vertex shader stage create info structures
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -301,7 +329,12 @@ void RectangleFactory::CreateRectFillPipeline()
     vertShaderStageInfo.pName = "main";
 
     // Compile the fragment shader
+#ifdef _WIN32
     VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CubeFrag.spv"); // Relative path to binary output dir
+#elif __APPLE__
+    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice,
+    "/Users/parminder/Dev/Giraphics/VulkanByExample/source/Chapter6/TempEx7_PerformanceImprovmentAudioMixer/source/shaders/CubeFrag.spv"); // Relative path to binary output dir
+#endif
     // Setup the fragment shader stage create info structures
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
     fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -717,27 +750,73 @@ void RectangleFactory::UpdateModelList(Model3D *p_Item)
     }
 }
 
+void RectangleFactory::RemoveModelList(Model3D* p_Model)
+{
+    RectangleModel* rectangle = dynamic_cast<RectangleModel*>(p_Model);
+    assert(rectangle);
 
-void RectangleFactory::PrepareInstanceData()
+    std::vector<Model3D*>* modelVector = &m_PipelineTypeModelVector[rectangle->GetDrawType()];
+    if (!modelVector) return;
+
+    bool isUpdated = false;
+    while (1)
+    {
+        auto result = std::find(std::begin(*modelVector), std::end(*modelVector), rectangle);
+        if (result == std::end(*modelVector)) break;
+
+        modelVector->erase(result);
+        isUpdated = true;
+    }
+
+    if (isUpdated)
+    {
+        RECTANGLE_GRAPHICS_PIPELINES pipeline = PIPELINE_COUNT;
+
+        switch (rectangle->GetDrawType())
+        {
+        case RectangleModel::FILLED:
+            pipeline = PIPELINE_FILLED;
+            break;
+
+        case RectangleModel::OUTLINE:
+            pipeline = PIPELINE_OUTLINE;
+            break;
+
+        case RectangleModel::ROUNDED:
+            // TODO
+            break;
+
+        default:
+            break;
+        }
+
+        if (pipeline == PIPELINE_COUNT) return;
+
+        PrepareInstanceData(pipeline);
+    }
+}
+
+void RectangleFactory::PrepareInstanceData(RECTANGLE_GRAPHICS_PIPELINES p_Pipeline /*=PIPELINE_COUNT*/)
 {
     bool update = false;
-    for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
+    bool isSinglePipelinePrepareRequest = (p_Pipeline != PIPELINE_COUNT);
+    for (int pipelineIdx = (isSinglePipelinePrepareRequest ? p_Pipeline : 0); (pipelineIdx < PIPELINE_COUNT); (isSinglePipelinePrepareRequest ? (p_Pipeline = PIPELINE_COUNT/*break with single iteration*/) : pipelineIdx++))
     {
         ModelVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
         const int modelSize = m_ModelList.size();
         if (!modelSize) continue;
 
         //int oldInstanceDataSize = m_InstanceData.size();
-        std::vector<InstanceData> m_InstanceData;
+        std::vector<InstanceData> instanceData;
         //m_InstanceData.clear();
-        m_InstanceData.resize(modelSize);
+        instanceData.resize(modelSize);
 
         for (int i = 0; i < modelSize; i++)
         {
-            m_InstanceData[i].m_Model = m_ModelList.at(i)->GetTransformedModel();
-            m_InstanceData[i].m_Rect.x = m_ModelList.at(i)->GetDimension().x;
-            m_InstanceData[i].m_Rect.y = m_ModelList.at(i)->GetDimension().y;
-            m_InstanceData[i].m_Color = m_ModelList.at(i)->GetColor();
+            instanceData[i].m_Model = m_ModelList.at(i)->GetTransformedModel();
+            instanceData[i].m_Rect.x = m_ModelList.at(i)->GetDimension().x;
+            instanceData[i].m_Rect.y = m_ModelList.at(i)->GetDimension().y;
+            instanceData[i].m_Color = m_ModelList.at(i)->GetColor();
             m_ModelList.at(i)->SetGpuMemOffset(i * sizeof(InstanceData));
         }
 
@@ -754,7 +833,7 @@ void RectangleFactory::PrepareInstanceData()
                 m_VulkanApplication->m_hGraphicsQueue,
                 m_InstanceBuffer[pipelineIdx],
                 VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                m_InstanceData.data());
+                instanceData.data());
 
             if (modelSize != m_OldInstanceDataSize[pipelineIdx] && modelSize != 0)
             {
@@ -770,6 +849,78 @@ void RectangleFactory::PrepareInstanceData()
     {
         RecordCommandBuffer();
     }
+}
+
+void RectangleFactory::UpdateDirtyInstanceData()
+{
+    bool update = false;
+    for (int pipelineIdx = 0; pipelineIdx < PIPELINE_COUNT; pipelineIdx++)
+    {
+        ModelVector& modelList = m_PipelineTypeModelVector[pipelineIdx];
+        const int modelSize = static_cast<int>(modelList.size());
+        if (!modelSize) continue;
+
+        std::vector<InstanceData> instanceData;
+        std::vector<unsigned int> destOffset;
+        std::vector<VkBufferCopy> copyRegion;
+        const uint64_t instanceDataSize = static_cast<uint64_t>(sizeof(InstanceData));
+        for (int i = 0; i < modelSize; i++)
+        {
+            if (modelList.at(i)->GetDirty())
+            {
+                InstanceData data;
+                data.m_Model = modelList.at(i)->GetTransformedModel();
+                data.m_Rect.x = modelList.at(i)->GetDimension().x;
+                data.m_Rect.y = modelList.at(i)->GetDimension().y;
+                data.m_Color = modelList.at(i)->GetColor();
+
+                instanceData.push_back(data);
+                destOffset.push_back(modelList.at(i)->GetGpuMemOffset());
+
+                VkBufferCopy copyRgnItem;
+                copyRgnItem.size = static_cast<VkDeviceSize>(instanceDataSize);
+                copyRgnItem.srcOffset = static_cast<VkDeviceSize>(copyRegion.size() * instanceDataSize);
+                copyRgnItem.dstOffset = static_cast<VkDeviceSize>(modelList.at(i)->GetGpuMemOffset());
+                copyRegion.push_back(copyRgnItem);
+
+                modelList.at(i)->SetDirty(false);
+            }
+        }
+
+        const size_t dirtyItemSize = instanceData.size();
+        if (dirtyItemSize != 0)
+        {
+            VulkanHelper::CreateStagingBufferCopyRegion(m_VulkanApplication->m_hDevice,
+                m_VulkanApplication->m_physicalDeviceInfo.memProp,
+                m_VulkanApplication->m_hCommandPool,
+                m_VulkanApplication->m_hGraphicsQueue,
+                m_InstanceBuffer[pipelineIdx],
+                VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                instanceData.data(),
+                dirtyItemSize * sizeof(InstanceData),
+                NULL,
+                copyRegion);
+
+//            VulkanHelper::CreateStagingBuffer(m_VulkanApplication->m_hDevice,
+//                m_VulkanApplication->m_physicalDeviceInfo.memProp,
+//                m_VulkanApplication->m_hCommandPool,
+//                m_VulkanApplication->m_hGraphicsQueue,
+//                m_InstanceBuffer[pipelineIdx],
+//                VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+//                instanceData.data());
+        }
+
+        if (dirtyItemSize != 0)
+        {
+            update = true;
+        }
+
+        m_OldInstanceDataSize[pipelineIdx] = modelSize;
+    }
+
+    if (!update) return;
+
+    RecordCommandBuffer();
 }
 
 void RectangleFactory::Render(VkCommandBuffer& p_CmdBuffer)

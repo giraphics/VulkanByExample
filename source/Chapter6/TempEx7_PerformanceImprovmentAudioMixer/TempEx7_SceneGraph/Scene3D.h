@@ -21,6 +21,7 @@ public:
 
     void Setup();
     void Update();
+    void UpdateDirty();
     void Render();
 
     void AddModel(Model3D* p_Model);

@@ -6,9 +6,18 @@ Model3D::Model3D(Scene3D *p_Scene, Model3D *p_Parent, const QString &p_Name, SHA
     : m_Scene(p_Scene)
     , m_Parent(p_Parent)
     , m_ShapeType(p_ShapeType)
-	, m_RenderSchemeType(p_RenderSchemeType)
+    , m_RenderSchemeType(p_RenderSchemeType)
+    , m_Dirty(true)
 {
     m_Parent ? m_Parent->m_ChildList.append(this) : p_Scene->AddModel(this);
+}
+
+Model3D::~Model3D()
+{
+    if (m_Scene)
+    {
+        m_Scene->RemoveModel(this);
+    }
 }
 
 void Model3D::Setup()
@@ -25,6 +34,7 @@ void Model3D::Setup()
 
 void Model3D::mousePressEvent(QMouseEvent* p_Event)
 {
+//    return;
 	glm::vec4 posStart((0 * m_Dimension.x), (0 * m_Dimension.y), 0.0, 1.0);
 	glm::vec4 posStartResult = m_TransformedModel * posStart;
 
@@ -49,6 +59,8 @@ void Model3D::mousePressEvent(QMouseEvent* p_Event)
 
 void Model3D::mouseReleaseEvent(QMouseEvent* p_Event)
 {
+//    return;
+
 	//cout << "\n##### mouseReleaseEvent";
 	foreach(Model3D* item, m_ChildList)
 	{
@@ -60,6 +72,8 @@ void Model3D::mouseReleaseEvent(QMouseEvent* p_Event)
 
 bool Model3D::mouseMoveEvent(QMouseEvent* p_Event)
 {
+//    return false;
+
 	glm::vec4 posStart((0 * m_Dimension.x), (0 * m_Dimension.y), 0.0, 1.0);
 	glm::vec4 posStartResult = /*GetParentsTransformation(GetParent()) **/ m_TransformedModel * posStart;
 

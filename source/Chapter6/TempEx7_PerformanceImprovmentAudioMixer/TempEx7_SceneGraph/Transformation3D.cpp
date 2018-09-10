@@ -1,5 +1,6 @@
 #include "Transformation3D.h"
 
+#include <cstring> // Added for memcpy(required by MaxOS)
 /*!
  Constructor for Transformation3D class
  \param[in]  void.
@@ -655,7 +656,8 @@ void Transformation3D::SetPerspective( float fovy, float aspect_ratio, float cli
 
 void Transformation3D::SetView(glm::mat4 mat)
 {
-	//TransformMemData.view_matrix = mat;
+    TransformMemData.view_matrix[ TransformMemData.viewMatrixIndex ] = mat;
+//    TransformMemData.view_matrix = mat;
 }
 
 /*!

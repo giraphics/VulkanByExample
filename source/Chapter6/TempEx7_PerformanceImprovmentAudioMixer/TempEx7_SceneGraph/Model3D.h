@@ -18,9 +18,11 @@ public:
 	virtual Model3D* GetModel(VulkanApp* p_VulkanApp, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE) { return NULL; }
 	virtual void Setup() {}
     virtual void Update() {}
+    virtual void UpdateDirty() {}
     virtual void Render() {}
     virtual void Prepare(Scene3D* p_Scene) {}
-    virtual void UpdateModelList(Model3D* p_Parent) {}
+    virtual void UpdateModelList(Model3D* p_Item) {}
+    virtual void RemoveModelList(Model3D* p_Item) {}
     virtual void ResizeWindow(int p_Width, int p_Height) {}
 
 	glm::mat4x4 m_Transform;
@@ -30,7 +32,7 @@ class Model3D
 {
 public:
     Model3D(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_INSTANCED);
-
+    ~Model3D();
     virtual void Setup();
     void Update();
     virtual AbstractModelFactory* GetRenderScemeFactory() { return NULL; } // Custom model class do not need to implement it as they are made of basic model classes.
@@ -54,7 +56,8 @@ public:
 	GETSET(Scene3D*, Scene)
 	GETSET(Model3D*, Parent)
    	GETSET(glm::mat4, TransformedModel)		// Owned by drawable item
-    GETSET(unsigned int, GpuMemOffset)
+    GETSET(unsigned int, GpuMemOffset) // TODO the data type should be unsigned long long to accomodate large offsets
+    GETSET(bool, Dirty)
 
 	// Mouse interaction: Dummy interface for now.
 	virtual void mousePressEvent(QMouseEvent* p_Event);

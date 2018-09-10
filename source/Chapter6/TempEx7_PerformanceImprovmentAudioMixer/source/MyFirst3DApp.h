@@ -1,6 +1,6 @@
 #pragma once
 #include "../../../common/VulkanApp.h"
-#include "../SceneGraph/Scene3D.h"
+#include "../TempEx7_SceneGraph//Scene3D.h"
 
 class RectangleFactory;
 class MyFirst3DApp : public VulkanApp

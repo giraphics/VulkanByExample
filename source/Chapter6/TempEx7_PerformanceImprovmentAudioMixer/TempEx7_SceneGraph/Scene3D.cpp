@@ -101,10 +101,22 @@ void Scene3D::Update()
 
 	foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
 	{
-		currentModelFactory->Update();
+        currentModelFactory->Update();
 	}
 
-//	m_CubeFactory->prepareInstanceData(m_Scene);
+}
+
+void Scene3D::UpdateDirty()
+{
+    foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+    {
+        currentModelFactory->m_Transform = (*GetProjection()) * (*GetView());
+    }
+
+    foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+    {
+        currentModelFactory->UpdateDirty();
+    }
 }
 
 void Scene3D::Render()
@@ -135,15 +147,30 @@ void Scene3D::AddModel(Model3D* p_Model)
     }
 }
 
+
+// While removing the model remove it from model list and flat list.
 void Scene3D::RemoveModel(Model3D* p_Model)
 {
-    while (1)
+    while (true)
     {
         auto result = std::find(std::begin(m_ModelList), std::end(m_ModelList), p_Model);
         if (result == std::end(m_ModelList)) break;
 
         m_ModelList.erase(result);
     }
+
+    while (true)
+    {
+        auto result = std::find(std::begin(m_FlatList), std::end(m_FlatList), p_Model);
+        if (result == std::end(m_FlatList)) break;
+
+        m_ModelList.erase(result);
+    }
+
+    AbstractModelFactory* factory = GetFactory(p_Model); // Populate factories
+    if (!factory) return;
+
+    factory->RemoveModelList(p_Model);
 }
 
 void Scene3D::Resize(int p_Width, int p_Height)
@@ -209,9 +236,11 @@ void Scene3D::mouseMoveEvent(QMouseEvent* p_Event)
             if (oldModelItem && oldModelItem != currentModel)
             {
                 oldModelItem->SetColor(oldModelItem->GetDefaultColor());
+                oldModelItem->SetDirty(true);
             }
 
             currentModel->SetColor(glm::vec4(1.0, 1.0, 0.3, 1.0));
+            currentModel->SetDirty(true);
             isDirty = true;
             return;
         }
@@ -220,6 +249,7 @@ void Scene3D::mouseMoveEvent(QMouseEvent* p_Event)
     if (oldModelItem)
     {
         oldModelItem->SetColor(oldModelItem->GetDefaultColor());
+        oldModelItem->SetDirty(true);
     }
 }
 

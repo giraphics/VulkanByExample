@@ -1,9 +1,9 @@
 #pragma once
 #include "../../../common/VulkanApp.h"
 
-#include "../SceneGraph/Transformation3D.h"
-#include "../SceneGraph/Scene3D.h"
-#include "../SceneGraph/Model3D.h"
+#include "../TempEx7_SceneGraph/Transformation3D.h"
+#include "../TempEx7_SceneGraph/Scene3D.h"
+#include "../TempEx7_SceneGraph/Model3D.h"
 
 struct Vertex
 {
@@ -99,6 +99,7 @@ public:
 public:
 	virtual void Setup();
     virtual void Update();
+    virtual void UpdateDirty();
     virtual void Render() { RecordCommandBuffer(); }
 
     void ResizeWindow(int width, int height);
@@ -115,6 +116,7 @@ private:
     void Render(VkCommandBuffer& p_CmdBuffer);
 
     virtual void UpdateModelList(Model3D* p_Item);
+    virtual void RemoveModelList(Model3D* p_Item);
 
     QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
 
@@ -132,7 +134,8 @@ private:
 
     ////////////////////////////////////////////////////////////////
 public:
-    void PrepareInstanceData();
+    void PrepareInstanceData(RECTANGLE_GRAPHICS_PIPELINES p_Pipeline = PIPELINE_COUNT);
+    void UpdateDirtyInstanceData();
 
 
     // Per-instance data block
