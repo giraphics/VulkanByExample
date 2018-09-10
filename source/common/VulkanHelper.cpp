@@ -632,6 +632,41 @@ void VulkanHelper::CreateStagingBuffer(const VkDevice p_Device, VkPhysicalDevice
     vkFreeMemory(p_Device, stageBuffer.m_Memory, nullptr);
 }
 
+void VulkanHelper::CreateStagingBufferCopyRegion(const VkDevice p_Device, VkPhysicalDeviceMemoryProperties p_DeviceMemProp, VkCommandPool& p_CmdPool,
+                                                 const VkQueue& p_Queue, VulkanBuffer& p_VulkanBuffer, VkBufferUsageFlags p_UsageFlags, const void* p_Data,
+                                                 size_t p_DataSize, VkBufferCreateInfo* p_pBufInfo, const std::vector<VkBufferCopy>& p_CopyRegion)
+{
+    VulkanBuffer stageBuffer;
+
+    // Create staging buffer
+    stageBuffer.m_DataSize = p_DataSize;
+    stageBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+    VulkanHelper::CreateBuffer(p_Device, p_DeviceMemProp, stageBuffer, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, p_Data, p_pBufInfo);
+
+    // Create Device Local Buffers
+    p_VulkanBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT; // Ensure, it must be device local
+    if (p_VulkanBuffer.m_Buffer == VK_NULL_HANDLE)
+    {
+        VulkanHelper::CreateBuffer(p_Device, p_DeviceMemProp, p_VulkanBuffer, p_UsageFlags, p_Data, p_pBufInfo);
+    }
+
+    // Copy staging buffers in device local buffer
+    {
+        VkCommandBuffer copyCmd;
+        VulkanHelper::AllocateCommandBuffer(p_Device, p_CmdPool, &copyCmd);
+        VulkanHelper::BeginCommandBuffer(copyCmd);
+
+        vkCmdCopyBuffer(copyCmd, stageBuffer.m_Buffer, p_VulkanBuffer.m_Buffer, p_CopyRegion.size(), p_CopyRegion.data());
+
+        VulkanHelper::EndCommandBuffer(copyCmd);
+        VulkanHelper::SubmitCommandBuffer(p_Queue, copyCmd);
+        vkFreeCommandBuffers(p_Device, p_CmdPool, 1, &copyCmd);
+    }
+
+    vkDestroyBuffer(p_Device, stageBuffer.m_Buffer, nullptr);
+    vkFreeMemory(p_Device, stageBuffer.m_Memory, nullptr);
+}
+
 bool VulkanHelper::WriteBuffer(const VkDevice p_Device, const void* p_VertexData, const VulkanBuffer& p_VulkanBuffer)
 {
 	if (!p_VertexData) return false;

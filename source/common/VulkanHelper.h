@@ -108,7 +108,8 @@ public:
 
 	static void CreateBuffer(const VkDevice p_Device, VkPhysicalDeviceMemoryProperties p_DeviceMemProp, VulkanBuffer& p_VulkanBuffer, VkBufferUsageFlags p_UsageFlags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, const void* p_Data = NULL, VkBufferCreateInfo* p_pBufInfo = NULL); // Please use this Create Buffer currently begin used
 	static void CreateStagingBuffer(const VkDevice p_Device, VkPhysicalDeviceMemoryProperties p_DeviceMemProp, VkCommandPool& p_CmdPool, const VkQueue& p_Queue, VulkanBuffer& p_VulkanBuffer, VkBufferUsageFlags p_UsageFlags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, const void* p_Data = NULL, VkBufferCreateInfo* p_pBufInfo = NULL); // Please use this Create Buffer currently begin used
-	static void MapMemory(const VkDevice p_Device, const VkDeviceMemory& p_Memory, VkDeviceSize p_Offset, VkDeviceSize p_Size, VkMemoryMapFlags flags, uint8_t*& p_MappedMemory);
+    static void CreateStagingBufferCopyRegion(const VkDevice p_Device, VkPhysicalDeviceMemoryProperties p_DeviceMemProp, VkCommandPool& p_CmdPool, const VkQueue& p_Queue, VulkanBuffer& p_VulkanBuffer, VkBufferUsageFlags p_UsageFlags, const void* p_Data, size_t p_DataSize, VkBufferCreateInfo* p_pBufInfo, const std::vector<VkBufferCopy>& p_CopyRegion);
+    static void MapMemory(const VkDevice p_Device, const VkDeviceMemory& p_Memory, VkDeviceSize p_Offset, VkDeviceSize p_Size, VkMemoryMapFlags flags, uint8_t*& p_MappedMemory);
 	static void WriteMemory(const VkDevice p_Device, void* p_MappedMemory, const std::vector<VkMappedMemoryRange>& p_MappedRange, VkMemoryMapFlags p_Flags, void const* p_Src, size_t p_Size);
 
     // Chapter 3 => For Selva: Adding chapter name may be not very useful, now onwards almost every change uses image nad buffer so I dont think this would be helpful.
