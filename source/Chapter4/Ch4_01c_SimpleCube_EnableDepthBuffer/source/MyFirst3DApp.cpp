@@ -14,6 +14,7 @@ int main(int argc, char **argv)
 	helloVulkanApp->SetWindowDimension(800, 600);    // Default application window dimension
 	helloVulkanApp->EnableDepthBuffer(true);
 	helloVulkanApp->Initialize();
+    helloVulkanApp->m_pWindow->show();
 	qtApp.exec();
 
 	delete helloVulkanApp;
