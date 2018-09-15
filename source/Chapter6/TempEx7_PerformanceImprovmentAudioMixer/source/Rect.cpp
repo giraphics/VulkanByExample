@@ -141,8 +141,7 @@ void RectangleFactory::CreateRectOutlinePipeline()
     VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CubeVert.spv"); // Relative path to binary output dir
                                                                                                                               // Setup the vertex shader stage create info structures
 #elif __APPLE__
-    VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice,
-    "/Users/parminder/Dev/Giraphics/VulkanByExample/source/Chapter6/TempEx7_PerformanceImprovmentAudioMixer/source/shaders/CubeVert.spv"); // Relative path to binary output dir
+    VkShaderModule vertShader = VulkanHelper::CreateShaderFromQRCResource(m_VulkanApplication->m_hDevice, "://source/shaders/CubeVert.spv");
 #endif
 
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
@@ -156,8 +155,7 @@ void RectangleFactory::CreateRectOutlinePipeline()
     VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CubeFrag.spv"); // Relative path to binary output dir
                                                                                                                               // Setup the fragment shader stage create info structures
 #elif __APPLE__
-    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice,
-    "/Users/parminder/Dev/Giraphics/VulkanByExample/source/Chapter6/TempEx7_PerformanceImprovmentAudioMixer/source/shaders/CubeFrag.spv"); // Relative path to binary output dir
+    VkShaderModule fragShader = VulkanHelper::CreateShaderFromQRCResource(m_VulkanApplication->m_hDevice, "://source/shaders/CubeFrag.spv");
 #endif
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
     fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
