@@ -12,8 +12,10 @@ layout (location = 1) in vec4 inColor; // Not being in use
 layout (location = 2) in mat4 instancePos;
 layout (location = 6) in vec4 dimension;
 layout (location = 7) in vec4 color;
+layout (location = 8) in uint isVisible;
 layout(location = 0) out vec4 fragColor;
 layout(location = 1) out vec4 texCoord;
+layout(location = 2) flat out uint visibilityFlag;
 
 out gl_PerVertex { 
     vec4 gl_Position;
@@ -25,6 +27,8 @@ void main()
 //	fragColor = inColor;
 	fragColor = color;
 	texCoord = inPosition;
+	visibilityFlag = isVisible;
+
 	inPositionNew.x = inPosition.x * dimension.x;
 	inPositionNew.y = inPosition.y * dimension.y;
     gl_Position   = myBufferVals.mvp * instancePos * (inPositionNew /*+ dimension*/);

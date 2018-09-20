@@ -36,8 +36,8 @@ void MyFirst3DApp::ProgressBarFunc(Scene3D* m_Scene)
 
 void MyFirst3DApp::Grid(Scene3D* m_Scene)
 {
-    float parentCol = 10;
-    float parentRow = 10;
+    float parentCol = 20;
+    float parentRow = 20;
     float parentColWidth = m_windowDim.width / parentCol;
     float parentColHeight = m_windowDim.height / parentRow;
 

@@ -143,9 +143,8 @@ public:
         glm::mat4 m_Model;
         glm::vec4 m_Rect;
         glm::vec4 m_Color;
-//        glm::bvec4 m_BoolFlags; // [0] Visibility [1] Unused [2] Unused [3] Unused
+        uint m_BoolFlags; // [0] Visibility [1] Unused [2] Unused [3] Unused
     };
-
 
     VulkanBuffer m_VertexBuffer[PIPELINE_COUNT];
     int m_VertexCount[PIPELINE_COUNT];

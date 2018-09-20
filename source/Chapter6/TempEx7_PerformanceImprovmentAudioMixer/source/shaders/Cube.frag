@@ -4,6 +4,7 @@
 
 layout(location = 0) in vec4 fragColor;
 layout(location = 1) in vec4 texCoord;
+layout(location = 2) flat in uint visibilityFlag;
 
 layout(location = 0) out vec4 outColor;
 
@@ -16,6 +17,8 @@ float roundRect(in vec2 distFromCenter, in vec2 halfSize, in float radius)
 
 void main() 
 {
+    if (visibilityFlag == 0) discard;
+
     // Pass through fragment color input as output
     outColor = texCoord;
 	///////////////////////////

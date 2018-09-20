@@ -593,7 +593,7 @@ void RectangleFactory::CreateVertexBuffer()
             VulkanHelper::CreateBuffer(device, memProp, m_VertexBuffer[pipelineIdx], VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, rectFilledVertices);
 
             m_VertexInputBinding[pipelineIdx].resize(2);   // 0 for position and 1 for color
-            m_VertexInputAttribute[pipelineIdx].resize(8); // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
+            m_VertexInputAttribute[pipelineIdx].resize(9); // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
 
             // Indicates the rate at which the information will be
             // injected for vertex input.
@@ -650,6 +650,12 @@ void RectangleFactory::CreateVertexBuffer()
             m_VertexInputAttribute[pipelineIdx][7].format = VK_FORMAT_R32G32B32_SFLOAT;
             m_VertexInputAttribute[pipelineIdx][7].offset = 16 * 5;
 
+            // BoolFlags
+            m_VertexInputAttribute[pipelineIdx][8].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[pipelineIdx][8].location = 8;
+            m_VertexInputAttribute[pipelineIdx][8].format = VK_FORMAT_R32_UINT;
+            m_VertexInputAttribute[pipelineIdx][8].offset = /*16 * 5*/offsetof(struct InstanceData, m_BoolFlags);
+
         }
         else if (pipelineIdx == PIPELINE_OUTLINE)
         {
@@ -659,7 +665,7 @@ void RectangleFactory::CreateVertexBuffer()
             VulkanHelper::CreateBuffer(device, memProp, m_VertexBuffer[pipelineIdx], VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, rectOutlineVertices);
 
             m_VertexInputBinding[pipelineIdx].resize(2);   // 0 for position and 1 for color
-            m_VertexInputAttribute[pipelineIdx].resize(8); // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
+            m_VertexInputAttribute[pipelineIdx].resize(9); // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
 
             // Indicates the rate at which the information will be
             // injected for vertex input.
@@ -708,13 +714,19 @@ void RectangleFactory::CreateVertexBuffer()
             m_VertexInputAttribute[pipelineIdx][6].binding = INSTANCE_BUFFER_BIND_IDX;
             m_VertexInputAttribute[pipelineIdx][6].location = 6;
             m_VertexInputAttribute[pipelineIdx][6].format = VK_FORMAT_R32G32B32_SFLOAT;
-            m_VertexInputAttribute[pipelineIdx][6].offset = 16 * 4;
+            m_VertexInputAttribute[pipelineIdx][6].offset = /*16 * 4*/offsetof(struct InstanceData, m_Rect);
 
             // Color
             m_VertexInputAttribute[pipelineIdx][7].binding = INSTANCE_BUFFER_BIND_IDX;
             m_VertexInputAttribute[pipelineIdx][7].location = 7;
             m_VertexInputAttribute[pipelineIdx][7].format = VK_FORMAT_R32G32B32_SFLOAT;
-            m_VertexInputAttribute[pipelineIdx][7].offset = 16 * 5;
+            m_VertexInputAttribute[pipelineIdx][7].offset = /*16 * 5*/offsetof(struct InstanceData, m_Color);
+
+            // BoolFlags
+            m_VertexInputAttribute[pipelineIdx][8].binding = INSTANCE_BUFFER_BIND_IDX;
+            m_VertexInputAttribute[pipelineIdx][8].location = 8;
+            m_VertexInputAttribute[pipelineIdx][8].format = VK_FORMAT_R32_UINT;
+            m_VertexInputAttribute[pipelineIdx][8].offset = /*16 * 5*/offsetof(struct InstanceData, m_BoolFlags);
         }
     }
 }
@@ -815,6 +827,7 @@ void RectangleFactory::PrepareInstanceData(RECTANGLE_GRAPHICS_PIPELINES p_Pipeli
             instanceData[i].m_Rect.x = m_ModelList.at(i)->GetDimension().x;
             instanceData[i].m_Rect.y = m_ModelList.at(i)->GetDimension().y;
             instanceData[i].m_Color = m_ModelList.at(i)->GetColor();
+            instanceData[i].m_BoolFlags = m_ModelList.at(i)->GetVisible() ? 1 : 0;
             m_ModelList.at(i)->SetGpuMemOffset(i * sizeof(InstanceData));
         }
 
@@ -871,6 +884,7 @@ void RectangleFactory::UpdateDirtyInstanceData()
                 data.m_Rect.x = modelList.at(i)->GetDimension().x;
                 data.m_Rect.y = modelList.at(i)->GetDimension().y;
                 data.m_Color = modelList.at(i)->GetColor();
+                data.m_BoolFlags = modelList.at(i)->GetVisible() ? 1 : 0;
 
                 instanceData.push_back(data);
                 destOffset.push_back(modelList.at(i)->GetGpuMemOffset());
