@@ -51,6 +51,8 @@ UIDemoApp::UIDemoApp()
     m_CircleTr5->SetColor(glm::vec4(0.0, 0.5, 1.0, 1.0));
     m_CircleTr5->SetDefaultColor(glm::vec4(0.62, 0.25, 0.60, 1.0));
     m_CircleTr5->SetZOrder(10.1);
+    m_CircleTr5->SetVisible(false);
+    m_CircleTr5->SetName("m_CircleTr5");
 
     {
         float x = 0;
@@ -250,9 +252,6 @@ void UIDemoApp::RecordRenderPass(int p_Argcount, ...)
         switch (currentState)
         {
         case SG_STATE_SETUP:
-            m_Scene->SetupRenderFactory(m_hCommandBufferList[i]);
-            break;
-
         case SG_STATE_RENDER:
             m_Scene->Render(m_hCommandBufferList[i]);
             break;

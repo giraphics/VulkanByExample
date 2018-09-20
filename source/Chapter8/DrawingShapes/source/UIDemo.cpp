@@ -12,10 +12,10 @@ void UIDemo::Grid(Scene* p_Scene, int p_Width, int p_Height)
 {
     float parentCol = 20;
     float parentRow = 20;
-	float parentColWidth = p_Width / parentCol;
-	float parentColHeight = p_Height / parentRow;
+    float parentColWidth = p_Width / parentCol;
+    float parentColHeight = p_Height / parentRow;
 
-	const float Col = 2;
+    const float Col = 2;
     const float Row = 10;
 	float colWidth = parentColWidth / Col;
 	float colHeight = parentColHeight / Row;

@@ -19,9 +19,8 @@ public:
     virtual ~Scene();
 
     void Setup();
-    void SetupRenderFactory(VkCommandBuffer& p_CommandBuffer);
     void Update();
-    void Render(VkCommandBuffer& p_CommandBuffer);
+    void Render(VkCommandBuffer& p_CommandBuffer); // TODO do not expose implementation here, Vulkan must be abstracted
 
     void AddItem(Node* p_Item);
     void RemoveItem(Node* p_Item);
@@ -34,11 +33,18 @@ public:
     void PopMatrix() { m_Transform.PopMatrix(); }
     void ApplyTransformation(const glm::mat4& m_TransformationMatrix) { *m_Transform.GetModelMatrix() *= m_TransformationMatrix; }
 
+    bool IsDirty() { return (m_DirtyType != SCENE_DIRTY_TYPE::NONE); }
+    SCENE_DIRTY_TYPE GetDirtyType() { return m_DirtyType; }
+    void SetDirtyType(SCENE_DIRTY_TYPE p_InvalidateType) { m_DirtyType = p_InvalidateType; }
+
     virtual void mousePressEvent(QMouseEvent* p_Event);
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
     virtual void mouseMoveEvent(QMouseEvent* p_Event);
 
+private:
     RenderSchemeFactory* GetRenderSchemeFactory(Node* p_Item);
+
+public: // Parminder: Todo this public method should not be visible to the outside world. Covert recurvise gathering of node list to iterative
     void AppendToFlatNodeList(Node* p_Item);
 
 private:
@@ -56,4 +62,7 @@ private:
     GETSET(int,                             ScreenWidth);
     GETSET(int,                             Frame);
     GETSET(Transformation,                  Transform);
+
+private:
+    SCENE_DIRTY_TYPE m_DirtyType;
 };

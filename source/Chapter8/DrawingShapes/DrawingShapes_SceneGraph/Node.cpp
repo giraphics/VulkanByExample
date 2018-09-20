@@ -9,6 +9,8 @@ Node::Node(Scene* p_Scene, Node* p_Parent, const BoundingRegion& p_BoundedRegion
     , m_ShapeType(p_ShapeType)
     , m_BoundedRegion(p_BoundedRegion)
     , m_OriginOffset(glm::vec3(0.0f, 0.0f, 0.0f))
+    , m_DirtyType(DIRTY_TYPE::ALL)
+    , m_Visible(true)
 {
     m_Parent ? m_Parent->m_ChildList.append(this) : p_Scene->AddItem(this);
     
@@ -66,6 +68,8 @@ void Node::Rotate(float p_Angle, float p_X, float p_Y, float p_Z)
     {
         m_ModelTransformation = glm::translate(m_ModelTransformation, -m_OriginOffset);
     }
+
+    SetDirtyType(DIRTY_TYPE::POSITION);
 }
 
 void Node::Translate(float p_X, float p_Y, float p_Z)
@@ -81,6 +85,8 @@ void Node::Translate(float p_X, float p_Y, float p_Z)
     {
         m_ModelTransformation = glm::translate(m_ModelTransformation, -m_OriginOffset);
     }
+
+    SetDirtyType(DIRTY_TYPE::POSITION);
 }
 
 void Node::Scale(float p_X, float p_Y, float p_Z)
@@ -96,6 +102,8 @@ void Node::Scale(float p_X, float p_Y, float p_Z)
     {
         m_ModelTransformation = glm::translate(m_ModelTransformation, -m_OriginOffset);
     }
+
+    SetDirtyType(DIRTY_TYPE::POSITION);
 }
 
 void Node::ResetPosition()
@@ -103,6 +111,8 @@ void Node::ResetPosition()
     Reset();
     Translate(m_BoundedRegion.m_Position.x, m_BoundedRegion.m_Position.y, m_BoundedRegion.m_Position.z);
     m_AbsoluteTransformation = m_ModelTransformation * GetParentsTransformation(GetParent());
+
+    SetDirtyType(DIRTY_TYPE::POSITION);
 }
 
 void Node::SetZOrder(float p_ZOrder)
@@ -230,5 +240,26 @@ void Node::GatherFlatNodeList()
     {
         assert(childItem);
         childItem->GatherFlatNodeList();
+    }
+}
+
+// When a Model is updated it may need recomputation of the transformation
+void Node::SetDirtyType(DIRTY_TYPE p_InvalidateType)
+{
+    m_DirtyType = p_InvalidateType;
+
+    if (m_Scene && IsDirty())
+    {
+        const DIRTY_TYPE isPositionUpdated = static_cast<DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(DIRTY_TYPE::POSITION));
+        if (isPositionUpdated == DIRTY_TYPE::POSITION)
+        {
+            m_Scene->SetDirtyType(static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_Scene->GetDirtyType()) | static_cast<int>(SCENE_DIRTY_TYPE::TRANSFORMATION)));
+        }
+
+        const DIRTY_TYPE isAttributeUpdated = static_cast<DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(DIRTY_TYPE::ATTRIBUTES));
+        if (isAttributeUpdated == DIRTY_TYPE::ATTRIBUTES)
+        {
+            m_Scene->SetDirtyType(static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_Scene->GetDirtyType()) | static_cast<int>(SCENE_DIRTY_TYPE::DIRTY_ITEMS)));
+        }
     }
 }

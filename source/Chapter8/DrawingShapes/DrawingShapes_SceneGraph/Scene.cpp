@@ -11,6 +11,7 @@ Scene::Scene(AbstractApp* p_Application, const QString& p_Name)
     , m_ScreenWidth(800)
     , m_ScreenHeight(600)
     , m_CurrentHoverItem(NULL)
+    , m_DirtyType(SCENE_DIRTY_TYPE::ALL)
 {
 }
 
@@ -63,35 +64,53 @@ void Scene::Setup()
     {
         currentModelFactory->Setup();
     }
-}
 
-void Scene::SetupRenderFactory(VkCommandBuffer& p_CommandBuffer)
-{
-    foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
-    {
-        currentModelFactory->Render(p_CommandBuffer);
-    }
+    // Setup is the first time update() therefore update ALL
+    m_DirtyType = SCENE_DIRTY_TYPE::ALL;
 }
 
 void Scene::Update()
 {
+    if (!IsDirty()) return;
+
     foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
     {
         glm::mat4 transformation = *m_Transform.GetProjectionMatrix() * *m_Transform.GetViewMatrix();
         currentModelFactory->SetRefProjectViewMatrix(transformation);
     }
 
-    foreach (Node* item, m_NodeList)
+    const SCENE_DIRTY_TYPE updateTransformType = static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::TRANSFORMATION));
+    if (updateTransformType == SCENE_DIRTY_TYPE::TRANSFORMATION)
     {
-        assert(item);
+        foreach (Node* item, m_NodeList)
+        {
+            assert(item);
 
-        item->Update();
+            item->Update();
+        }
     }
 
-    foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
+    SCENE_DIRTY_TYPE updateItemType = static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::ALL_ITEMS));
+    if (updateItemType == SCENE_DIRTY_TYPE::ALL_ITEMS)
     {
-        currentModelFactory->Update();
+        foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
+        {
+            currentModelFactory->Update();
+        }
     }
+    else
+    {
+        updateItemType = static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::DIRTY_ITEMS));
+        if (updateItemType == SCENE_DIRTY_TYPE::DIRTY_ITEMS)
+        {
+            foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
+            {
+                currentModelFactory->Update();
+            }
+        }
+    }
+
+    m_DirtyType = SCENE_DIRTY_TYPE::NONE;
 }
 
 void Scene::Render(VkCommandBuffer& p_CommandBuffer)

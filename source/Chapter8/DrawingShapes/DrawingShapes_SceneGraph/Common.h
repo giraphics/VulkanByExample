@@ -28,6 +28,23 @@ enum SHAPE
     SHAPE_CUSTOM // NOTE: Important: the custom object are comprised of simpler objects hence not a part of model factories
 };
 
+enum class DIRTY_TYPE : uint32_t
+{
+    NONE       = (0u),
+    ATTRIBUTES = (1u << 0u),
+    POSITION   = (1u << 1u),
+    ALL        = (POSITION | ATTRIBUTES),
+};
+
+enum class SCENE_DIRTY_TYPE : uint32_t
+{
+    NONE            = (0u),
+    TRANSFORMATION  = (1u << 0u),
+    ALL_ITEMS       = (1u << 1u),
+    DIRTY_ITEMS     = (1u << 2u),
+    ALL             = (TRANSFORMATION | ALL_ITEMS),
+};
+
 struct BoundingRegion
 {
     BoundingRegion(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder = 0) // For 2D Bounding Box

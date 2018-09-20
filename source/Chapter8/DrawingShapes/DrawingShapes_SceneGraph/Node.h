@@ -30,6 +30,21 @@ public:
     inline Node* GetParent() const;
     void GatherFlatNodeList();
 
+    bool IsDirty() { return (m_DirtyType != DIRTY_TYPE::NONE); }
+    DIRTY_TYPE GetDirtyType() { return m_DirtyType; }
+    void SetDirtyType(DIRTY_TYPE p_InvalidateType);
+
+    const glm::vec4& GetColor() const { return m_Color; }
+    void SetColor(const glm::vec4& p_Color) { m_Color = p_Color; SetDirtyType(DIRTY_TYPE::ATTRIBUTES); }
+
+    const BoundingRegion& GetBoundedRegion() const { return m_BoundedRegion; }
+    void SetBoundedRegion(const BoundingRegion& p_BoundingRegion)
+    {
+        m_BoundedRegion.m_Position = p_BoundingRegion.m_Position;
+        m_BoundedRegion.m_Dimension = p_BoundingRegion.m_Dimension;
+        SetDirtyType(DIRTY_TYPE::ATTRIBUTES);
+    }
+
     // Event Management
     virtual void mousePressEvent(QMouseEvent* p_Event);
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
@@ -37,9 +52,7 @@ public:
     virtual void keyPressEvent() UNIMPLEMENTED_INTEFACE
 
     GETSET(QString,                     Name)
-    GETSET(SHAPE,                       ShapeType);
-    GETSET(BoundingRegion,              BoundedRegion)
-    GETSET(glm::vec4,                   Color)
+    GETSET(SHAPE,                       ShapeType)
     GETSET(glm::vec4,                   DefaultColor)
     GETSET(glm::mat4,                   ModelTransformation)
     GETSET(glm::vec3,                   OriginOffset)
@@ -47,4 +60,13 @@ public:
     GETSET(Scene*,                      Scene)
     GETSET(Node*,                       Parent)
     GETSET(QList<Node*>,                ChildList)
+    GETSET(bool,                        Visible)
+
+protected:
+    DIRTY_TYPE m_DirtyType;
+
+    // Attributes Start
+    glm::vec4 m_Color;
+    BoundingRegion m_BoundedRegion;
+    // Attributes End
 };

@@ -12,7 +12,7 @@ struct CircleVertex
     unsigned int m_DrawType;
 };
 
-static const CircleVertex rectFilledVertices[] =
+static const CircleVertex circleFilledVertices[] =
 {
     { glm::vec3(1, 0, 0),   glm::vec2(0.f, 0.f), 0 },
     { glm::vec3(0, 0, 0),   glm::vec2(1.f, 0.f), 0 },
@@ -60,13 +60,13 @@ void Circle::CreateCircleVertexBuffer()
     glm::mat4 parentTransform = GetAbsoluteTransformation();//m_Model * GetParentsTransformation(GetParent());
 
     CircleVertex rectVertices[6];
-    memcpy(rectVertices, rectFilledVertices, sizeof(CircleVertex) * 6);
+    memcpy(rectVertices, circleFilledVertices, sizeof(CircleVertex) * 6);
     uint32_t dataSize = sizeof(rectVertices);
     uint32_t dataStride = sizeof(rectVertices[0]);
     const int vertexCount = dataSize / dataStride;
     for (int i = 0; i < vertexCount; ++i)
     {
-        glm::vec4 pos(rectFilledVertices[i].m_Position, 1.0);
+        glm::vec4 pos(circleFilledVertices[i].m_Position, 1.0);
         pos.x = pos.x * m_BoundedRegion.m_Dimension.x;
         pos.y = pos.y * m_BoundedRegion.m_Dimension.y;
 
@@ -680,15 +680,15 @@ void CircleMultiDrawFactory::UpdateNodeList(Node *p_Item)
     // they may be in one-to-one correspondence but that is not necessary.
     switch (rectangle->GetDrawType())
     {
-    case Rectangl::FILLED:
+    case Circle::FILLED:
         m_PipelineTypeModelVector[PIPELINE_FILLED].push_back(p_Item);
         break;
 
-    case Rectangl::OUTLINE:
+    case Circle::OUTLINE:
         m_PipelineTypeModelVector[PIPELINE_OUTLINE].push_back(p_Item);
         break;
 
-    case Rectangl::ROUNDED:
+    case Circle::ROUNDED:
         // TODO
         break;
 
@@ -713,6 +713,7 @@ void CircleMultiDrawFactory::Prepare(Scene* p_Scene)
     //	UniformBuffer->m_BufObj.m_MemoryFlags,
     //	&m_Transform, sizeof(m_Transform));
 }
+#include <QDebug>
 
 void CircleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
 {
@@ -751,8 +752,7 @@ void CircleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
         for (int j = 0; j < modelSize; j++)
         {
             Circle* model = (static_cast<Circle*>(m_ModelList.at(j)));
-            if (!model) continue;
-
+            if (!model || !model->GetVisible()) continue;
             //////////////////////////////////////////////////////////////////////////////////
             struct pushConst
             {
@@ -774,7 +774,7 @@ void CircleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
             vkCmdPushConstants(p_CmdBuffer, graphicsPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PC), &PC);
             ////////////////////////////////////////////////////////////////////////////////
 
-            if (model->GetDrawType() == Rectangl::FILLED)
+            if (model->GetDrawType() == Circle::FILLED)
             {
 
                 // Specify vertex buffer information
@@ -782,10 +782,10 @@ void CircleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
                 vkCmdBindVertexBuffers(p_CmdBuffer, VERTEX_BUFFER_BIND_IDX, 1, &model->m_VertexBuffer.m_Buffer, offsets);
 
                 // Draw the Cube
-                const int vertexCount = sizeof(rectFilledVertices) / sizeof(CircleVertex);
+                const int vertexCount = sizeof(circleFilledVertices) / sizeof(CircleVertex);
                 vkCmdDraw(p_CmdBuffer, vertexCount, /*INSTANCE_COUNT*/1, 0, 0);
             }
-            else if (model->GetDrawType() == Rectangl::OUTLINE)
+            else if (model->GetDrawType() == Circle::OUTLINE)
             {
                 // Specify vertex buffer information
                 const VkDeviceSize offsets[1] = { 0 };

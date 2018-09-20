@@ -353,8 +353,6 @@ void RectangleMultiDrawFactory::CreateRectFillPipeline()
     VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/RectInstanceVert.spv"); // Relative path to binary output dir
 #elif __APPLE__
     VkShaderModule vertShader = VulkanHelper::CreateShaderFromQRCResource(m_VulkanApplication->m_hDevice, "://source/shaders/RectInstanceVert.spv");
-//    VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice,
-//    "/Users/Parminder/Dev/MVK/VulkanByExample-master/source/Chapter8/DrawingShapes/source/shaders/RectInstanceVert.spv");
 #endif
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -367,8 +365,6 @@ void RectangleMultiDrawFactory::CreateRectFillPipeline()
     VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/RectInstanceFrag.spv"); // Relative path to binary output dir
 #elif __APPLE__
     VkShaderModule fragShader = VulkanHelper::CreateShaderFromQRCResource(m_VulkanApplication->m_hDevice, "://source/shaders/RectInstanceFrag.spv");
-//    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice,
-//    "/Users/Parminder/Dev/MVK/VulkanByExample-master/source/Chapter8/DrawingShapes/source/shaders/RectInstanceFrag.spv");
 #endif
 
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
@@ -714,7 +710,7 @@ void RectangleMultiDrawFactory::Prepare(Scene* p_Scene)
     //	UniformBuffer->m_BufObj.m_MemoryFlags,
     //	&m_Transform, sizeof(m_Transform));
 }
-
+#include <QDebug>
 void RectangleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
 {
     for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
@@ -752,7 +748,7 @@ void RectangleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
         for (int j = 0; j < modelSize; j++)
         {
             Rectangl* model = (static_cast<Rectangl*>(m_ModelList.at(j)));
-            if (!model) continue;
+            if (!model || !model->GetVisible()) continue;
 
             //////////////////////////////////////////////////////////////////////////////////
             struct pushConst
@@ -760,6 +756,7 @@ void RectangleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
                 glm::vec4 inColor;
                 glm::mat4 modelMatrix;
             }PC;
+
 
             PC.inColor = model->GetColor();
             //PC.inColor.a = 0.5;
@@ -790,6 +787,8 @@ void RectangleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
             const VkDeviceSize offsets[1] = { 0 };
             vkCmdBindVertexBuffers(p_CmdBuffer, VERTEX_BUFFER_BIND_IDX, 1, &model->m_VertexBuffer.m_Buffer, offsets);
             vkCmdDraw(p_CmdBuffer, vertexCount, /*INSTANCE_COUNT*/1, 0, 0);
+
+            model->SetDirtyType(DIRTY_TYPE::NONE);
         }
 
     }
