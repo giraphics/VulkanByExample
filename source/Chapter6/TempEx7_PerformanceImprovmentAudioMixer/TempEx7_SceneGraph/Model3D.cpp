@@ -7,7 +7,8 @@ Model3D::Model3D(Scene3D *p_Scene, Model3D *p_Parent, const QString &p_Name, SHA
     , m_Parent(p_Parent)
     , m_ShapeType(p_ShapeType)
     , m_RenderSchemeType(p_RenderSchemeType)
-    , m_Dirty(true)
+    , m_Visible(true)
+    , m_DirtyType(DIRTY_TYPE::ALL)
 {
     m_Parent ? m_Parent->m_ChildList.append(this) : p_Scene->AddModel(this);
 }
@@ -153,6 +154,27 @@ void Model3D::SetPosition(float p_X, float p_Y)
     Reset();
     Translate(m_Position.x, m_Position.y, m_Position.z);
     m_TransformedModel = m_Model * GetParentsTransformation(GetParent());
+}
+
+// When a Model is updated it may need recomputation of the transformation
+void Model3D::SetDirtyType(DIRTY_TYPE p_InvalidateType)
+{
+    m_DirtyType = p_InvalidateType;
+
+    if (m_Scene && IsDirty())
+    {
+        const DIRTY_TYPE isPositionUpdated = static_cast<DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(DIRTY_TYPE::POSITION));
+        if (isPositionUpdated == DIRTY_TYPE::POSITION)
+        {
+            m_Scene->SetDirtyType(static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_Scene->GetDirtyType()) | static_cast<int>(SCENE_DIRTY_TYPE::TRANSFORMATION)));
+        }
+
+        const DIRTY_TYPE isAttributeUpdated = static_cast<DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(DIRTY_TYPE::ATTRIBUTES));
+        if (isAttributeUpdated == DIRTY_TYPE::ATTRIBUTES)
+        {
+            m_Scene->SetDirtyType(static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_Scene->GetDirtyType()) | static_cast<int>(SCENE_DIRTY_TYPE::DIRTY_ITEMS)));
+        }
+    }
 }
 
 void Model3D::GatherFlatList()

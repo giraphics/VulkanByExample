@@ -23,7 +23,7 @@ public:
     };
 
 public:
-    RectangleModel(VulkanApp* p_VulkanApp/*REMOVE ME*/, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_INSTANCED);
+    RectangleModel(VulkanApp* p_VulkanApp/*REMOVE ME*/, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_TYPE::RENDER_SCEHEME_INSTANCED);
     virtual ~RectangleModel() {}
     GETSET(DRAW_TYPE, DrawType)
 
@@ -143,6 +143,7 @@ public:
         glm::mat4 m_Model;
         glm::vec4 m_Rect;
         glm::vec4 m_Color;
+//        glm::bvec4 m_BoolFlags; // [0] Visibility [1] Unused [2] Unused [3] Unused
     };
 
 

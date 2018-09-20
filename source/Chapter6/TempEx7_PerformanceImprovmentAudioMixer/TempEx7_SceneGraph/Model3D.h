@@ -31,7 +31,7 @@ public:
 class Model3D
 {
 public:
-    Model3D(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_INSTANCED);
+    Model3D(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_TYPE::RENDER_SCEHEME_INSTANCED);
     ~Model3D();
     virtual void Setup();
     void Update();
@@ -46,62 +46,59 @@ public:
     void SetZOrder(float p_ZOrder);
     void SetPosition(float p_X, float p_Y);
 
-	GETSET(SHAPE, ShapeType);
-	GETSET(RENDER_SCEHEME_TYPE, RenderSchemeType);
-	GETSET(glm::vec3, Position)
-	GETSET(glm::vec2, Dimension)
-	GETSET(glm::vec4, Color)
-	GETSET(glm::vec4, DefaultColor)
-	GETSET(glm::mat4, Model)		// Owned by drawable item
-	GETSET(Scene3D*, Scene)
-	GETSET(Model3D*, Parent)
-   	GETSET(glm::mat4, TransformedModel)		// Owned by drawable item
-    GETSET(unsigned int, GpuMemOffset) // TODO the data type should be unsigned long long to accomodate large offsets
-    GETSET(bool, Dirty)
+    bool IsDirty() { return (m_DirtyType != DIRTY_TYPE::NONE); }
+    DIRTY_TYPE GetDirtyType() { return m_DirtyType; }
+    void SetDirtyType(DIRTY_TYPE p_InvalidateType);
 
-	// Mouse interaction: Dummy interface for now.
-	virtual void mousePressEvent(QMouseEvent* p_Event);
-	virtual void mouseReleaseEvent(QMouseEvent* p_Event);
-	virtual bool mouseMoveEvent(QMouseEvent* p_Event);
-	virtual void mouseDoubleClickEvent(QMouseEvent* p_Event) UNIMPLEMENTED_INTEFACE
+    const glm::vec4& GetColor() const { return m_Color; }
+    void SetColor(const glm::vec4& p_Color) { m_Color = p_Color; SetDirtyType(DIRTY_TYPE::ATTRIBUTES); }
 
-	// Key interaction: Dummy interface for now.
-	virtual void keyPressEvent() UNIMPLEMENTED_INTEFACE
+    const glm::vec3& GetPosition() const { return m_Position; }
+    void SetPosition(const glm::vec3& p_Position) { m_Position = p_Position; SetDirtyType(DIRTY_TYPE::ATTRIBUTES); }
 
-	// Application Window resizing
-	virtual void ResizeWindow(int width, int height) {}
+    const glm::vec2& GetDimension() const { return m_Dimension; }
+    void SetDimension(const glm::vec2& p_Dimension) { m_Dimension = p_Dimension; SetDirtyType(DIRTY_TYPE::ATTRIBUTES); }
 
-	inline Model3D* GetParent() const { return m_Parent; }
-	void ApplyTransformation() { *m_Scene->Transform().GetModelMatrix() *= m_Model; }
-	glm::mat4 GetRelativeTransformations() const { return GetParentsTransformation(GetParent()) * m_Model; }
-	glm::mat4 GetParentsTransformation(Model3D* p_Parent) const { return p_Parent ? (GetParentsTransformation(p_Parent->GetParent()) * p_Parent->m_Model) : glm::mat4(); }
+    GETSET(SHAPE, ShapeType);
+    GETSET(RENDER_SCEHEME_TYPE, RenderSchemeType);
+    GETSET(glm::vec4, DefaultColor)
+    GETSET(glm::mat4, Model)            // Owned by drawable item
+    GETSET(Scene3D*, Scene)
+    GETSET(Model3D*, Parent)
+    GETSET(glm::mat4, TransformedModel) // Owned by drawable item
+    GETSET(unsigned int, GpuMemOffset)  // TODO the data type should be unsigned long long to accomodate large offsets
+    GETSET(bool, Visible)
 
-	void GatherFlatList();
+    // Mouse interaction: Dummy interface for now.
+    virtual void mousePressEvent(QMouseEvent* p_Event);
+    virtual void mouseReleaseEvent(QMouseEvent* p_Event);
+    virtual bool mouseMoveEvent(QMouseEvent* p_Event);
+    virtual void mouseDoubleClickEvent(QMouseEvent* p_Event) UNIMPLEMENTED_INTEFACE
 
-	AbstractModelFactory* m_AbstractFactory; // REMOVE ME
+    // Key interaction: Dummy interface for now.
+    virtual void keyPressEvent() UNIMPLEMENTED_INTEFACE
+
+    // Application Window resizing
+    virtual void ResizeWindow(int width, int height) {}
+
+    inline Model3D* GetParent() const { return m_Parent; }
+    void ApplyTransformation() { *m_Scene->Transform().GetModelMatrix() *= m_Model; }
+    glm::mat4 GetRelativeTransformations() const { return GetParentsTransformation(GetParent()) * m_Model; }
+    glm::mat4 GetParentsTransformation(Model3D* p_Parent) const { return p_Parent ? (GetParentsTransformation(p_Parent->GetParent()) * p_Parent->m_Model) : glm::mat4(); }
+
+    void GatherFlatList();
+
+    //AbstractModelFactory* m_AbstractFactory; // REMOVE ME
+
+protected:
+    DIRTY_TYPE m_DirtyType;
+
+    // Attributes Start
+    glm::vec4 m_Color;
+    glm::vec3 m_Position;
+    glm::vec2 m_Dimension;
+    // Attributes End
+
 private:
     QList<Model3D*> m_ChildList;
 };
-
-//class RectangleModel;
-//class ProgressBar : public Model3D
-//{
-//public:
-//    ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
-//    virtual ~ProgressBar() {}
-//
-//    virtual bool mouseMoveEvent(QMouseEvent* p_Event);
-//    RectangleModel* progressIndicator;
-//    RectangleModel* bar;
-//};
-//
-//class AudioMixerItem : public Model3D
-//{
-//public:
-//    AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, glm::vec2 p_TopLeftPos, glm::vec2 p_Dim, SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
-//    virtual ~AudioMixerItem() {}
-//
-//    //virtual bool mouseMoveEvent(QMouseEvent* p_Event);
-//    //Model3D* progressIndicator;
-//};
-

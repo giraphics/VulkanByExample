@@ -5,19 +5,19 @@
 #include <QMainWindow>
 #include <QHBoxLayout>
 #include <QApplication>
-extern bool isDirty;
+
 int main(int argc, char **argv)
 {
-	QApplication qtApp(argc, argv);
+    QApplication qtApp(argc, argv);
 
-	MyFirst3DApp* helloVulkanApp = new MyFirst3DApp(); // Create Vulkan app instance
-	helloVulkanApp->EnableDepthBuffer(true);
-	helloVulkanApp->Initialize();
+    MyFirst3DApp* helloVulkanApp = new MyFirst3DApp(); // Create Vulkan app instance
+    helloVulkanApp->EnableDepthBuffer(true);
+    helloVulkanApp->Initialize();
     helloVulkanApp->m_pWindow->show();
-	qtApp.exec();
+    qtApp.exec();
 
-	delete helloVulkanApp;
-	return 0;
+    delete helloVulkanApp;
+    return 0;
 }
 
 MyFirst3DApp::MyFirst3DApp()
@@ -31,13 +31,13 @@ MyFirst3DApp::~MyFirst3DApp()
 
 void MyFirst3DApp::ProgressBarFunc(Scene3D* m_Scene)
 {
-	ProgressBar* m_Parent = new ProgressBar(m_Scene, NULL, "Node 1", SHAPE_CUBE);
+    ProgressBar* m_Parent = new ProgressBar(m_Scene, NULL, "Node 1", SHAPE::SHAPE_CUBE);
 }
 
 void MyFirst3DApp::Grid(Scene3D* m_Scene)
 {
-    float parentCol = 20;
-    float parentRow = 20;
+    float parentCol = 10;
+    float parentRow = 10;
     float parentColWidth = m_windowDim.width / parentCol;
     float parentColHeight = m_windowDim.height / parentRow;
 
@@ -50,7 +50,7 @@ void MyFirst3DApp::Grid(Scene3D* m_Scene)
     {
         for (int j = 0; j < parentRow; j++)
         {
-            Model3D* m_Parent = new RectangleModel(NULL, m_Scene, NULL, "Node 1", SHAPE_RECTANGLE);
+            Model3D* m_Parent = new RectangleModel(NULL, m_Scene, NULL, "Node 1", SHAPE::SHAPE_RECTANGLE);
             m_Parent->Rectangle((i * parentColWidth), (j * parentColHeight), parentColWidth - 2, parentColHeight);
             m_Parent->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
             m_Parent->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
@@ -59,10 +59,11 @@ void MyFirst3DApp::Grid(Scene3D* m_Scene)
             {
                 for (int l = 0; l < Row; l++)
                 {
-                    RectangleModel* rect = new RectangleModel(NULL, m_Scene, m_Parent, "Node 1", SHAPE_RECTANGLE);
+                    RectangleModel* rect = new RectangleModel(NULL, m_Scene, m_Parent, "Node 1", SHAPE::SHAPE_RECTANGLE);
                     rect->Rectangle((k * colWidth), (l * colHeight), colWidth, colHeight);
                     rect->SetColor(glm::vec4(l / Col, k / Row, 0.50, 1.0));
                     rect->SetDefaultColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
+                    rect->SetVisible(!(k == l));
                 }
             }
         }
@@ -81,7 +82,7 @@ void MyFirst3DApp::MixerView(Scene3D* m_Scene)
     {
 		glm::vec2 p_TopLeftPos((i * mixerWidth), 0); 
 		glm::vec2 p_Dim(mixerWidth, mixerPanelHeight);
-        AudioMixerItem* m_MixerItem = new AudioMixerItem(m_Scene, NULL, "Mixer Item 1", p_TopLeftPos, p_Dim, SHAPE_CUSTOM);
+        AudioMixerItem* m_MixerItem = new AudioMixerItem(m_Scene, NULL, "Mixer Item 1", p_TopLeftPos, p_Dim, SHAPE::SHAPE_CUSTOM);
         m_MixerItem->SetColor(glm::vec4(1.1, 0.2, 0.20, 1.0));
         m_MixerItem->SetDefaultColor(glm::vec4(1.0, 0.15, 0.60, 1.0));
     }
@@ -123,7 +124,7 @@ void MyFirst3DApp::Configure()
 //    m_Cube->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
 
 
-//	ProgressBar(m_Scene);
+    //ProgressBar(m_Scene);
     Grid(m_Scene);
 
 //    ProgressBar* pb = new ProgressBar(m_Scene, NULL, "Progressbar", SHAPE_CUSTOM);
@@ -152,27 +153,12 @@ void MyFirst3DApp::Setup()
     m_Scene->SetView(&View);
 
     m_Scene->SetUpProjection(); // For some reason the ViewMatrix is not working properly, this setupensure model matrix is set properly.
-	m_Scene->Setup();
-	isDirty = true;
+    m_Scene->Setup();
 }
 
 void MyFirst3DApp::Update()
 {
-    static int i = 0;
-    if (i++ < 40)
-    {
-//        isDirty = true;
-        static int j = 0;
-        glm::translate(*m_Scene->GetView(), glm::vec3(j++, -0, 0));
-        m_Scene->Update();
-    }
-
-    if (!isDirty) return;
-
-    m_Scene->UpdateDirty();
-    //m_Scene->Update();
-
-    isDirty = false;
+    m_Scene->Update();
 }
 
 bool MyFirst3DApp::Render()

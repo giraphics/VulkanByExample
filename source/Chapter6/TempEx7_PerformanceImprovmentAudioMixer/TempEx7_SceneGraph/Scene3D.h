@@ -21,7 +21,6 @@ public:
 
     void Setup();
     void Update();
-    void UpdateDirty();
     void Render();
 
     void AddModel(Model3D* p_Model);
@@ -34,6 +33,10 @@ public:
     void PushMatrix() { m_Transform.PushMatrix(); }
     void PopMatrix() { m_Transform.PopMatrix(); }
     void ApplyTransformation(const glm::mat4& m_TransformationMatrix) { *m_Transform.GetModelMatrix() *= m_TransformationMatrix; }
+
+    bool IsDirty() { return (m_DirtyType != SCENE_DIRTY_TYPE::NONE); }
+    SCENE_DIRTY_TYPE GetDirtyType() { return m_DirtyType; }
+    void SetDirtyType(SCENE_DIRTY_TYPE p_InvalidateType) { m_DirtyType = p_InvalidateType; }
 
     virtual void mousePressEvent(QMouseEvent* p_Event);
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
@@ -63,4 +66,7 @@ public:
 
     typedef std::map<RENDER_SCEHEME_TYPE, AbstractModelFactory*> RenderSchemeTypeMap;
     std::map<SHAPE, RenderSchemeTypeMap*> m_ShapeRenderSchemeTypeMap;
+
+private:
+    SCENE_DIRTY_TYPE m_DirtyType;
 };

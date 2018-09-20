@@ -3,7 +3,6 @@
 
 #include "../../common/VulkanApp.h" // Not a good design to include vulkan app here: Todo move AbstractApp 
 #include <QMouseEvent> 
-/*extern*/ bool isDirty;
 
 Scene3D::Scene3D(AbstractApp* p_Application)
     : m_Application(p_Application)
@@ -13,6 +12,7 @@ Scene3D::Scene3D(AbstractApp* p_Application)
     , m_CurrentHoverItem(NULL)
     , m_Projection(NULL)	// Not owned by Scene, double check this can be owned. TODO: PS
     , m_View(NULL)		// Not owned by Scene
+    , m_DirtyType(SCENE_DIRTY_TYPE::ALL)
 {
 }
 
@@ -48,7 +48,7 @@ void Scene3D::Setup()
         currentModel->Setup();
     }
 
-    foreach(Model3D* currentModel, m_FlatList)
+    foreach (Model3D* currentModel, m_FlatList)
     {
         AbstractModelFactory* factory = GetFactory(currentModel); // Populate factories
         if (!factory) continue;
@@ -72,51 +72,58 @@ void Scene3D::Setup()
         itSRST++;
     }
 
-    ///////////////////////////////////////////////
-    foreach(Model3D* currentModel, m_FlatList)
-    {
-//        m_ModelFactories.insert(currentModel->m_AbstractFactory);
-    }
 
-	assert(m_ModelFactories.size());
-	foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+    assert(m_ModelFactories.size());
+    foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
     {
         currentModelFactory->Setup();
     }
+
+    // Setup is the first time update() therefore update ALL
+    m_DirtyType = SCENE_DIRTY_TYPE::ALL;
 }
 
 void Scene3D::Update()
 {
+    if (!IsDirty()) return;
+
     foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
     {
         currentModelFactory->m_Transform = (*GetProjection()) * (*GetView());
     }
 
-    foreach (Model3D* item, m_ModelList)
+    const SCENE_DIRTY_TYPE updateTransformType = static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::TRANSFORMATION));
+    if (updateTransformType == SCENE_DIRTY_TYPE::TRANSFORMATION)
     {
-        assert(item);
+        foreach (Model3D* item, m_ModelList)
+        {
+            assert(item);
 
-        item->Update();
+            item->Update();
+        }
     }
 
-	foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
-	{
-        currentModelFactory->Update();
-	}
-
-}
-
-void Scene3D::UpdateDirty()
-{
-    foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+    SCENE_DIRTY_TYPE updateItemType = static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::ALL_ITEMS));
+    if (updateItemType == SCENE_DIRTY_TYPE::ALL_ITEMS)
     {
-        currentModelFactory->m_Transform = (*GetProjection()) * (*GetView());
+        foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+        {
+            currentModelFactory->Update();
+        }
+    }
+    else
+    {
+        updateItemType = static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::DIRTY_ITEMS));
+        if (updateItemType == SCENE_DIRTY_TYPE::DIRTY_ITEMS)
+        {
+            foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+            {
+                currentModelFactory->UpdateDirty();
+            }
+        }
     }
 
-    foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
-    {
-        currentModelFactory->UpdateDirty();
-    }
+    m_DirtyType = SCENE_DIRTY_TYPE::NONE;
 }
 
 void Scene3D::Render()
@@ -236,12 +243,9 @@ void Scene3D::mouseMoveEvent(QMouseEvent* p_Event)
             if (oldModelItem && oldModelItem != currentModel)
             {
                 oldModelItem->SetColor(oldModelItem->GetDefaultColor());
-                oldModelItem->SetDirty(true);
             }
 
             currentModel->SetColor(glm::vec4(1.0, 1.0, 0.3, 1.0));
-            currentModel->SetDirty(true);
-            isDirty = true;
             return;
         }
     }
@@ -249,14 +253,13 @@ void Scene3D::mouseMoveEvent(QMouseEvent* p_Event)
     if (oldModelItem)
     {
         oldModelItem->SetColor(oldModelItem->GetDefaultColor());
-        oldModelItem->SetDirty(true);
     }
 }
 
 AbstractModelFactory* Scene3D::GetFactory(Model3D* p_Model)
 {
     const SHAPE shapeType = p_Model->GetShapeType();
-    if ((shapeType <= SHAPE_NONE) && (shapeType >= SHAPE_COUNT)) return NULL;
+    if ((shapeType <= SHAPE::SHAPE_NONE) && (shapeType >= SHAPE::SHAPE_COUNT)) return NULL;
 
     RenderSchemeTypeMap* m_FactoryMap = NULL;
     std::map<SHAPE, RenderSchemeTypeMap*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.find(shapeType);
