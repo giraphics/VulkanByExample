@@ -89,7 +89,9 @@ void Scene3D::Update()
 
     foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
     {
-        currentModelFactory->m_Transform = (*GetProjection()) * (*GetView());
+//        currentModelFactory->m_Transform = (*GetProjection()) * (*GetView());
+        glm::mat4 transformation = (*GetProjection()) * (*GetView());
+        currentModelFactory->SetRefProjectViewMatrix(transformation);
     }
 
     const SCENE_DIRTY_TYPE updateTransformType = static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::TRANSFORMATION));

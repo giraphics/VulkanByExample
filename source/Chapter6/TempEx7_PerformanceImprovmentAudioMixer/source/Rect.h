@@ -23,7 +23,7 @@ public:
     };
 
 public:
-    RectangleModel(VulkanApp* p_VulkanApp/*REMOVE ME*/, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_TYPE::RENDER_SCEHEME_INSTANCED);
+    RectangleModel(VulkanApp* p_VulkanApp/*REMOVE ME*/, Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_TYPE::RENDER_SCEHEME_INSTANCED);
     virtual ~RectangleModel() {}
     GETSET(DRAW_TYPE, DrawType)
 
@@ -50,6 +50,8 @@ struct RectangleDescriptorSet
         m_VulkanApplication = p_VulkanApplication;
 
         UniformBuffer = new UniformBufferObj;
+
+        CreateDescriptor();
     }
     ~RectangleDescriptorSet()
     {
@@ -90,11 +92,11 @@ struct RectangleDescriptorSet
     UniformBufferObj* UniformBuffer;
 };
 
-class RectangleFactory : public AbstractModelFactory
+class RectangleInstancingScheme : public AbstractModelFactory
 {
 public:
-    RectangleFactory(VulkanApp* p_VulkanApp);
-    virtual ~RectangleFactory();
+    RectangleInstancingScheme(VulkanApp* p_VulkanApp);
+    virtual ~RectangleInstancingScheme();
 
 public:
 	virtual void Setup();
@@ -165,7 +167,7 @@ class QMouseEvent;
 class ProgressBar : public Model3D
 {
 public:
-    ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
+    ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
     virtual ~ProgressBar() {}
 
     virtual bool mouseMoveEvent(QMouseEvent* p_Event);
@@ -176,7 +178,7 @@ public:
 class AudioMixerItem : public Model3D
 {
 public:
-    AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, glm::vec2 p_TopLeftPos, glm::vec2 p_Dim, SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
+    AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
     virtual ~AudioMixerItem() {}
 
     //virtual bool mouseMoveEvent(QMouseEvent* p_Event);

@@ -41,3 +41,21 @@ enum class SCENE_DIRTY_TYPE : uint32_t
     DIRTY_ITEMS     = (1u << 2u),
     ALL             = (TRANSFORMATION | ALL_ITEMS),
 };
+
+struct BoundingRegion
+{
+    BoundingRegion(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder = 0) // For 2D Bounding Box
+    {
+        m_Position.x = p_X;         m_Position.y = p_Y;        m_Position.z = p_ZOrder;
+        m_Dimension.x = p_Width;    m_Dimension.y = p_Height;  m_Dimension.z = p_ZOrder;
+    }
+
+    BoundingRegion(float p_X, float p_Y, float p_Z, float p_Width, float p_Height, float p_Depth)
+    {
+        m_Position.x = p_X;         m_Position.y = p_X;        m_Position.z = p_Z;
+        m_Dimension.x = p_Width;    m_Dimension.y = p_Height;  m_Dimension.z = p_Depth;
+    }
+
+    glm::vec3 m_Position;
+    glm::vec3 m_Dimension;
+};
