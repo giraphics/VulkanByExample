@@ -1,10 +1,10 @@
-﻿#include "Scene3D.h"
-#include "Model3D.h"
+﻿#include "Scene.h"
+#include "Node.h"
 
 #include "../../common/VulkanApp.h" // Not a good design to include vulkan app here: Todo move AbstractApp 
 #include <QMouseEvent> 
 
-Scene3D::Scene3D(AbstractApp* p_Application)
+Scene::Scene(AbstractApp* p_Application)
     : m_Application(p_Application)
     , m_Frame(0)
     , m_ScreenWidth(800)
@@ -16,7 +16,7 @@ Scene3D::Scene3D(AbstractApp* p_Application)
 {
 }
 
-Scene3D::~Scene3D()
+Scene::~Scene()
 {
     RenderSchemeTypeMap* m_FactoryMap = NULL;
     std::map<SHAPE, RenderSchemeTypeMap*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
@@ -24,7 +24,7 @@ Scene3D::~Scene3D()
     while (itSRST != m_ShapeRenderSchemeTypeMap.end())
     {
         m_FactoryMap = itSRST->second;
-        std::map<RENDER_SCEHEME_TYPE, AbstractModelFactory*>::iterator it = m_FactoryMap->begin();
+        std::map<RENDER_SCEHEME_TYPE, RenderSchemeFactory*>::iterator it = m_FactoryMap->begin();
         if (it != m_FactoryMap->end())
         {
             delete it->second;
@@ -33,27 +33,27 @@ Scene3D::~Scene3D()
         ++itSRST;
     }
 
-    foreach (Model3D* currentModel, m_ModelList)
+    foreach (Node* currentModel, m_ModelList)
     {
         delete currentModel;
     }
 }
 
-void Scene3D::Setup()
+void Scene::Setup()
 {
     GatherFlatList(); // Assuming all nodes are added into the scenes by now
 
-    foreach (Model3D* currentModel, m_ModelList)
+    foreach (Node* currentModel, m_ModelList)
     {
         currentModel->Setup();
     }
 
-    foreach (Model3D* currentModel, m_FlatList)
+    foreach (Node* currentModel, m_FlatList)
     {
-        AbstractModelFactory* factory = GetFactory(currentModel); // Populate factories
+        RenderSchemeFactory* factory = GetFactory(currentModel); // Populate factories
         if (!factory) continue;
 
-        factory->UpdateModelList(currentModel);
+        factory->UpdateNodeList(currentModel);
     }
 
     ////////////////////////////////////////////////
@@ -62,7 +62,7 @@ void Scene3D::Setup()
     if (itSRST != m_ShapeRenderSchemeTypeMap.end())
     {
         m_FactoryMap = itSRST->second;
-        std::map<RENDER_SCEHEME_TYPE, AbstractModelFactory*>::iterator it = m_FactoryMap->begin();
+        std::map<RENDER_SCEHEME_TYPE, RenderSchemeFactory*>::iterator it = m_FactoryMap->begin();
         if (it != m_FactoryMap->end())
         {
             m_ModelFactories.insert(it->second);
@@ -74,7 +74,7 @@ void Scene3D::Setup()
 
 
     assert(m_ModelFactories.size());
-    foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+    foreach(RenderSchemeFactory* currentModelFactory, m_ModelFactories)
     {
         currentModelFactory->Setup();
     }
@@ -83,11 +83,11 @@ void Scene3D::Setup()
     m_DirtyType = SCENE_DIRTY_TYPE::ALL;
 }
 
-void Scene3D::Update()
+void Scene::Update()
 {
     if (!IsDirty()) return;
 
-    foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+    foreach(RenderSchemeFactory* currentModelFactory, m_ModelFactories)
     {
 //        currentModelFactory->m_Transform = (*GetProjection()) * (*GetView());
         glm::mat4 transformation = (*GetProjection()) * (*GetView());
@@ -97,7 +97,7 @@ void Scene3D::Update()
     const SCENE_DIRTY_TYPE updateTransformType = static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::TRANSFORMATION));
     if (updateTransformType == SCENE_DIRTY_TYPE::TRANSFORMATION)
     {
-        foreach (Model3D* item, m_ModelList)
+        foreach (Node* item, m_ModelList)
         {
             assert(item);
 
@@ -108,7 +108,7 @@ void Scene3D::Update()
     SCENE_DIRTY_TYPE updateItemType = static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::ALL_ITEMS));
     if (updateItemType == SCENE_DIRTY_TYPE::ALL_ITEMS)
     {
-        foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+        foreach(RenderSchemeFactory* currentModelFactory, m_ModelFactories)
         {
             currentModelFactory->Update();
         }
@@ -118,7 +118,7 @@ void Scene3D::Update()
         updateItemType = static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::DIRTY_ITEMS));
         if (updateItemType == SCENE_DIRTY_TYPE::DIRTY_ITEMS)
         {
-            foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+            foreach(RenderSchemeFactory* currentModelFactory, m_ModelFactories)
             {
                 currentModelFactory->UpdateDirty();
             }
@@ -128,19 +128,19 @@ void Scene3D::Update()
     m_DirtyType = SCENE_DIRTY_TYPE::NONE;
 }
 
-void Scene3D::Render()
+void Scene::Render()
 {
-    foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+    foreach(RenderSchemeFactory* currentModelFactory, m_ModelFactories)
     {
         currentModelFactory->Render();
     }
 }
 
-void Scene3D::GatherFlatList()
+void Scene::GatherFlatList()
 {
     m_FlatList.clear();
 
-    foreach (Model3D* item, m_ModelList)
+    foreach (Node* item, m_ModelList)
     {
         assert(item);
 
@@ -148,7 +148,7 @@ void Scene3D::GatherFlatList()
     }
 }
 
-void Scene3D::AddModel(Model3D* p_Model)
+void Scene::AddModel(Node* p_Model)
 {
     if (p_Model && !p_Model->GetParent())
     {
@@ -158,7 +158,7 @@ void Scene3D::AddModel(Model3D* p_Model)
 
 
 // While removing the model remove it from model list and flat list.
-void Scene3D::RemoveModel(Model3D* p_Model)
+void Scene::RemoveModel(Node* p_Model)
 {
     while (true)
     {
@@ -176,44 +176,44 @@ void Scene3D::RemoveModel(Model3D* p_Model)
         m_ModelList.erase(result);
     }
 
-    AbstractModelFactory* factory = GetFactory(p_Model); // Populate factories
+    RenderSchemeFactory* factory = GetFactory(p_Model); // Populate factories
     if (!factory) return;
 
-    factory->RemoveModelList(p_Model);
+    factory->RemoveNodeList(p_Model);
 }
 
-void Scene3D::Resize(int p_Width, int p_Height)
+void Scene::Resize(int p_Width, int p_Height)
 {
     m_ScreenWidth = p_Width;
     m_ScreenHeight = p_Height;
 
-	foreach(AbstractModelFactory* currentModelFactory, m_ModelFactories)
+    foreach(RenderSchemeFactory* currentModelFactory, m_ModelFactories)
 	{
 		currentModelFactory->ResizeWindow(p_Width, p_Height);
 	}
 }
 
-void Scene3D::SetUpProjection()
+void Scene::SetUpProjection()
 {
-    m_Transform.SetMatrixMode(Transformation3D::PROJECTION_MATRIX);
+    m_Transform.SetMatrixMode(Transformation::PROJECTION_MATRIX);
     m_Transform.LoadIdentity();
 
     m_Transform.SetPerspective(45.0f, float(m_ScreenWidth)/m_ScreenHeight, 0.10f, 100.0f);
 
-    m_Transform.SetMatrixMode(Transformation3D::VIEW_MATRIX);
+    m_Transform.SetMatrixMode(Transformation::VIEW_MATRIX);
     glm::vec3 eye(10.0, 10.0, 10.0);
     glm::vec3 center(0.0, 0.0, 0.0);
     glm::vec3 up(0.0, 1.0, 0.0);
     m_Transform.LoadIdentity();
     m_Transform.LookAt(&eye, &center, &up);
 
-    m_Transform.SetMatrixMode(Transformation3D::MODEL_MATRIX);
+    m_Transform.SetMatrixMode(Transformation::MODEL_MATRIX);
     m_Transform.LoadIdentity();
 }
 
-void Scene3D::mousePressEvent(QMouseEvent* p_Event)
+void Scene::mousePressEvent(QMouseEvent* p_Event)
 {
-    foreach (Model3D* item, m_ModelList)
+    foreach (Node* item, m_ModelList)
     {
         assert(item);
 
@@ -221,9 +221,9 @@ void Scene3D::mousePressEvent(QMouseEvent* p_Event)
     }
 }
 
-void Scene3D::mouseReleaseEvent(QMouseEvent* p_Event)
+void Scene::mouseReleaseEvent(QMouseEvent* p_Event)
 {
-    foreach (Model3D* item, m_ModelList)
+    foreach (Node* item, m_ModelList)
     {
         assert(item);
 
@@ -231,17 +231,17 @@ void Scene3D::mouseReleaseEvent(QMouseEvent* p_Event)
     }
 }
 
-void Scene3D::mouseMoveEvent(QMouseEvent* p_Event)
+void Scene::mouseMoveEvent(QMouseEvent* p_Event)
 {
-    Model3D* oldModelItem = GetCurrentHoverItem();
+    Node* oldModelItem = GetCurrentHoverItem();
     for (int i = m_ModelList.size() - 1; i >= 0; i--)
     {
-        Model3D* item = m_ModelList.at(i);
+        Node* item = m_ModelList.at(i);
         assert(item);
 
         if (item->mouseMoveEvent(p_Event))
         {
-            Model3D* currentModel = GetCurrentHoverItem();
+            Node* currentModel = GetCurrentHoverItem();
             if (oldModelItem && oldModelItem != currentModel)
             {
                 oldModelItem->SetColor(oldModelItem->GetDefaultColor());
@@ -258,7 +258,7 @@ void Scene3D::mouseMoveEvent(QMouseEvent* p_Event)
     }
 }
 
-AbstractModelFactory* Scene3D::GetFactory(Model3D* p_Model)
+RenderSchemeFactory* Scene::GetFactory(Node* p_Model)
 {
     const SHAPE shapeType = p_Model->GetShapeType();
     if ((shapeType <= SHAPE::SHAPE_NONE) && (shapeType >= SHAPE::SHAPE_COUNT)) return NULL;
@@ -276,13 +276,13 @@ AbstractModelFactory* Scene3D::GetFactory(Model3D* p_Model)
     }
 
     const RENDER_SCEHEME_TYPE renderSchemeType = p_Model->GetRenderSchemeType();
-    std::map<RENDER_SCEHEME_TYPE, AbstractModelFactory*>::iterator it = m_FactoryMap->find(renderSchemeType);
+    std::map<RENDER_SCEHEME_TYPE, RenderSchemeFactory*>::iterator it = m_FactoryMap->find(renderSchemeType);
     if (it != m_FactoryMap->end())
     {
         return it->second;
     }
 
-    AbstractModelFactory* abstractFactory = p_Model->GetRenderScemeFactory();
+    RenderSchemeFactory* abstractFactory = p_Model->GetRenderScemeFactory();
     if (abstractFactory)
     {
         (*m_FactoryMap)[renderSchemeType] = abstractFactory;

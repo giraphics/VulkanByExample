@@ -27,21 +27,25 @@ RESOURCES += resource.qrc
 SOURCES += \
         ../../../source/common/VulkanHelper.cpp \
         ../../../source/common/VulkanApp.cpp \
-        TempEx7_SceneGraph/Model3D.cpp \
-        TempEx7_SceneGraph/Scene3D.cpp \
-        TempEx7_SceneGraph/Transformation3D.cpp \
+        TempEx7_SceneGraph/RenderSchemeFactory.cpp \
+        TempEx7_SceneGraph/Node.cpp \
+        TempEx7_SceneGraph/Scene.cpp \
+        TempEx7_SceneGraph/Transformation.cpp \
         source/Rect.cpp \
-        source/MyFirst3DApp.cpp
+        source/UiDemo.cpp \
+        source/UiDemoApp.cpp
 
 HEADERS += \
         ../../../source/common/VulkanHelper.h \
         ../../../source/common/VulkanApp.h \
-        TempEx7_SceneGraph/Model3D.h \
-        TempEx7_SceneGraph/Scene3D.h \
-        TempEx7_SceneGraph/Transformation3D.h \
-        TempEx7_SceneGraph/SGCommon.h \
+        TempEx7_SceneGraph/RenderSchemeFactory.h \
+        TempEx7_SceneGraph/Node.h \
+        TempEx7_SceneGraph/Scene.h \
+        TempEx7_SceneGraph/Transformation.h \
+        TempEx7_SceneGraph/Common.h \
         source/Rect.h \
-        source/MyFirst3DApp.h
+        source/UiDemo.h \
+        source/UiDemoApp.h
 
 #QMAKE_CXXFLAGS += -std=c++11
 CONFIG += c++11

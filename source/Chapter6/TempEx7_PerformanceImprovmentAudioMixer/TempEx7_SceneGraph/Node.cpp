@@ -1,8 +1,8 @@
-#include "Model3D.h"
+#include "Node.h"
 #include<QMouseEvent>
 #include<glm/gtx/string_cast.hpp>
 
-Model3D::Model3D(Scene3D *p_Scene, Model3D *p_Parent, const BoundingRegion& p_BoundedRegion, const QString &p_Name, SHAPE p_ShapeType, RENDER_SCEHEME_TYPE p_RenderSchemeType)
+Node::Node(Scene *p_Scene, Node *p_Parent, const BoundingRegion& p_BoundedRegion, const QString &p_Name, SHAPE p_ShapeType, RENDER_SCEHEME_TYPE p_RenderSchemeType)
     : m_Scene(p_Scene)
     , m_Parent(p_Parent)
     , m_ShapeType(p_ShapeType)
@@ -17,7 +17,7 @@ Model3D::Model3D(Scene3D *p_Scene, Model3D *p_Parent, const BoundingRegion& p_Bo
     SetGeometry(m_BoundedRegion.m_Position.x, m_BoundedRegion.m_Position.y, m_BoundedRegion.m_Dimension.x, m_BoundedRegion.m_Dimension.y, m_BoundedRegion.m_Position.z);
 }
 
-Model3D::~Model3D()
+Node::~Node()
 {
     if (m_Scene)
     {
@@ -25,11 +25,11 @@ Model3D::~Model3D()
     }
 }
 
-void Model3D::Setup()
+void Node::Setup()
 {
-    foreach(Model3D* currentModel, m_ChildList)
+    foreach(Node* currentModel, m_ChildList)
     {
-        Model3D* model = /*dynamic_cast<Model3D*>*/(currentModel);
+        Node* model = /*dynamic_cast<Node*>*/(currentModel);
 
         if (!model) continue;
 
@@ -37,7 +37,7 @@ void Model3D::Setup()
     }
 }
 
-void Model3D::mousePressEvent(QMouseEvent* p_Event)
+void Node::mousePressEvent(QMouseEvent* p_Event)
 {
     glm::vec4 posStart((0 * m_BoundedRegion.m_Dimension.x), (0 * m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
     glm::vec4 posStartResult = m_ModelTransformation * posStart;
@@ -53,7 +53,7 @@ void Model3D::mousePressEvent(QMouseEvent* p_Event)
         cout << "\n***************";
 
 
-    foreach(Model3D* item, m_ChildList)
+    foreach(Node* item, m_ChildList)
     {
         assert(item);
 
@@ -61,12 +61,12 @@ void Model3D::mousePressEvent(QMouseEvent* p_Event)
     }
 }
 
-void Model3D::mouseReleaseEvent(QMouseEvent* p_Event)
+void Node::mouseReleaseEvent(QMouseEvent* p_Event)
 {
 //    return;
 
 	//cout << "\n##### mouseReleaseEvent";
-	foreach(Model3D* item, m_ChildList)
+    foreach(Node* item, m_ChildList)
 	{
 		assert(item);
 
@@ -74,7 +74,7 @@ void Model3D::mouseReleaseEvent(QMouseEvent* p_Event)
 	}
 }
 
-bool Model3D::mouseMoveEvent(QMouseEvent* p_Event)
+bool Node::mouseMoveEvent(QMouseEvent* p_Event)
 {
     glm::vec4 posStart((0 * m_BoundedRegion.m_Dimension.x), (0 * m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
     glm::vec4 posStartResult = /*GetParentsTransformation(GetParent()) **/ m_ModelTransformation * posStart;
@@ -90,7 +90,7 @@ bool Model3D::mouseMoveEvent(QMouseEvent* p_Event)
         //cout << "\n##### mouseMoveEvent";
         for (int i = m_ChildList.size() - 1; i >= 0; i--)
         {
-            Model3D* item = m_ChildList.at(i);
+            Node* item = m_ChildList.at(i);
             assert(item);
 
             if (item->mouseMoveEvent(p_Event))
@@ -105,14 +105,14 @@ bool Model3D::mouseMoveEvent(QMouseEvent* p_Event)
     return false;
 }
 
-void Model3D::Update()
+void Node::Update()
 {
     m_Scene->PushMatrix();
     m_Scene->ApplyTransformation(m_Model);
 
     m_ModelTransformation = *m_Scene->m_Transform.GetModelMatrix();
 
-    Q_FOREACH(Model3D* child, m_ChildList)
+    Q_FOREACH(Node* child, m_ChildList)
     {
         assert(child);
         child->Update();
@@ -121,7 +121,7 @@ void Model3D::Update()
     m_Scene->PopMatrix();
 }
 
-//void Model3D::Rectangle(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder/*=0*/)
+//void Node::Rectangle(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder/*=0*/)
 //{
 //    Translate(p_X, p_Y, p_ZOrder);
 
@@ -133,7 +133,7 @@ void Model3D::Update()
 //    m_BoundedRegion.m_Dimension.y = p_Height;
 //}
 
-void Model3D::SetZOrder(float p_ZOrder)
+void Node::SetZOrder(float p_ZOrder)
 {
     m_BoundedRegion.m_Position.z = p_ZOrder;
 
@@ -141,7 +141,7 @@ void Model3D::SetZOrder(float p_ZOrder)
     Translate(m_BoundedRegion.m_Position.x, m_BoundedRegion.m_Position.y, m_BoundedRegion.m_Position.z);
 }
 
-void Model3D::SetPosition(float p_X, float p_Y)
+void Node::SetPosition(float p_X, float p_Y)
 {
     glm::vec4 posStart((0 * m_BoundedRegion.m_Dimension.x), (0 * m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
     glm::vec4 posStartResult = /*GetParentsTransformation(GetParent()) **/ m_ModelTransformation * posStart;
@@ -157,7 +157,7 @@ void Model3D::SetPosition(float p_X, float p_Y)
     m_ModelTransformation = m_Model * GetParentsTransformation(GetParent());
 }
 
-void Model3D::SetGeometry(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder/*=0*/)
+void Node::SetGeometry(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder/*=0*/)
 {
     Translate(p_X, p_Y, p_ZOrder);
 
@@ -170,7 +170,7 @@ void Model3D::SetGeometry(float p_X, float p_Y, float p_Width, float p_Height, f
 }
 
 // When a Model is updated it may need recomputation of the transformation
-void Model3D::SetDirtyType(DIRTY_TYPE p_InvalidateType)
+void Node::SetDirtyType(DIRTY_TYPE p_InvalidateType)
 {
     m_DirtyType = p_InvalidateType;
 
@@ -190,11 +190,11 @@ void Model3D::SetDirtyType(DIRTY_TYPE p_InvalidateType)
     }
 }
 
-void Model3D::GatherFlatList()
+void Node::GatherFlatList()
 {
     m_Scene->m_FlatList.push_back(this);
 
-    Q_FOREACH(Model3D* child, m_ChildList)
+    Q_FOREACH(Node* child, m_ChildList)
     {
         assert(child);
         child->GatherFlatList();

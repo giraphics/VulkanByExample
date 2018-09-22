@@ -730,11 +730,11 @@ void RectangleInstancingScheme::CreateVertexBuffer()
     }
 }
 
-void RectangleInstancingScheme::UpdateModelList(Model3D *p_Item)
+void RectangleInstancingScheme::UpdateNodeList(Node *p_Item)
 {
     //m_ModelList.push_back(p_Item);
 
-    RectangleModel* rectangle = dynamic_cast<RectangleModel*>(p_Item);
+    Rectangl* rectangle = dynamic_cast<Rectangl*>(p_Item);
     assert(rectangle);
 
     // Note: Based on the draw type push the model in respective pipelines
@@ -742,15 +742,15 @@ void RectangleInstancingScheme::UpdateModelList(Model3D *p_Item)
     // they may be in one-to-one correspondence but that is not necessary.
     switch (rectangle->GetDrawType())
     {
-    case RectangleModel::FILLED:
+    case Rectangl::FILLED:
         m_PipelineTypeModelVector[PIPELINE_FILLED].push_back(p_Item);
         break;
 
-    case RectangleModel::OUTLINE:
+    case Rectangl::OUTLINE:
         m_PipelineTypeModelVector[PIPELINE_OUTLINE].push_back(p_Item);
         break;
 
-    case RectangleModel::ROUNDED:
+    case Rectangl::ROUNDED:
         // TODO
         break;
 
@@ -759,12 +759,12 @@ void RectangleInstancingScheme::UpdateModelList(Model3D *p_Item)
     }
 }
 
-void RectangleInstancingScheme::RemoveModelList(Model3D* p_Model)
+void RectangleInstancingScheme::RemoveNodeList(Node* p_Model)
 {
-    RectangleModel* rectangle = dynamic_cast<RectangleModel*>(p_Model);
+    Rectangl* rectangle = dynamic_cast<Rectangl*>(p_Model);
     assert(rectangle);
 
-    std::vector<Model3D*>* modelVector = &m_PipelineTypeModelVector[rectangle->GetDrawType()];
+    std::vector<Node*>* modelVector = &m_PipelineTypeModelVector[rectangle->GetDrawType()];
     if (!modelVector) return;
 
     bool isUpdated = false;
@@ -783,15 +783,15 @@ void RectangleInstancingScheme::RemoveModelList(Model3D* p_Model)
 
         switch (rectangle->GetDrawType())
         {
-        case RectangleModel::FILLED:
+        case Rectangl::FILLED:
             pipeline = PIPELINE_FILLED;
             break;
 
-        case RectangleModel::OUTLINE:
+        case Rectangl::OUTLINE:
             pipeline = PIPELINE_OUTLINE;
             break;
 
-        case RectangleModel::ROUNDED:
+        case Rectangl::ROUNDED:
             // TODO
             break;
 
@@ -1125,181 +1125,13 @@ void RectangleDescriptorSet::CreateDescriptorSet()
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-RectangleModel::RectangleModel(VulkanApp *p_VulkanApp/*REMOVE ME*/, Scene3D *p_Scene, Model3D *p_Parent, const BoundingRegion& p_BoundedRegion, const QString &p_Name, SHAPE p_ShapeType, RENDER_SCEHEME_TYPE p_RenderSchemeType)
-    : Model3D(p_Scene, p_Parent, p_BoundedRegion, p_Name, p_ShapeType, p_RenderSchemeType)
+Rectangl::Rectangl(VulkanApp *p_VulkanApp/*REMOVE ME*/, Scene *p_Scene, Node *p_Parent, const BoundingRegion& p_BoundedRegion, const QString &p_Name, SHAPE p_ShapeType, RENDER_SCEHEME_TYPE p_RenderSchemeType)
+    : Node(p_Scene, p_Parent, p_BoundedRegion, p_Name, p_ShapeType, p_RenderSchemeType)
     , m_DrawType(FILLED)
 {
 }
 
-AbstractModelFactory* RectangleModel::GetRenderScemeFactory()
+RenderSchemeFactory* Rectangl::GetRenderScemeFactory()
 {
     return new RectangleInstancingScheme(static_cast<VulkanApp*>(m_Scene->GetApplication()));
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-
-ProgressBar::ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType)
-    : Model3D(p_Scene, p_Parent, p_BoundedRegion, p_Name, p_ShapeType)
-{
-//    BoundingRegion bgDim(10, 10, 400, 50);
-//    RectangleModel* background = new RectangleModel(NULL, m_Scene, this, bgDim, "Rectangle 1", SHAPE::SHAPE_RECTANGLE);
-//	background->Rectangle(10, 10, 400, 50);
-//	background->SetColor(glm::vec4(0.6, 01.0, 0.0, 1.0));
-//	background->SetDefaultColor(glm::vec4(0.42, 0.65, 0.60, 1.0));
-//    //background->SetDrawType(RectangleModel::OUTLINE);
-
-//    BoundingRegion barDim(0, (bgDim.m_Dimension.y * 0.25f), 400, 25);
-//    bar = new RectangleModel(NULL, m_Scene, background, barDim, "Bar", SHAPE::SHAPE_RECTANGLE);
-//    //bar->Rectangle(0, (background->GetDimension().y * 0.25f), 400, 25);
-//	bar->SetColor(glm::vec4(0.6, 0.52, 0.320, 1.0));
-//	bar->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
-//    bar->SetDrawType(RectangleModel::OUTLINE);
-
-//    BoundingRegion piDim(0, 0, 20, bgDim.m_Dimension.y);
-//    progressIndicator = new RectangleModel(NULL, m_Scene, bar, piDim, "ProgressIndicator", SHAPE::SHAPE_RECTANGLE);
-//    //progressIndicator->Rectangle(0, 0, 20, background->GetDimension().y);
-//    //progressIndicator->Translate(0, -(background->GetDimension().y * 0.25f), 0);
-//    progressIndicator->Translate(0, -((bgDim.m_Dimension.y * 0.25f) * 0.25f), 0);
-//	progressIndicator->SetColor(glm::vec4(0.1, 0.52, 0.320, 1.0));
-//	progressIndicator->SetDefaultColor(glm::vec4(0.2, 0.15, 0.60, 1.0));
-//    progressIndicator->SetDrawType(RectangleModel::OUTLINE);
-    BoundingRegion bgDim(10, 10, 400, 50);
-    RectangleModel* background = new RectangleModel(NULL, p_Scene, this, bgDim, "", SHAPE::SHAPE_RECTANGLE);
-    background->SetColor(glm::vec4(0.6, 1.0, 0.0, 1.0));
-    background->SetDefaultColor(glm::vec4(0.42, 0.65, 0.60, 1.0));
-
-    BoundingRegion barDim(0, (bgDim.m_Dimension.y * 0.25f), 400, 25);
-    bar = new RectangleModel(NULL, p_Scene, background, barDim, "Bar", SHAPE::SHAPE_RECTANGLE);
-    bar->SetColor(glm::vec4(0.6, 0.52, 0.320, 1.0));
-    bar->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
-
-    BoundingRegion piDim(0, 0, 20, bgDim.m_Dimension.y);
-    progressIndicator = new RectangleModel(NULL, p_Scene, bar, piDim, "ProgressIndicator", SHAPE::SHAPE_RECTANGLE);
-    progressIndicator->Translate(0, -((bgDim.m_Dimension.y * 0.25f) * 0.25f), 0);
-    progressIndicator->SetColor(glm::vec4(0.1, 0.52, 0.320, 1.0));
-    progressIndicator->SetDefaultColor(glm::vec4(0.2, 0.15, 0.60, 1.0));
-
-}
-
-bool ProgressBar::mouseMoveEvent(QMouseEvent* p_Event)
-{
-    if (bar->mouseMoveEvent(p_Event))
-    {
-        //progressIndicator->Translate(p_Event->x(), 0.0, 0.0);
-        //progressIndicator->SetPosition(p_Event->x(),  GetPosition().y());
-        //progressIndicator->SetPosition(p_Event->x(), progressIndicator->GetPosition().y);
-        return true;
-    }
-
-    return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////
-
-//AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, glm::vec2 p_TopLeftPos, glm::vec2 p_Dim, SHAPE p_ShapeType)
-//    : Model3D(p_Scene, p_Parent, p_BoundedRegion, p_Name, p_ShapeType)
-//{
-//    Rectangle(p_TopLeftPos.x, p_TopLeftPos.y, p_Dim.x, p_Dim.y);
-
-//    Model3D* background = new RectangleModel(NULL, m_Scene, this, BoundingRegion(0, 0, p_BoundedRegion.m_Dimension.x, p_BoundedRegion.m_Dimension.y), "Audio Mixer Background", SHAPE::SHAPE_RECTANGLE);
-////  background->Rectangle(0, 0, p_Dim.x, p_Dim.y);
-//    background->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
-//    background->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
-
-//    // THis code must replace the upper implementation, need to check what need to do to make it work.
-////    Node* background = new Rectangl(m_Scene, this, BoundingRegion(0, 0, p_BoundedRegion.m_Dimension.x, p_BoundedRegion.m_Dimension.y));
-////    background->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
-////    background->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
-
-//    /////////////
-//    const int activeIndicatorWidth = 7;
-//    const int activeTrackIndicatorTopMargin = 5.0;
-//    const int activeTrackIndicatorTopMarginLeftMargin = 4.0;
-//    Model3D* activeTrackIndicator = new RectangleModel(NULL, m_Scene, background, BoundingRegion(activeTrackIndicatorTopMarginLeftMargin, activeTrackIndicatorTopMargin, p_BoundedRegion.m_Dimension.x - (5 * activeTrackIndicatorTopMarginLeftMargin), activeIndicatorWidth), "Active Track Indicator", SHAPE::SHAPE_RECTANGLE);
-////  activeTrackIndicator->Rectangle(activeTrackIndicatorTopMarginLeftMargin, activeTrackIndicatorTopMargin, p_Dim.x - (5 * activeTrackIndicatorTopMarginLeftMargin), activeIndicatorWidth);
-//    activeTrackIndicator->SetColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
-//    activeTrackIndicator->SetDefaultColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
-
-//    static int cnt = 0;
-//    const int formatType = 7;
-//    const int channelTopMargin = activeTrackIndicatorTopMargin + 15.0;
-//    const int channelLeftMargin = 4.0;
-//    const int channelWidth = (p_Dim.x / formatType)/2;
-//    for (int i = 0; i < formatType; i++)
-//    {
-//        Model3D* channelBackground = new RectangleModel(NULL, m_Scene, background, BoundingRegion((i * channelWidth) + channelLeftMargin, channelTopMargin, ((i == (formatType - 1)) ? 2 : 0) + channelWidth, p_BoundedRegion.m_Dimension.y - channelTopMargin - 5.0), "Channel", SHAPE::SHAPE_RECTANGLE);
-////      channelBackground->Rectangle((i * channelWidth) + channelLeftMargin, channelTopMargin, ((i == (formatType - 1)) ? 2 : 0) + channelWidth, p_Dim.y - channelTopMargin - 5.0);
-//        channelBackground->SetColor(glm::vec4(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0));
-//        channelBackground->SetDefaultColor(glm::vec4(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0));
-
-//        Model3D* channel = new RectangleModel(NULL, m_Scene, channelBackground, p_BoundedRegion, "Channel", SHAPE::SHAPE_RECTANGLE);
-//        channel->Rectangle(2, 2, channelWidth - 2, p_Dim.y - channelTopMargin - 5.0 - 4);
-//        channel->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
-//        channel->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
-
-//        glm::vec4 red(246.0 / 255.0f, 24.0 / 255.0f, 39.0f / 255.0f, 1.0);
-//        glm::vec4 yellow(226.0 / 255.0f, 208.0 / 255.0f, 4.0f / 255.0f, 1.0);
-//        glm::vec4 green(29.0 / 255.0f, 148.0 / 255.0f, 56.0f / 255.0f, 1.0);
-//        //const int totalRangeIndicator = channel->GetDimension().y / 4;
-//        const int totalRangeIndicator = channel->GetBoundedRegion().m_Dimension.y / 4;
-//        const int redIndicatorRange = totalRangeIndicator * 0.05;
-//        const int yellowIndicatorRange = totalRangeIndicator * 0.20;
-//        for (int j = 0; j < totalRangeIndicator; j++)
-//        {
-//            Model3D* levelIndicator = new RectangleModel(NULL, m_Scene, channel, p_BoundedRegion, "Channel", SHAPE::SHAPE_RECTANGLE);
-//            levelIndicator->Rectangle(2, j * 4, channelWidth - 4.0, 2.0);
-
-//            const glm::vec4 color = (j <= redIndicatorRange) ? red : ((j <= yellowIndicatorRange) ? yellow : green);
-//            levelIndicator->SetColor(color);
-//            levelIndicator->SetDefaultColor(color);
-//            cnt++;
-//        }
-//    }
-//}
-
-AudioMixerItem::AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType)
-    : Model3D(p_Scene, p_Parent, p_BoundedRegion, p_Name, p_ShapeType)
-{
-    Model3D* background = new RectangleModel(NULL, m_Scene, this, BoundingRegion(0, 0, p_BoundedRegion.m_Dimension.x, p_BoundedRegion.m_Dimension.y), "Audio Mixer Background", SHAPE::SHAPE_RECTANGLE);
-    background->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
-    background->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
-
-    const int activeIndicatorWidth = 7;
-    const int activeTrackIndicatorTopMargin = 5.0;
-    const int activeTrackIndicatorTopMarginLeftMargin = 4.0;
-    Model3D* activeTrackIndicator = new RectangleModel(NULL, m_Scene, background, BoundingRegion(activeTrackIndicatorTopMarginLeftMargin, activeTrackIndicatorTopMargin, p_BoundedRegion.m_Dimension.x - (5 * activeTrackIndicatorTopMarginLeftMargin), activeIndicatorWidth), "Active Track Indicator", SHAPE::SHAPE_RECTANGLE);
-    activeTrackIndicator->SetColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
-    activeTrackIndicator->SetDefaultColor(glm::vec4(67.0f / 255.0f, 139.0f / 255.0f, 98.0f / 255.0f, 1.0));
-
-    static int cnt = 0;
-    const int formatType = 7;
-    const int channelTopMargin = activeTrackIndicatorTopMargin + 15.0;
-    const int channelLeftMargin = 4.0;
-    const int channelWidth = (p_BoundedRegion.m_Dimension.x / formatType) / 2;
-    for (int i = 0; i < formatType; i++)
-    {
-        Model3D* channelBackground = new RectangleModel(NULL, m_Scene, background, BoundingRegion((i * channelWidth) + channelLeftMargin, channelTopMargin, ((i == (formatType - 1)) ? 2 : 0) + channelWidth, p_BoundedRegion.m_Dimension.y - channelTopMargin - 5.0), "Channel", SHAPE::SHAPE_RECTANGLE);
-        channelBackground->SetColor(glm::vec4(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0));
-        channelBackground->SetDefaultColor(glm::vec4(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0));
-
-        Model3D* channel = new RectangleModel(NULL, m_Scene, channelBackground, BoundingRegion(2, 2, channelWidth - 2, p_BoundedRegion.m_Dimension.y - channelTopMargin - 5.0 - 4), "Channel", SHAPE::SHAPE_RECTANGLE);
-        channel->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
-        channel->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
-
-        glm::vec4 red(246.0 / 255.0f, 24.0 / 255.0f, 39.0f / 255.0f, 1.0);
-        glm::vec4 yellow(226.0 / 255.0f, 208.0 / 255.0f, 4.0f / 255.0f, 1.0);
-        glm::vec4 green(29.0 / 255.0f, 148.0 / 255.0f, 56.0f / 255.0f, 1.0);
-        const int totalRangeIndicator = channel->GetBoundedRegion().m_Dimension.y / 4;
-        const int redIndicatorRange = totalRangeIndicator * 0.05;
-        const int yellowIndicatorRange = totalRangeIndicator * 0.20;
-        for (int j = 0; j < totalRangeIndicator; j++)
-        {
-            Model3D* levelIndicator = new RectangleModel(NULL, m_Scene, channel, BoundingRegion(2, j * 4, channelWidth - 4.0, 2.0), "Channel", SHAPE::SHAPE_RECTANGLE);
-
-            const glm::vec4 color = (j <= redIndicatorRange) ? red : ((j <= yellowIndicatorRange) ? yellow : green);
-            levelIndicator->SetColor(color);
-            levelIndicator->SetDefaultColor(color);
-            cnt++;
-        }
-    }
 }

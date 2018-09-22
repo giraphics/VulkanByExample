@@ -1,12 +1,12 @@
-#include "Transformation3D.h"
+#include "Transformation.h"
 
 #include <cstring> // Added for memcpy(required by MaxOS)
 /*!
- Constructor for Transformation3D class
+ Constructor for Transformation class
  \param[in]  void.
  \return     None.
  */
-Transformation3D::Transformation3D(void)
+Transformation::Transformation(void)
 {
 	TransformMemData.modelMatrixIndex       = 0;
 	TransformMemData.viewMatrixIndex        = 0;
@@ -15,11 +15,11 @@ Transformation3D::Transformation3D(void)
 }
 
 /*!
-    Destructor for Transformation3D class
+    Destructor for Transformation class
     \param[in]  void.
     \return     None.
 */
-Transformation3D::~Transformation3D(void)
+Transformation::~Transformation(void)
 {
 }
 
@@ -32,7 +32,7 @@ Transformation3D::~Transformation3D(void)
     \return void.
  
 */
-void Transformation3D::Init( void )
+void Transformation::Init( void )
 {
 	memset( &TransformMemData, 0, sizeof( TransformData ) );
 
@@ -59,7 +59,7 @@ void Transformation3D::Init( void )
 
 	\param[in] mode The matrix mode that will be use as target.
 */
-void Transformation3D::SetMatrixMode( unsigned int mode )
+void Transformation::SetMatrixMode( unsigned int mode )
 {
     TransformMemData.matrix_mode = mode;
 }
@@ -71,7 +71,7 @@ void Transformation3D::SetMatrixMode( unsigned int mode )
  \return None.
  
 */
-void Transformation3D::LoadIdentity( void )
+void Transformation::LoadIdentity( void )
 {
 	switch( TransformMemData.matrix_mode )
 	{
@@ -114,7 +114,7 @@ void Transformation3D::LoadIdentity( void )
  \param[in]  None.
  \return Return a 4x4 matrix pointer of the top most modelview matrix.
  */
-glm::mat4* Transformation3D::GetModelMatrix( void )
+glm::mat4* Transformation::GetModelMatrix( void )
 {
 	return &TransformMemData.model_matrix[ TransformMemData.modelMatrixIndex ];
 }
@@ -125,7 +125,7 @@ glm::mat4* Transformation3D::GetModelMatrix( void )
  \param[in]  None.
  \return Return a 4x4 matrix pointer of the top most modelview matrix.
  */
-glm::mat4* Transformation3D::GetViewMatrix( void )
+glm::mat4* Transformation::GetViewMatrix( void )
 {
 	return &TransformMemData.view_matrix[ TransformMemData.viewMatrixIndex ];
 }
@@ -135,7 +135,7 @@ glm::mat4* Transformation3D::GetViewMatrix( void )
     \param[in]  None.
 	\return  Return a 4x4 matrix pointer of the top most projection matrix index.
 */
-glm::mat4* Transformation3D::GetProjectionMatrix( void )
+glm::mat4* Transformation::GetProjectionMatrix( void )
 {
 	return &TransformMemData.projection_matrix[ TransformMemData.projectionMatrixIndex ];
 }
@@ -145,7 +145,7 @@ glm::mat4* Transformation3D::GetProjectionMatrix( void )
     \param[in]  None.
 	\return  Return a 4x4 matrix pointer of the top most texture matrix index.
 */
-glm::mat4* Transformation3D::GetTextureMatrix( void )
+glm::mat4* Transformation::GetTextureMatrix( void )
 {
 	return &TransformMemData.texture_matrix[ TransformMemData.textureMatrixIndex ];
 }
@@ -156,7 +156,7 @@ glm::mat4* Transformation3D::GetTextureMatrix( void )
  \return matrix- Model View Projection matrix multiplication result.
 
  */
-glm::mat4* Transformation3D::GetModelViewProjectionMatrix( void )
+glm::mat4* Transformation::GetModelViewProjectionMatrix( void )
 {
 	TransformMemData.modelview_projection_matrix = *GetProjectionMatrix() *
     *GetViewMatrix() * *GetModelMatrix();
@@ -169,7 +169,7 @@ glm::mat4* Transformation3D::GetModelViewProjectionMatrix( void )
  \return matrix- Model View matrix multiplication result.
  
 */
-glm::mat4* Transformation3D::GetModelViewMatrix( void )
+glm::mat4* Transformation::GetModelViewMatrix( void )
 {
 	TransformMemData.modelview_matrix =
     *GetViewMatrix() * *GetModelMatrix();
@@ -182,7 +182,7 @@ glm::mat4* Transformation3D::GetModelViewMatrix( void )
  \param[in]  None.
  \return None.
  */
-void Transformation3D::PushMatrix( void )
+void Transformation::PushMatrix( void )
 {
 	switch( TransformMemData.matrix_mode )
 	{
@@ -254,7 +254,7 @@ void Transformation3D::PushMatrix( void )
  \return None.
 
  */
-void Transformation3D::PopMatrix( void )
+void Transformation::PopMatrix( void )
 {
 	switch( TransformMemData.matrix_mode )
 	{
@@ -306,7 +306,7 @@ void Transformation3D::PopMatrix( void )
  \param[in] m Specify matrix which needs to set current.
  
  */
-void Transformation3D::LoadMatrix( glm::mat4 *m )
+void Transformation::LoadMatrix( glm::mat4 *m )
 {
 	switch( TransformMemData.matrix_mode )
 	{
@@ -346,7 +346,7 @@ void Transformation3D::LoadMatrix( glm::mat4 *m )
  \param[in] m Specify matrix which needs to multiply.
  
  */
-void Transformation3D::MultiplyMatrix( glm::mat4 *m )
+void Transformation::MultiplyMatrix( glm::mat4 *m )
 {
 	switch( TransformMemData.matrix_mode )
 	{
@@ -389,7 +389,7 @@ void Transformation3D::MultiplyMatrix( glm::mat4 *m )
 	\param[in] z Specify the z coordinate of a translation vector.
 
 */
-void Transformation3D::Translate( float x, float y, float z )
+void Transformation::Translate( float x, float y, float z )
 {
 	glm::vec3 v( x, y, z );
 
@@ -433,7 +433,7 @@ void Transformation3D::Translate( float x, float y, float z )
 	\param[in] z Specify the z coordinate of a vector.
 
 */
-void Transformation3D::Rotate( float angle, float x, float y, float z )
+void Transformation::Rotate( float angle, float x, float y, float z )
 {
 	if( !angle ) return;
 
@@ -479,7 +479,7 @@ void Transformation3D::Rotate( float angle, float x, float y, float z )
 	\param[in] z Specify scale factor along the z axis.
 
 */
-void Transformation3D::Scale( float x, float y, float z )
+void Transformation::Scale( float x, float y, float z )
 {
 	static glm::vec3 scale( 1.0f, 1.0f, 1.0f );
 
@@ -527,7 +527,7 @@ void Transformation3D::Scale( float x, float y, float z )
 	\return Return the 3x3 matrix pointer that represent the invert and transpose
 	result of the top most model view matrix.
 */
-void Transformation3D::GetNormalMatrix( glm::mat3* mat3Obj )
+void Transformation::GetNormalMatrix( glm::mat3* mat3Obj )
 {
 	glm::mat4 mat4Obj;
 
@@ -551,7 +551,7 @@ void Transformation3D::GetNormalMatrix( glm::mat3* mat3Obj )
 	\param[in] clip_end Specify the distance to the farther depth clipping planes. This value is negative if the plane is to be behind the viewer.
 
 */
-void Transformation3D::Ortho( float left, float right, float bottom, float top, float clip_start, float clip_end )
+void Transformation::Ortho( float left, float right, float bottom, float top, float clip_start, float clip_end )
 {
 	switch( TransformMemData.matrix_mode )
 	{
@@ -596,7 +596,7 @@ void Transformation3D::Ortho( float left, float right, float bottom, float top, 
 	\param[in] clip_end Specify the distance to the farther depth clipping planes. This value is negative if the plane is to be behind the viewer.
 	\param[in] screen_orientation A value in degree that rotate the matrix. Should be synchronized with your device orientation.
 */
-void Transformation3D::OrthoGrahpic( float screen_ratio, float scale, float aspect_ratio, float clip_start, float clip_end, float orientation )
+void Transformation::OrthoGrahpic( float screen_ratio, float scale, float aspect_ratio, float clip_start, float clip_end, float orientation )
 {
 	scale = ( scale * 0.5f ) * aspect_ratio;
 
@@ -617,7 +617,7 @@ void Transformation3D::OrthoGrahpic( float screen_ratio, float scale, float aspe
 	\param[in] clip_end Specifies the distance from the viewer to the far clipping plane (always positive).
 
 */
-void Transformation3D::SetPerspective( float fovy, float aspect_ratio, float clip_start, float clip_end )
+void Transformation::SetPerspective( float fovy, float aspect_ratio, float clip_start, float clip_end )
 {
 	glm::mat4 mat;
 
@@ -654,7 +654,7 @@ void Transformation3D::SetPerspective( float fovy, float aspect_ratio, float cli
 
 }
 
-void Transformation3D::SetView(glm::mat4 mat)
+void Transformation::SetView(glm::mat4 mat)
 {
     TransformMemData.view_matrix[ TransformMemData.viewMatrixIndex ] = mat;
 //    TransformMemData.view_matrix = mat;
@@ -668,7 +668,7 @@ void Transformation3D::SetView(glm::mat4 mat)
 	\param[in] up Specifies the direction of the up vector.
 
 */
-void Transformation3D::LookAt( glm::vec3 *eye, glm::vec3 *center, glm::vec3 *up )
+void Transformation::LookAt( glm::vec3 *eye, glm::vec3 *center, glm::vec3 *up )
 {
 	*GetViewMatrix() = glm::lookAt(*eye, *center, *up);
 
@@ -693,7 +693,7 @@ void Transformation3D::LookAt( glm::vec3 *eye, glm::vec3 *center, glm::vec3 *up 
 	\param[in] windowz Return the computed Z window coordinate.
 
 */
-int Transformation3D::TransformProject( float objextx, float objecty, float objectz, glm::mat4 *modelview_matrix, glm::mat4 *projection_matrix, int *viewport_matrix, float *windowx, float *windowy, float *windowz )
+int Transformation::TransformProject( float objextx, float objecty, float objectz, glm::mat4 *modelview_matrix, glm::mat4 *projection_matrix, int *viewport_matrix, float *windowx, float *windowy, float *windowz )
 {    
 	glm::vec4 vin,
 		 vout;
@@ -734,7 +734,7 @@ int Transformation3D::TransformProject( float objextx, float objecty, float obje
 	\param[in] v A valid glm::vec4 pointer.
 	\param[in] m A valid glm::4x4 matrix pointer.
 */
-void Transformation3D::Vec4MultiplyMat4( glm::vec4 *dst, glm::vec4 *v, glm::mat4 *m )
+void Transformation::Vec4MultiplyMat4( glm::vec4 *dst, glm::vec4 *v, glm::mat4 *m )
 {
 	dst->x = ( v->x * (*m)[ 0 ].x ) +
 			 ( v->y * (*m)[ 1 ].x ) +
@@ -771,7 +771,7 @@ void Transformation3D::Vec4MultiplyMat4( glm::vec4 *dst, glm::vec4 *v, glm::mat4
 	\param[in] objectz Return the computed Z object coordinate.
 
 */
-int Transformation3D::TransformUnproject( float windowx, float windowy, float windowz, glm::mat4 *modelview_matrix, glm::mat4 *projection_matrix, int *viewport_matrix, float *objextx, float *objecty, float *objectz )
+int Transformation::TransformUnproject( float windowx, float windowy, float windowz, glm::mat4 *modelview_matrix, glm::mat4 *projection_matrix, int *viewport_matrix, float *objextx, float *objecty, float *objectz )
 {
 	glm::mat4 final;
 

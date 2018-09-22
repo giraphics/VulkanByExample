@@ -3,39 +3,21 @@
 #define M_PI (3.14)
 #define M_PI_2 (3.14 * 2)
 
-#include "Scene3D.h"
+#include "Scene.h"
+#include "RenderSchemeFactory.h"
 #include "../common/VulkanHelper.h"
-#include "SGCommon.h"
+//#include "Common.h"
 
 class VulkanApp;
 
-class AbstractModelFactory
+class Node
 {
 public:
-	AbstractModelFactory() {}
-	virtual ~AbstractModelFactory() {}
-
-    virtual Model3D* GetModel(VulkanApp* p_VulkanApp, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE) { return NULL; }
-	virtual void Setup() {}
-    virtual void Update() {}
-    virtual void UpdateDirty() {}
-    virtual void Render() {}
-    virtual void Prepare(Scene3D* p_Scene) {}
-    virtual void UpdateModelList(Model3D* p_Item) {}
-    virtual void RemoveModelList(Model3D* p_Item) {}
-    virtual void ResizeWindow(int p_Width, int p_Height) {}
-
-    GETSET(glm::mat4x4, ProjectViewMatrix);
-};
-
-class Model3D
-{
-public:
-    Model3D(Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_TYPE::RENDER_SCEHEME_INSTANCED);
-    ~Model3D();
+    Node(Scene* p_Scene, Node* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_TYPE::RENDER_SCEHEME_INSTANCED);
+    ~Node();
     virtual void Setup();
     void Update();
-    virtual AbstractModelFactory* GetRenderScemeFactory() { return NULL; } // Custom model class do not need to implement it as they are made of basic model classes.
+    virtual RenderSchemeFactory* GetRenderScemeFactory() { return NULL; } // Custom model class do not need to implement it as they are made of basic model classes.
 
 	void Rotate(float p_Angle, float p_X, float p_Y, float p_Z) { m_Model = glm::rotate(m_Model, p_Angle, glm::vec3(p_X, p_Y, p_Z)); }
 	void Translate(float p_X, float p_Y, float p_Z) { m_Model = glm::translate(m_Model, glm::vec3(p_X, p_Y, p_Z)); }
@@ -73,8 +55,8 @@ public:
     GETSET(RENDER_SCEHEME_TYPE, RenderSchemeType);
     GETSET(glm::vec4, DefaultColor)
     GETSET(glm::mat4, Model)            // Owned by drawable item
-    GETSET(Scene3D*, Scene)
-    GETSET(Model3D*, Parent)
+    GETSET(Scene*, Scene)
+    GETSET(Node*, Parent)
     GETSET(glm::mat4, ModelTransformation) // Owned by drawable item
     GETSET(unsigned int, GpuMemOffset)  // TODO the data type should be unsigned long long to accomodate large offsets
     GETSET(bool, Visible)
@@ -91,10 +73,10 @@ public:
     // Application Window resizing
     virtual void ResizeWindow(int width, int height) {}
 
-    inline Model3D* GetParent() const { return m_Parent; }
+    inline Node* GetParent() const { return m_Parent; }
     void ApplyTransformation() { *m_Scene->Transform().GetModelMatrix() *= m_Model; }
     glm::mat4 GetRelativeTransformations() const { return GetParentsTransformation(GetParent()) * m_Model; }
-    glm::mat4 GetParentsTransformation(Model3D* p_Parent) const { return p_Parent ? (GetParentsTransformation(p_Parent->GetParent()) * p_Parent->m_Model) : glm::mat4(); }
+    glm::mat4 GetParentsTransformation(Node* p_Parent) const { return p_Parent ? (GetParentsTransformation(p_Parent->GetParent()) * p_Parent->m_Model) : glm::mat4(); }
 
     void GatherFlatList();
 
@@ -111,5 +93,5 @@ protected:
     // Attributes End
 
 private:
-    QList<Model3D*> m_ChildList;
+    QList<Node*> m_ChildList;
 };

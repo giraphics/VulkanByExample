@@ -1,9 +1,9 @@
 #pragma once
 #include "../../../common/VulkanApp.h"
 
-#include "../TempEx7_SceneGraph/Transformation3D.h"
-#include "../TempEx7_SceneGraph/Scene3D.h"
-#include "../TempEx7_SceneGraph/Model3D.h"
+#include "../TempEx7_SceneGraph/Transformation.h"
+#include "../TempEx7_SceneGraph/Scene.h"
+#include "../TempEx7_SceneGraph/Node.h"
 
 struct Vertex
 {
@@ -11,7 +11,7 @@ struct Vertex
     glm::vec3 m_Color;    // Color format => r, g, b
 };
 
-class RectangleModel : public Model3D
+class Rectangl : public Node
 {
 public:
     enum DRAW_TYPE
@@ -23,11 +23,11 @@ public:
     };
 
 public:
-    RectangleModel(VulkanApp* p_VulkanApp/*REMOVE ME*/, Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_TYPE::RENDER_SCEHEME_INSTANCED);
-    virtual ~RectangleModel() {}
+    Rectangl(VulkanApp* p_VulkanApp/*REMOVE ME*/, Scene* p_Scene, Node* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_TYPE::RENDER_SCEHEME_INSTANCED);
+    virtual ~Rectangl() {}
     GETSET(DRAW_TYPE, DrawType)
 
-    virtual AbstractModelFactory* GetRenderScemeFactory();
+    virtual RenderSchemeFactory* GetRenderScemeFactory();
 };
 
 struct RectangleDescriptorSet
@@ -92,7 +92,7 @@ struct RectangleDescriptorSet
     UniformBufferObj* UniformBuffer;
 };
 
-class RectangleInstancingScheme : public AbstractModelFactory
+class RectangleInstancingScheme : public RenderSchemeFactory
 {
 public:
     RectangleInstancingScheme(VulkanApp* p_VulkanApp);
@@ -105,7 +105,7 @@ public:
     virtual void Render() { RecordCommandBuffer(); }
 
     void ResizeWindow(int width, int height);
-//	virtual void Prepare(Scene3D* p_Scene);
+//	virtual void Prepare(Scene* p_Scene);
 
 private:
     void CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap = false);
@@ -117,10 +117,8 @@ private:
 
     void Render(VkCommandBuffer& p_CmdBuffer);
 
-    virtual void UpdateModelList(Model3D* p_Item);
-    virtual void RemoveModelList(Model3D* p_Item);
-
-    QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;
+    virtual void UpdateNodeList(Node* p_Item);
+    virtual void RemoveNodeList(Node* p_Item);
 
     enum RECTANGLE_GRAPHICS_PIPELINES
     {
@@ -131,8 +129,6 @@ private:
 
     std::vector<VkVertexInputBindingDescription>   m_VertexInputBinding[PIPELINE_COUNT];   // 0 for (position and color) 1 for ()
     std::vector<VkVertexInputAttributeDescription> m_VertexInputAttribute[PIPELINE_COUNT]; // Why 7 = 2(for position and color) + 5 (transform and rotation) + Color
-
-    VulkanApp* m_VulkanApplication;
 
     ////////////////////////////////////////////////////////////////
 public:
@@ -150,38 +146,8 @@ public:
 
     VulkanBuffer m_VertexBuffer[PIPELINE_COUNT];
     int m_VertexCount[PIPELINE_COUNT];
-    typedef std::vector<Model3D*> ModelVector;
+    typedef std::vector<Node*> ModelVector;
     VulkanBuffer m_InstanceBuffer[PIPELINE_COUNT];
     ModelVector m_PipelineTypeModelVector[PIPELINE_COUNT];
     int m_OldInstanceDataSize[PIPELINE_COUNT];
 };
-
-
-//TODO: 
-//a. VertexBuffer should be m_VertexBuffer[PIPELINE_COUNT]
-//b. Address its distruction.
-//c. Assign correct vertex buffer data as per pipeline rectFilledVertices, rectOutlineVertices
-
-class RectangleModel;
-class QMouseEvent;
-class ProgressBar : public Model3D
-{
-public:
-    ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
-    virtual ~ProgressBar() {}
-
-    virtual bool mouseMoveEvent(QMouseEvent* p_Event);
-    RectangleModel* progressIndicator;
-    RectangleModel* bar;
-};
-
-class AudioMixerItem : public Model3D
-{
-public:
-    AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
-    virtual ~AudioMixerItem() {}
-
-    //virtual bool mouseMoveEvent(QMouseEvent* p_Event);
-    //Model3D* progressIndicator;
-};
-
