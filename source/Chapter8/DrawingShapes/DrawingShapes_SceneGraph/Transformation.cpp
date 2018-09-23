@@ -1,4 +1,5 @@
 #include "Transformation.h"
+
 #include <cstring> // Added for memcpy(required by MaxOS)
 
 Transformation::Transformation(void)
@@ -431,7 +432,10 @@ void Transformation::Ortho( float left, float right, float bottom, float top, fl
 
         case PROJECTION_MATRIX:
         {
+            //glm::mat4	*matProjection = GetProjectionMatrix();
             *GetProjectionMatrix() = glm::ortho(left, right, bottom, top, clip_start, clip_end);
+            //*matProjection = glm::ortho(left, right, bottom, top, clip_start, clip_end);
+
             break;
         }
 
@@ -488,13 +492,18 @@ void Transformation::SetPerspective( float fovy, float aspect_ratio, float clip_
     }
 }
 
+void Transformation::SetView(glm::mat4 mat)
+{
+    TransformMemData.view_matrix[ TransformMemData.viewMatrixIndex ] = mat;
+}
+
 void Transformation::LookAt( glm::vec3 *eye, glm::vec3 *center, glm::vec3 *up )
 {
     *GetViewMatrix() = glm::lookAt(*eye, *center, *up);
 }
 
 int Transformation::TransformProject( float objextx, float objecty, float objectz, glm::mat4 *modelview_matrix, glm::mat4 *projection_matrix, int *viewport_matrix, float *windowx, float *windowy, float *windowz )
-{    
+{
     glm::vec4 vin, vout;
 
     vin.x = objextx;

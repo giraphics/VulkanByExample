@@ -8,6 +8,12 @@ UIDemo::~UIDemo()
 {
 }
 
+/*void UIDemo::ProgressBarFunc(Scene* p_Scene)
+{
+    BoundingRegion boundedRegion(200, 400, 400, 100);
+    ProgressBar* m_Parent = new ProgressBar(p_Scene, NULL, boundedRegion, "Node 1", SHAPE::SHAPE_CUBE);
+}*/
+
 void UIDemo::Grid(Scene* p_Scene, int p_Width, int p_Height)
 {
     float parentCol = 20;
@@ -17,28 +23,28 @@ void UIDemo::Grid(Scene* p_Scene, int p_Width, int p_Height)
 
     const float Col = 2;
     const float Row = 10;
-	float colWidth = parentColWidth / Col;
-	float colHeight = parentColHeight / Row;
+    float colWidth = parentColWidth / Col;
+    float colHeight = parentColHeight / Row;
 
-	for (int i = 0; i < parentCol; i++)
-	{
-		for (int j = 0; j < parentRow; j++)
-		{
+    for (int i = 0; i < parentCol; i++)
+    {
+        for (int j = 0; j < parentRow; j++)
+        {
             Node* m_Parent = new Rectangl(p_Scene, NULL, BoundingRegion((i * parentColWidth), (j * parentColHeight), parentColWidth - 2, parentColHeight));
-			m_Parent->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
-			m_Parent->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+            m_Parent->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
+            m_Parent->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
 
-			for (int k = 0; k < Col; k++)
-			{
-				for (int l = 0; l < Row; l++)
-				{
-					Rectangl* m_Cube1 = new Rectangl(p_Scene, m_Parent, BoundingRegion((k * colWidth), (l * colHeight), colWidth, colHeight));
-					m_Cube1->SetColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
-					m_Cube1->SetDefaultColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
-				}
-			}
-		}
-	}
+            for (int k = 0; k < Col; k++)
+            {
+                for (int l = 0; l < Row; l++)
+                {
+                    Rectangl* m_Cube1 = new Rectangl(p_Scene, m_Parent, BoundingRegion((k * colWidth), (l * colHeight), colWidth, colHeight));
+                    m_Cube1->SetColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
+                    m_Cube1->SetDefaultColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
+                }
+            }
+        }
+    }
 }
 
 void UIDemo::MixerView(Scene* p_Scene, int p_Width, int p_Height)
@@ -121,7 +127,6 @@ AudioMixerItem::AudioMixerItem(Scene* p_Scene, Node* p_Parent, const BoundingReg
     background->SetColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
     background->SetDefaultColor(glm::vec4(47.0f / 255.0f, 48.0f / 255.0f, 44.0f / 255.0f, 1.0));
 
-    bool isActiveTrack = true;
     const int activeIndicatorWidth = 7;
     const int activeTrackIndicatorTopMargin = 5.0;
     const int activeTrackIndicatorTopMarginLeftMargin = 4.0;

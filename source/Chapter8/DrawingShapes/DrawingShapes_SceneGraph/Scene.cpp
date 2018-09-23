@@ -26,9 +26,9 @@ Scene::~Scene()
         ++itSRST;
     }
 
-    foreach (Node* currentModel, m_NodeList)
+    foreach (Node* currentNode, m_NodeList)
     {
-        delete currentModel;
+        delete currentNode;
     }
 
     std::cout << "\n Scene " << m_Name.toStdString() << " Destructed.\n";
@@ -237,13 +237,13 @@ RenderSchemeFactory* Scene::GetRenderSchemeFactory(Node* p_Item)
         return it->second;
     }
 
-    RenderSchemeFactory* renderFactory = p_Item->GetRenderSchemeFactory();
-    if (renderFactory)
+    RenderSchemeFactory* renderSchemeFactoryItem = p_Item->GetRenderSchemeFactory();
+    if (renderSchemeFactoryItem)
     {
-        (m_ShapeRenderSchemeTypeMap)[shapeType] = renderFactory;
+        (m_ShapeRenderSchemeTypeMap)[shapeType] = renderSchemeFactoryItem;
     }
 
-    return renderFactory;
+    return renderSchemeFactoryItem;
 }
 
 void Scene::AppendToFlatNodeList(Node* p_Item)

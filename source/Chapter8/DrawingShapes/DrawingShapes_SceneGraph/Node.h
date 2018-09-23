@@ -61,6 +61,7 @@ public:
     GETSET(Node*,                       Parent)
     GETSET(QList<Node*>,                ChildList)
     GETSET(bool,                        Visible)
+    GETSET(unsigned int,                GpuMemOffset)
 
 protected:
     DIRTY_TYPE m_DirtyType;

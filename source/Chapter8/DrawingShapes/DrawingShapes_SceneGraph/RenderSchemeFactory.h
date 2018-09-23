@@ -5,6 +5,7 @@
 
 class VulkanApp;
 
+// Rename to RenderSchemeBase
 class RenderSchemeFactory
 {
 public:

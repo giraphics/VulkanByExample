@@ -8,11 +8,11 @@ public:
     UIDemo();
     virtual ~UIDemo();
 
-	void Grid(Scene* p_Scene, int p_Width, int p_Height);
-	void MixerView(Scene* p_Scene, int p_Width, int p_Height);
+    void Grid(Scene* p_Scene, int p_Width, int p_Height);
+    void MixerView(Scene* p_Scene, int p_Width, int p_Height);
     void ProgressBarFunc(Scene* p_Scene);
 };
-    
+
 class Rectangl;
 class QMouseEvent;
 class ProgressBar : public Node
@@ -55,4 +55,3 @@ public:
     //virtual void mouseMoveEvent(QMouseEvent* p_Event);
     //Model3D* progressIndicator;
 };
-

@@ -77,8 +77,8 @@ public:
 		TEXTURE_MATRIX = 3
 	};
 
-	Transformation(void);
-	~Transformation(void);
+    Transformation(void);
+    ~Transformation(void);
 
     void Init( void );
 
@@ -121,6 +121,8 @@ public:
     void SetPerspective( float fovy, float aspect_ratio, float clip_start, float clip_end);
 
     void LookAt( glm::vec3 *eye, glm::vec3 *center, glm::vec3 *up );
+
+    void SetView(glm::mat4 mat);
 
     int TransformProject( float objx, float objy, float objz, glm::mat4 *modelview_matrix, glm::mat4 *projection_matrix, int *viewport_matrix, float *winx, float *winy, float *winz );
 
