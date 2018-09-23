@@ -1,8 +1,14 @@
 #pragma once
 #include "../TempEx7_SceneGraph/Scene.h"
-#include "Rect.h"
+#include "../TempEx7_SceneGraph/Node.h"
 
-class UIDemo
+#define CIRCLE_DEFINED 0
+
+#if CIRCLE_DEFINED == 1
+class Circle;
+#endif
+
+/*class UIDemo
 {
 public:
     UIDemo();
@@ -11,10 +17,13 @@ public:
     void Grid(Scene* p_Scene, int p_Width, int p_Height);
     void MixerView(Scene* p_Scene, int p_Width, int p_Height);
     void ProgressBarFunc(Scene* p_Scene);
-};
+    void MixerViewTemp(Scene* p_Scene, int p_Width, int p_Height);
+};*/
 
 class Rectangl;
+class TransformationConformTest;
 class QMouseEvent;
+
 class ProgressBar : public Node
 {
 public:
@@ -54,4 +63,46 @@ public:
 
     //virtual void mouseMoveEvent(QMouseEvent* p_Event);
     //Model3D* progressIndicator;
+};
+
+class TransformationConformTest
+{
+public:
+    TransformationConformTest();
+    ~TransformationConformTest(){}
+
+    void Configure(Scene* p_Scene);
+    void Update();
+
+private:
+    Rectangl* m_RectTr1;
+    Rectangl* m_RectTr2;
+    Rectangl* m_RectTr3;
+    Rectangl* m_RectTr4;
+
+#if CIRCLE_DEFINED == 1
+    Circle*   m_CircleTr5;
+#endif
+
+    Rectangl* m_Rect1;
+    Rectangl* m_Rect2;
+    Rectangl* m_Rect3;
+    Rectangl* m_Rect4;
+};
+
+class UIDemo
+{
+public:
+    UIDemo();
+    virtual ~UIDemo();
+
+    void Grid(Scene* p_Scene, int p_Width, int p_Height);
+    void MixerView(Scene* p_Scene, int p_Width, int p_Height);
+    void ProgressBarFunc(Scene* p_Scene);
+
+    void InitTransformationConformTest(Scene* p_Scene) { m_Transform.Configure(p_Scene); }
+    void UpdateTransformationConformTest() { m_Transform.Update(); }
+
+private:
+    TransformationConformTest m_Transform;
 };

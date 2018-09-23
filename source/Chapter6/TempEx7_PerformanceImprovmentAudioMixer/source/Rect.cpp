@@ -885,7 +885,7 @@ void RectangleInstancingScheme::UpdateDirtyInstanceData()
         const uint64_t instanceDataSize = static_cast<uint64_t>(sizeof(InstanceData));
         for (int i = 0; i < modelSize; i++)
         {
-            if (modelList.at(i)->GetDirtyType() == DIRTY_TYPE::ATTRIBUTES)
+            if (modelList.at(i)->GetDirtyType() == DIRTY_TYPE::ATTRIBUTES || modelList.at(i)->GetDirtyType() == DIRTY_TYPE::POSITION)
             {
                 InstanceData data;
                 data.m_Model = modelList.at(i)->GetAbsoluteTransformation();

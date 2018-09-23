@@ -4,6 +4,8 @@
 #include "../../common/VulkanApp.h" // Not a good design to include vulkan app here: Todo move AbstractApp 
 #include <QMouseEvent> 
 
+#define DIRTY_UPDATE_IMPLEMENTED 1
+
 Scene::Scene(AbstractApp* p_Application, const QString& p_Name)
     : m_Application(p_Application)
     , m_Name(p_Name)
@@ -90,24 +92,46 @@ void Scene::Update()
         }
     }
 
-    SCENE_DIRTY_TYPE updateItemType = static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::ALL_ITEMS));
-    if (updateItemType == SCENE_DIRTY_TYPE::ALL_ITEMS)
+//    SCENE_DIRTY_TYPE updateItemType = static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::ALL_ITEMS));
+//    if (updateItemType == SCENE_DIRTY_TYPE::ALL_ITEMS)
+//    {
+//        foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
+//        {
+//            currentModelFactory->Update();
+//        }
+//    }
+//    else
+//    {
+//        updateItemType = static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::DIRTY_ITEMS));
+//        if (updateItemType == SCENE_DIRTY_TYPE::DIRTY_ITEMS)
+//        {
+//            foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
+//            {
+//                currentModelFactory->UpdateDirty();
+//            }
+//        }
+//    }
+
+
+    foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
     {
-        foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
+        if (!currentModelFactory) continue;
+
+        if (static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::ALL_ITEMS))
         {
             currentModelFactory->Update();
         }
-    }
-    else
-    {
-        updateItemType = static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::DIRTY_ITEMS));
-        if (updateItemType == SCENE_DIRTY_TYPE::DIRTY_ITEMS)
+        else if (static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::TRANSFORMATION))
         {
-            foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
-            {
-                currentModelFactory->UpdateDirty();
-            }
+            currentModelFactory->Update();
         }
+
+#if DIRTY_UPDATE_IMPLEMENTED == 1
+        else if (static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::DIRTY_ITEMS))
+        {
+            currentModelFactory->UpdateDirty();
+        }
+#endif
     }
 
     m_DirtyType = SCENE_DIRTY_TYPE::NONE;

@@ -23,6 +23,9 @@ protected:
     virtual void mouseMoveEvent(QMouseEvent* p_Event);
 
 private:
+    void RecordRenderPass(int p_Argcount, ...);
+
+private:
     Scene* m_Scene;
     UIDemo m_UIDemo;
 };

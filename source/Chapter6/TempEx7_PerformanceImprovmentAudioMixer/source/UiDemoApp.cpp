@@ -8,89 +8,30 @@ int main(int argc, char **argv)
 {
     QApplication qtApp(argc, argv);
 
-    UIDemoApp* helloVulkanApp = new UIDemoApp(); // Create Vulkan app instance
-    helloVulkanApp->EnableDepthBuffer(true);
-    helloVulkanApp->EnableWindowResize(true);
-    helloVulkanApp->Initialize();
-    helloVulkanApp->m_pWindow->show();
+    UIDemoApp* app = new UIDemoApp();
+    app->EnableDepthBuffer(true);
+    app->EnableWindowResize(true);
+    app->Initialize();
+    app->m_pWindow->show();
     qtApp.exec();
 
-    delete helloVulkanApp;
+    delete app;
     return 0;
 }
 
 UIDemoApp::UIDemoApp()
 {
-	VulkanHelper::GetInstanceLayerExtensionProperties();
+    VulkanHelper::GetInstanceLayerExtensionProperties();
 }
 
 UIDemoApp::~UIDemoApp()
 {
+    delete m_Scene;
 }
-
-//void UIDemoApp::ProgressBarFunc(Scene* m_Scene)
-//{
-//    BoundingRegion boundedRegion(200, 400, 400, 100);
-//    ProgressBar* m_Parent = new ProgressBar(m_Scene, NULL, boundedRegion, "Node 1", SHAPE::SHAPE_CUBE);
-//}
-
-//void UIDemoApp::Grid(Scene* m_Scene)
-//{
-//    float parentCol = 20;
-//    float parentRow = 20;
-//    float parentColWidth = m_windowDim.width / parentCol;
-//    float parentColHeight = m_windowDim.height / parentRow;
-
-//    const float Col = 20;
-//    const float Row = 20;
-//    float colWidth = parentColWidth / Col;
-//    float colHeight = parentColHeight / Row;
-
-//    for (int i = 0; i < parentCol; i++)
-//    {
-//        for (int j = 0; j < parentRow; j++)
-//        {
-//            Node* m_Parent = new RectangleModel(NULL, m_Scene, NULL, BoundingRegion((i * parentColWidth), (j * parentColHeight), parentColWidth - 2, parentColHeight), "Node 1", SHAPE::SHAPE_RECTANGLE);
-//            //m_Parent->Rectangle((i * parentColWidth), (j * parentColHeight), parentColWidth - 2, parentColHeight);
-//            m_Parent->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
-//            m_Parent->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
-
-//            for (int k = 0; k < Col; k++)
-//            {
-//                for (int l = 0; l < Row; l++)
-//                {
-//                    RectangleModel* rect = new RectangleModel(NULL, m_Scene, m_Parent, BoundingRegion((k * colWidth), (l * colHeight), colWidth, colHeight), "Node 1", SHAPE::SHAPE_RECTANGLE);
-//                    //rect->Rectangle((k * colWidth), (l * colHeight), colWidth, colHeight);
-//                    rect->SetColor(glm::vec4(l / Col, k / Row, 0.50, 1.0));
-//                    rect->SetDefaultColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
-//                    rect->SetVisible(!(k == l));
-//                }
-//            }
-//        }
-//    }
-//}
-
-//void UIDemoApp::MixerView(Scene* m_Scene)
-//{
-//    const float mixerPanelWidth = m_windowDim.width;
-//    const float mixerPanelHeight = m_windowDim.height;
-
-//    const float mixerWidth = 100;
-//    const int numberOfMixers = mixerPanelWidth / mixerWidth;
-
-//    for (int i = 0; i < numberOfMixers; i++)
-//    {
-//        BoundingRegion boundedRegion((i * mixerWidth), 0, mixerWidth, mixerPanelHeight);
-//        AudioMixerItem* m_MixerItem = new AudioMixerItem(m_Scene, NULL, boundedRegion, "Mixer Item 1", SHAPE::SHAPE_CUSTOM);
-//        m_MixerItem->SetColor(glm::vec4(1.1, 0.2, 0.20, 1.0));
-//        m_MixerItem->SetDefaultColor(glm::vec4(1.0, 0.15, 0.60, 1.0));
-//    }
-//}
 
 void UIDemoApp::Configure()
 {
-    SetApplicationName("Render Concepts - Ui interfaces");
-//    SetWindowDimension(800 * 2, 900);
+    SetApplicationName("Instancing Demo");
     SetWindowDimension(800 , 600);
 
 #ifdef _WIN32
@@ -108,37 +49,14 @@ void UIDemoApp::Configure()
     AddInstanceExtension("VK_KHR_surface");
     AddInstanceExtension("VK_MVK_macos_surface");
 #endif
-    //m_CubeFactory = RectangleFactory::SingleTon(this);
 
-    m_Scene = new Scene(this);
-//    // Simple Rects
-//    {
-//        Rectangl* m_Cube = new Rectangl(this, m_Scene, NULL, BoundingRegion(100, 100, 500, 500), "Rectangle 1", SHAPE::SHAPE_RECTANGLE/*, RENDER_SCEHEME_MULTIDRAW*/);
-//        m_Cube->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
-//        m_Cube->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+    // m_SceneVector.push_back(std::make_shared<Scene>(this));
+     m_Scene = new Scene(this);//m_SceneVector[0].get();
 
-//        m_Cube = new RectangleModel(this, m_Scene, m_Cube, BoundingRegion(100, 100, 50, 50), "Rectangle 2", SHAPE::SHAPE_RECTANGLE/*, RENDER_SCEHEME_MULTIDRAW*/);
-//        //m_Cube->Rectangle(100, 100, 50, 50);
-//        m_Cube->SetColor(glm::vec4(0.0, 0.0, 1.0, 1.0));
-//        m_Cube->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
-//    }
-
-//    // Grid Demo
-//    {
-//        m_UIDemo.Grid(m_Scene, m_windowDim.width, m_windowDim.height);
-//    }
-
-//    // Progress Bar Demo
-//    {
-//        BoundingRegion boundedRegion(20, 20, 400, 100);
-//        ProgressBar* pb = new ProgressBar(m_Scene, NULL, boundedRegion, "Progressbar", SHAPE::SHAPE_CUSTOM);
-//        pb->SetZOrder(1);
-//    }
-
-    // Mixer View Demo
-    {
-        m_UIDemo.MixerView(m_Scene, m_windowDim.width, m_windowDim.height);
-    }
+     m_UIDemo.Grid(m_Scene, m_windowDim.width, m_windowDim.height);             // Grid demo
+     //m_UIDemo.ProgressBarFunc(m_Scene);                                         // Progress bar
+     //m_UIDemo.MixerView(m_Scene, m_windowDim.width, m_windowDim.height);        // Mixer View demo
+     //m_UIDemo.InitTransformationConformTest(m_Scene);                           // Transformation test demo
 }
 
 void UIDemoApp::Setup()
@@ -146,20 +64,11 @@ void UIDemoApp::Setup()
     // Note: We are overidding the default Create Command pool with VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
     // because we need to re-record the command buffer when the instance data size changes.
     // This need to recreate the command buffer.
-    VkCommandPoolCreateInfo poolInfo = {};
-    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    poolInfo.queueFamilyIndex = m_physicalDeviceInfo.graphicsFamilyIndex;
-    VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo, &poolInfo);
-
-//    //static glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-//    static glm::mat4 Projection = glm::ortho(0.0f, static_cast<float>(m_windowDim.width), 0.0f, static_cast<float>(m_windowDim.height));
-//    m_Scene->SetProjection(&Projection);
-
-//    //static glm::mat4 View = glm::lookAt(glm::vec3(0, 0, 1500), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-//    static glm::mat4 View;
-////    View = glm::translate(View, glm::vec3(100, -0, 0));
-//    m_Scene->SetView(&View);
+    //VkCommandPoolCreateInfo poolInfo = {};
+    //poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    //poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    //poolInfo.queueFamilyIndex = m_physicalDeviceInfo.graphicsFamilyIndex;
+    //VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo, &poolInfo);
 
     m_Scene->SetUpProjection(); // For some reason the ViewMatrix is not working properly, this setupensure model matrix is set properly.
     m_Scene->Setup();
@@ -169,6 +78,7 @@ void UIDemoApp::Setup()
 
 void UIDemoApp::Update()
 {
+    m_UIDemo.UpdateTransformationConformTest();
     m_Scene->Update();
 }
 
@@ -200,4 +110,107 @@ void UIDemoApp::ResizeWindow(int p_Width, int p_Height)
     VulkanApp::ResizeWindow(p_Width, p_Height);
 
     m_Scene->Resize(p_Width, p_Height);
+}
+
+void UIDemoApp::RecordRenderPass(int p_Argcount, ...)
+{
+    va_list list;
+    va_start(list, p_Argcount);
+    SCENE_GRAPH_STATES currentState = SG_STATE_NONE;
+    QSize resizedDimension;
+
+    for (int i = 0; i < p_Argcount; ++i)
+    {
+        switch (i)
+        {
+        case 0:
+            currentState = static_cast<SCENE_GRAPH_STATES>(va_arg(list, int));
+            break;
+
+        case 1:
+            resizedDimension.setWidth(va_arg(list, int));
+            break;
+
+        case 2:
+            resizedDimension.setHeight(va_arg(list, int));
+            break;
+
+        default:
+        {
+            if (currentState == SG_STATE_NONE)
+            {
+                va_end(list);
+                return;
+            }
+            break;
+        }
+        }
+    }
+    va_end(list);
+
+    // Specify the clear color value
+    VkClearValue clearColor[2];
+    clearColor[0].color.float32[0] = 0.0f;
+    clearColor[0].color.float32[1] = 0.0f;
+    clearColor[0].color.float32[2] = 0.0f;
+    clearColor[0].color.float32[3] = 0.0f;
+
+    // Specify the depth/stencil clear value
+    clearColor[1].depthStencil.depth = 1.0f;
+    clearColor[1].depthStencil.stencil = 0;
+
+    // Offset to render in the frame buffer
+    VkOffset2D   renderOffset = { 0, 0 };
+    // Width & Height to render in the frame buffer
+    VkExtent2D   renderExtent = m_swapChainExtent;
+
+    // For each command buffers in the command buffer list
+    for (size_t i = 0; i < m_hCommandBufferList.size(); i++)
+    {
+        VkCommandBufferBeginInfo beginInfo = {};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        // Indicate that the command buffer can be resubmitted to the queue
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+
+        // Begin command buffer
+        vkBeginCommandBuffer(m_hCommandBufferList[i], &beginInfo);
+
+        VkRenderPassBeginInfo renderPassInfo = {};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassInfo.renderPass = m_hRenderPass;
+        renderPassInfo.framebuffer = m_hFramebuffers[i];
+        renderPassInfo.renderArea.offset = renderOffset;
+        renderPassInfo.renderArea.extent = renderExtent;
+        renderPassInfo.clearValueCount = 2;
+        renderPassInfo.pClearValues = clearColor;
+
+        // Begin render pass
+        vkCmdBeginRenderPass(m_hCommandBufferList[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        switch (currentState)
+        {
+        case SG_STATE_SETUP:
+        case SG_STATE_RENDER:
+            //m_Scene->Render(m_hCommandBufferList[i]);
+            break;
+
+        case SG_STATE_RESIZE:
+            //m_Scene->Resize(m_hCommandBufferList[i], resizedDimension.width(), resizedDimension.height());
+            break;
+
+        default:
+            break;
+        }
+
+        // End the Render pass
+        vkCmdEndRenderPass(m_hCommandBufferList[i]);
+
+        // End the Command buffer
+        VkResult vkResult = vkEndCommandBuffer(m_hCommandBufferList[i]);
+        if (vkResult != VK_SUCCESS)
+        {
+            VulkanHelper::LogError("vkEndCommandBuffer() failed!");
+            assert(false);
+        }
+    }
 }
