@@ -10,6 +10,7 @@ class Node
 {
 public:
     Node(Scene* p_Scene, Node* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
+    ~Node();
 
     virtual void Setup();
     virtual void Update(Node* p_Item = NULL);
@@ -49,10 +50,15 @@ public:
     virtual void mousePressEvent(QMouseEvent* p_Event);
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
     virtual void mouseMoveEvent(QMouseEvent* p_Event);
+    virtual void mouseDoubleClickEvent(QMouseEvent* p_Event) UNIMPLEMENTED_INTEFACE
     virtual void keyPressEvent() UNIMPLEMENTED_INTEFACE
+
+    // Application Window resizing
+    virtual void ResizeWindow(int width, int height) {}
 
     GETSET(QString,                     Name)
     GETSET(SHAPE,                       ShapeType)
+    GETSET(RENDER_SCEHEME_TYPE,         RenderSchemeType); // Currently unused, TODO: do the necessary implementation
     GETSET(glm::vec4,                   DefaultColor)
     GETSET(glm::mat4,                   ModelTransformation)
     GETSET(glm::vec3,                   OriginOffset)
@@ -61,7 +67,9 @@ public:
     GETSET(Node*,                       Parent)
     GETSET(QList<Node*>,                ChildList)
     GETSET(bool,                        Visible)
-    GETSET(unsigned int,                GpuMemOffset)
+    GETSET(unsigned int,                GpuMemOffset)  // TODO the data type should be unsigned long long to accomodate large offsets
+
+    void QuerySupportedSchemes() { } // this function must tell the user what schemes are supported
 
 protected:
     DIRTY_TYPE m_DirtyType;

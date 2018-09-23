@@ -8,12 +8,6 @@ UIDemo::~UIDemo()
 {
 }
 
-/*void UIDemo::ProgressBarFunc(Scene* p_Scene)
-{
-    BoundingRegion boundedRegion(200, 400, 400, 100);
-    ProgressBar* m_Parent = new ProgressBar(p_Scene, NULL, boundedRegion, "Node 1", SHAPE::SHAPE_CUBE);
-}*/
-
 void UIDemo::Grid(Scene* p_Scene, int p_Width, int p_Height)
 {
     float parentCol = 20;

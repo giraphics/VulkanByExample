@@ -9,13 +9,21 @@ Node::Node(Scene* p_Scene, Node* p_Parent, const BoundingRegion& p_BoundedRegion
     , m_ShapeType(p_ShapeType)
     , m_BoundedRegion(p_BoundedRegion)
     , m_OriginOffset(glm::vec3(0.0f, 0.0f, 0.0f))
-    , m_DirtyType(DIRTY_TYPE::ALL)
     , m_Visible(true)
+    , m_DirtyType(DIRTY_TYPE::ALL)
 {
     m_Parent ? m_Parent->m_ChildList.append(this) : p_Scene->AddItem(this);
     
     // Todo: We can directly use the translate as the m_BoundedRegion is already set
     SetGeometry(m_BoundedRegion.m_Position.x, m_BoundedRegion.m_Position.y, m_BoundedRegion.m_Dimension.x, m_BoundedRegion.m_Dimension.y, m_BoundedRegion.m_Position.z);
+}
+
+Node::~Node()
+{
+    if (m_Scene)
+    {
+        m_Scene->RemoveItem(this);
+    }
 }
 
 void Node::Setup()
@@ -210,11 +218,6 @@ void Node::mouseMoveEvent(QMouseEvent* p_Event)
     p_Event->ignore();
 }
 
-Node* Node::GetParent() const
-{
-    return m_Parent;
-}
-
 void Node::ApplyTransformation()
 {
     *m_Scene->Transform().GetModelMatrix() *= m_ModelTransformation;
@@ -228,6 +231,11 @@ glm::mat4 Node::GetAbsoluteTransformations() const
 glm::mat4 Node::GetParentsTransformation(Node *p_Parent) const
 {
     return p_Parent ? (GetParentsTransformation(p_Parent->GetParent()) * p_Parent->m_ModelTransformation) : glm::mat4();
+}
+
+Node* Node::GetParent() const
+{
+    return m_Parent;
 }
 
 void Node::GatherFlatNodeList()

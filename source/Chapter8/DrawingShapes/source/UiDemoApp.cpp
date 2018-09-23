@@ -23,8 +23,8 @@ UIDemoApp::UIDemoApp()
 {
     VulkanHelper::GetInstanceLayerExtensionProperties();
 
-    m_SceneVector.push_back(std::make_shared<Scene>(this));
-    m_Scene = m_SceneVector[0].get();
+   // m_SceneVector.push_back(std::make_shared<Scene>(this));
+    m_Scene = new Scene(this);//m_SceneVector[0].get();
 //    m_UIDemo.ProgressBarFunc(m_Scene);
 
 //    m_RectTr1 = new Rectangl(m_Scene, NULL, BoundingRegion(200, 200, 100, 100));

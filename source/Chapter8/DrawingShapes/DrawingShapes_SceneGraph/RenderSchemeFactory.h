@@ -16,7 +16,8 @@ public:
     virtual void Update();
     virtual void Render(VkCommandBuffer& p_CommandBuffer);
     virtual void Prepare(Scene* p_Scene);
-    virtual void UpdateNodeList(Node* p_Parent);
+    virtual void UpdateNodeList(Node* p_Item);
+    virtual void RemoveNodeList(Node* p_Item);
     virtual void ResizeWindow(VkCommandBuffer& p_CommandBuffer);
 
     GETSET(glm::mat4x4, ProjectViewMatrix);

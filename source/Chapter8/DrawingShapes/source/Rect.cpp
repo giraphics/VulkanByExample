@@ -694,6 +694,52 @@ void RectangleMultiDrawScheme::UpdateNodeList(Node *p_Item)
     }
 }
 
+void RectangleMultiDrawScheme::RemoveNodeList(Node* p_Model)
+{
+//    Rectangl* rectangle = dynamic_cast<Rectangl*>(p_Model);
+//    assert(rectangle);
+
+//    std::vector<Node*>* modelVector = &m_PipelineTypeModelVector[rectangle->GetDrawType()];
+//    if (!modelVector) return;
+
+//    bool isUpdated = false;
+//    while (1)
+//    {
+//        auto result = std::find(std::begin(*modelVector), std::end(*modelVector), rectangle);
+//        if (result == std::end(*modelVector)) break;
+
+//        modelVector->erase(result);
+//        isUpdated = true;
+//    }
+
+//    if (isUpdated)
+//    {
+//        RECTANGLE_GRAPHICS_PIPELINES pipeline = PIPELINE_COUNT;
+
+//        switch (rectangle->GetDrawType())
+//        {
+//        case Rectangl::FILLED:
+//            pipeline = PIPELINE_FILLED;
+//            break;
+
+//        case Rectangl::OUTLINE:
+//            pipeline = PIPELINE_OUTLINE;
+//            break;
+
+//        case Rectangl::ROUNDED:
+//            // TODO
+//            break;
+
+//        default:
+//            break;
+//        }
+
+//        if (pipeline == PIPELINE_COUNT) return;
+
+//        PrepareInstanceData(pipeline);
+//    }
+}
+
 void RectangleMultiDrawScheme::Prepare(Scene* p_Scene)
 {
     // Update the uniform

@@ -1,8 +1,8 @@
 ﻿#include "Scene.h"
 #include "Node.h"
-#include "../../common/VulkanApp.h"
 
-#include <QMouseEvent>
+#include "../../common/VulkanApp.h" // Not a good design to include vulkan app here: Todo move AbstractApp 
+#include <QMouseEvent> 
 
 Scene::Scene(AbstractApp* p_Application, const QString& p_Name)
     : m_Application(p_Application)
@@ -43,7 +43,7 @@ void Scene::Setup()
         currentModel->Setup();
     }
 
-    foreach(Node* currentModel, m_FlatList)
+    foreach (Node* currentModel, m_FlatList)
     {
         RenderSchemeFactory* renderSchemeFactory = GetRenderSchemeFactory(currentModel); // Populate factories
         if (!renderSchemeFactory) continue;
@@ -141,6 +141,8 @@ void Scene::AddItem(Node* p_Item)
     }
 }
 
+
+// While removing the model remove it from model list and flat list.
 void Scene::RemoveItem(Node* p_Item)
 {
     while (true)
@@ -150,6 +152,19 @@ void Scene::RemoveItem(Node* p_Item)
 
         m_NodeList.erase(result);
     }
+
+    while (true)
+    {
+        auto result = std::find(std::begin(m_FlatList), std::end(m_FlatList), p_Item);
+        if (result == std::end(m_FlatList)) break;
+
+        m_FlatList.erase(result);
+    }
+
+    RenderSchemeFactory* factory = GetRenderSchemeFactory(p_Item); // Populate factories
+    if (!factory) return;
+
+    factory->RemoveNodeList(p_Item);
 }
 
 void Scene::Resize(VkCommandBuffer& p_CommandBuffer, int p_Width, int p_Height)

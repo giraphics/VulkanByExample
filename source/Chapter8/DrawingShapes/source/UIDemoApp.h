@@ -26,7 +26,7 @@ private:
     void RecordRenderPass(int p_Argcount, ...);
 
 private:
-    std::vector<std::shared_ptr<Scene>> m_SceneVector;
+    //std::vector<std::shared_ptr<Scene>> m_SceneVector;
     Scene* m_Scene;
     Rectangl* m_RectTr1;
     Rectangl* m_RectTr2;
