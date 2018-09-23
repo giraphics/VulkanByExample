@@ -1,5 +1,11 @@
 #include "UIDemo.h"
 
+#include "Rect.h"
+
+#if CIRCLE_DEFINED == 1
+#include "Circle.h"
+#endif
+
 UIDemo::UIDemo()
 {
 }
@@ -158,5 +164,84 @@ AudioMixerItem::AudioMixerItem(Scene* p_Scene, Node* p_Parent, const BoundingReg
             levelIndicator->SetDefaultColor(color);
             cnt++;
         }
+    }
+}
+
+void TransformationConformTest::Configure(Scene* p_Scene)
+{
+    m_RectTr1 = new Rectangl(p_Scene, NULL, BoundingRegion(200, 200, 100, 100));
+    m_RectTr1->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
+    m_RectTr1->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+    m_RectTr1->SetZOrder(1.1);
+
+    m_RectTr2 = new Rectangl(p_Scene, m_RectTr1, BoundingRegion(100, 100, 50, 50));
+    m_RectTr2->SetColor(glm::vec4(0.0, 0.0, 1.0, 1.0));
+    m_RectTr2->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+
+    m_RectTr3 = new Rectangl(p_Scene, m_RectTr1, BoundingRegion(0, 0, 50, 50));
+    m_RectTr3->SetColor(glm::vec4(0.6, 0.0, 1.0, 1.0));
+    m_RectTr3->SetDefaultColor(glm::vec4(0.2, 0.55, 0.20, 1.0));
+
+    m_RectTr4 = new Rectangl(p_Scene, m_RectTr1, BoundingRegion(75, -25, 50, 50));
+    m_RectTr4->SetZOrder(-10.1);
+    m_RectTr4->SetOriginOffset(glm::vec3(25, 25, 0));
+    m_RectTr4->SetColor(glm::vec4(0.0, 0.2, 1.0, 1.0));
+    m_RectTr4->SetDefaultColor(glm::vec4(0.2, 0.35, 0.30, 1.0));
+
+#if CIRCLE_DEFINED == 1
+    m_CircleTr5 = new Circle(p_Scene, m_RectTr1, glm::vec2(0, 0), 50.0f);
+    m_CircleTr5->SetOriginOffset(glm::vec3(25, 25, 0));
+    m_CircleTr5->SetColor(glm::vec4(0.0, 0.5, 1.0, 1.0));
+    m_CircleTr5->SetDefaultColor(glm::vec4(0.62, 0.25, 0.60, 1.0));
+    m_CircleTr5->SetZOrder(10.1);
+    m_CircleTr5->SetVisible(!false);
+    m_CircleTr5->SetName("m_CircleTr5");
+#endif
+
+    {
+        float x = 0;
+        float y = 0;
+        m_Rect1 = new Rectangl(p_Scene, NULL, BoundingRegion(x, y, 100, 100, -1), "Item1");
+        m_Rect1->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
+        m_Rect1->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
+        x += 50;
+
+        m_Rect2 = new Rectangl(p_Scene, m_Rect1, BoundingRegion(x, y, 100, 100, -1), "Item2");
+        m_Rect2->SetColor(glm::vec4(1.0, 0.2, 0.20, 1.0));
+        m_Rect2->SetDefaultColor(glm::vec4(1.42, 0.15, 0.60, 1.0));
+        x += 50;
+
+        m_Rect3 = new Rectangl(p_Scene, m_Rect1, BoundingRegion(x, y, 100, 100, 10), "Item3");
+        m_Rect3->SetColor(glm::vec4(1.0, 1.2, 0.20, 1.0));
+        m_Rect3->SetDefaultColor(glm::vec4(1.42, 1.15, 0.60, 1.0));
+        x += 50;
+
+        m_Rect4 = new Rectangl(p_Scene, m_Rect1, BoundingRegion(x, y, 100, 100, -1000), "Item4");
+        m_Rect4->SetColor(glm::vec4(1.0, 1.2, 1.0, 1.0));
+        m_Rect4->SetDefaultColor(glm::vec4(1., 0.5, 0.60, 1.0));
+        x += 50;
+    }
+}
+
+void TransformationConformTest::Update()
+{
+    if (!m_RectTr1) return;
+
+    static float rot = 0.0;
+    {
+        m_RectTr1->ResetPosition();
+        m_RectTr1->Rotate(.001, 0.0, 0.0, 1.0);
+
+        m_RectTr2->ResetPosition();
+        m_RectTr2->Rotate(rot += .1, 0.0, 0.0, 1.0);
+
+        m_RectTr3->Rotate(.003, 0.0, 0.0, 1.0);
+        m_RectTr4->Rotate(.003, 0.0, 0.0, 1.0);
+    }
+    {
+        m_Rect1->Rotate(.003, 0.0, 0.0, 1.0);
+        m_Rect2->Rotate(.003, 0.0, 0.0, 1.0);
+        m_Rect3->Rotate(.003, 0.0, 0.0, 1.0);
+        m_Rect4->Rotate(.003, 0.0, 0.0, 1.0);
     }
 }

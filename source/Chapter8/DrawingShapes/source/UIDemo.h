@@ -1,20 +1,17 @@
 #pragma once
 #include "../DrawingShapes_SceneGraph/Scene.h"
-#include "Rect.h"
+#include "../DrawingShapes_SceneGraph/Node.h"
 
-class UIDemo
-{
-public:
-    UIDemo();
-    virtual ~UIDemo();
+#define CIRCLE_DEFINED 1
 
-    void Grid(Scene* p_Scene, int p_Width, int p_Height);
-    void MixerView(Scene* p_Scene, int p_Width, int p_Height);
-    void ProgressBarFunc(Scene* p_Scene);
-};
+#if CIRCLE_DEFINED == 1
+class Circle;
+#endif
 
 class Rectangl;
+class TransformationConformTest;
 class QMouseEvent;
+
 class ProgressBar : public Node
 {
 public:
@@ -54,4 +51,46 @@ public:
 
     //virtual void mouseMoveEvent(QMouseEvent* p_Event);
     //Model3D* progressIndicator;
+};
+
+class TransformationConformTest
+{
+public:
+    TransformationConformTest(){}
+    ~TransformationConformTest(){}
+
+    void Configure(Scene* p_Scene);
+    void Update();
+
+private:
+    Rectangl* m_RectTr1;
+    Rectangl* m_RectTr2;
+    Rectangl* m_RectTr3;
+    Rectangl* m_RectTr4;
+
+#if CIRCLE_DEFINED == 1
+    Circle*   m_CircleTr5;
+#endif
+
+    Rectangl* m_Rect1;
+    Rectangl* m_Rect2;
+    Rectangl* m_Rect3;
+    Rectangl* m_Rect4;
+};
+
+class UIDemo
+{
+public:
+    UIDemo();
+    virtual ~UIDemo();
+
+    void Grid(Scene* p_Scene, int p_Width, int p_Height);
+    void MixerView(Scene* p_Scene, int p_Width, int p_Height);
+    void ProgressBarFunc(Scene* p_Scene);
+
+    void InitTransformationConformTest(Scene* p_Scene) { m_TransformObj.Configure(p_Scene); }
+    void UpdateTransformationConformTest() { m_TransformObj.Update(); }
+
+private:
+    TransformationConformTest m_TransformObj;
 };
