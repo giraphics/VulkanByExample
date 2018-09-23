@@ -10,6 +10,7 @@ int main(int argc, char **argv)
 
     UIDemoApp* helloVulkanApp = new UIDemoApp(); // Create Vulkan app instance
     helloVulkanApp->EnableDepthBuffer(true);
+    helloVulkanApp->EnableWindowResize(true);
     helloVulkanApp->Initialize();
     helloVulkanApp->m_pWindow->show();
     qtApp.exec();
@@ -110,9 +111,9 @@ void UIDemoApp::Configure()
     //m_CubeFactory = RectangleFactory::SingleTon(this);
 
     m_Scene = new Scene(this);
-    // Simple Rects
+//    // Simple Rects
 //    {
-//        RectangleModel* m_Cube = new RectangleModel(this, m_Scene, NULL, BoundingRegion(100, 100, 500, 500), "Rectangle 1", SHAPE::SHAPE_RECTANGLE/*, RENDER_SCEHEME_MULTIDRAW*/);
+//        Rectangl* m_Cube = new Rectangl(this, m_Scene, NULL, BoundingRegion(100, 100, 500, 500), "Rectangle 1", SHAPE::SHAPE_RECTANGLE/*, RENDER_SCEHEME_MULTIDRAW*/);
 //        m_Cube->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
 //        m_Cube->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
 
@@ -122,10 +123,10 @@ void UIDemoApp::Configure()
 //        m_Cube->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
 //    }
 
-    // Grid Demo
-    {
-        m_UIDemo.Grid(m_Scene, m_windowDim.width, m_windowDim.height);
-    }
+//    // Grid Demo
+//    {
+//        m_UIDemo.Grid(m_Scene, m_windowDim.width, m_windowDim.height);
+//    }
 
 //    // Progress Bar Demo
 //    {
@@ -134,34 +135,36 @@ void UIDemoApp::Configure()
 //        pb->SetZOrder(1);
 //    }
 
-//    // Mixer View Demo
-//    {
-//        m_UIDemo.MixerView(m_Scene, m_windowDim.width, m_windowDim.height);
-//    }
+    // Mixer View Demo
+    {
+        m_UIDemo.MixerView(m_Scene, m_windowDim.width, m_windowDim.height);
+    }
 }
 
 void UIDemoApp::Setup()
 {
     // Note: We are overidding the default Create Command pool with VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
-    // because we need to re-record the command buffer when the instance data size changes. 
-    // This need to recreate the command buffer. 
+    // because we need to re-record the command buffer when the instance data size changes.
+    // This need to recreate the command buffer.
     VkCommandPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     poolInfo.queueFamilyIndex = m_physicalDeviceInfo.graphicsFamilyIndex;
     VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo, &poolInfo);
 
-    //static glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-    static glm::mat4 Projection = glm::ortho(0.0f, static_cast<float>(m_windowDim.width), 0.0f, static_cast<float>(m_windowDim.height));
-    m_Scene->SetProjection(&Projection);
+//    //static glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+//    static glm::mat4 Projection = glm::ortho(0.0f, static_cast<float>(m_windowDim.width), 0.0f, static_cast<float>(m_windowDim.height));
+//    m_Scene->SetProjection(&Projection);
 
-    //static glm::mat4 View = glm::lookAt(glm::vec3(0, 0, 1500), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-    static glm::mat4 View;
-//    View = glm::translate(View, glm::vec3(100, -0, 0));
-    m_Scene->SetView(&View);
+//    //static glm::mat4 View = glm::lookAt(glm::vec3(0, 0, 1500), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+//    static glm::mat4 View;
+////    View = glm::translate(View, glm::vec3(100, -0, 0));
+//    m_Scene->SetView(&View);
 
     m_Scene->SetUpProjection(); // For some reason the ViewMatrix is not working properly, this setupensure model matrix is set properly.
     m_Scene->Setup();
+
+    m_Scene->Update();
 }
 
 void UIDemoApp::Update()

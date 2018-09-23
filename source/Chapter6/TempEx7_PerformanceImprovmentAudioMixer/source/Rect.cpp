@@ -831,7 +831,7 @@ void RectangleInstancingScheme::PrepareInstanceData(RECTANGLE_GRAPHICS_PIPELINES
 
         for (int i = 0; i < modelSize; i++)
         {
-            instanceData[i].m_Model = m_ModelList.at(i)->GetModelTransformation();
+            instanceData[i].m_Model = m_ModelList.at(i)->GetAbsoluteTransformation();
             instanceData[i].m_Rect.x = m_ModelList.at(i)->GetBoundedRegion().m_Dimension.x;
             instanceData[i].m_Rect.y = m_ModelList.at(i)->GetBoundedRegion().m_Dimension.y;
             instanceData[i].m_Color = m_ModelList.at(i)->GetColor();
@@ -888,7 +888,7 @@ void RectangleInstancingScheme::UpdateDirtyInstanceData()
             if (modelList.at(i)->GetDirtyType() == DIRTY_TYPE::ATTRIBUTES)
             {
                 InstanceData data;
-                data.m_Model = modelList.at(i)->GetModelTransformation();
+                data.m_Model = modelList.at(i)->GetAbsoluteTransformation();
                 data.m_Rect.x = modelList.at(i)->GetBoundedRegion().m_Dimension.x;
                 data.m_Rect.y = modelList.at(i)->GetBoundedRegion().m_Dimension.y;
                 data.m_Color = modelList.at(i)->GetColor();

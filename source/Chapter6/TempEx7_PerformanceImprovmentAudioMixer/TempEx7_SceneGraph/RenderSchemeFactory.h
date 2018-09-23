@@ -1,7 +1,7 @@
 #pragma once
 
- #include "Scene.h"
- #include "../common/VulkanHelper.h"
+#include "Scene.h"
+#include "../common/VulkanHelper.h"
 
 class VulkanApp;
 
@@ -9,8 +9,8 @@ class VulkanApp;
 class RenderSchemeFactory
 {
 public:
-    RenderSchemeFactory() {}
-    virtual ~RenderSchemeFactory() {}
+    RenderSchemeFactory();
+    virtual ~RenderSchemeFactory();
 
     virtual void Setup();
     virtual void Update();

@@ -11,7 +11,7 @@ public:
     enum DRAW_TYPE
     {
         FILLED = 0,
-        OUTLINE, 
+        OUTLINE,
         ROUNDED,
         DRAW_TYPE_COUNT
     };

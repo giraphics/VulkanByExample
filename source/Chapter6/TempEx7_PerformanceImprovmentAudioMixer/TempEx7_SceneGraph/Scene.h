@@ -1,8 +1,7 @@
 #pragma once
 
 #include <QObject>
-#include <QMatrix4x4>
-
+#include <QMap>
 #include "Transformation.h"
 #include "../../../common/VulkanHelper.h"
 #include "Common.h"
@@ -26,7 +25,7 @@ public:
     void AddItem(Node* p_Item);
     void RemoveItem(Node* p_Item);
 
-    void Resize(int p_Width, int p_Height);
+    virtual void Resize(int p_Width, int p_Height);
     virtual void SetUpProjection();
     inline Transformation& Transform() { return m_Transform; }
 
@@ -41,9 +40,6 @@ public:
     virtual void mousePressEvent(QMouseEvent* p_Event);
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
     virtual void mouseMoveEvent(QMouseEvent* p_Event);
-
-    GETSET(glm::mat4*, Projection)      // Not owned by Scene, double check this can be owned. TODO: PS
-    GETSET(glm::mat4*, View)            // Not owned by Scene
 
 private:
     RenderSchemeFactory* GetRenderSchemeFactory(Node* p_Item);

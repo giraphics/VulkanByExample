@@ -1,8 +1,5 @@
 #pragma once
 
-//#define M_PI (3.14)
-//#define M_PI_2 (3.14 * 2)
-
 enum SCENE_GRAPH_STATES
 {
     SG_STATE_NONE = -1,
@@ -33,18 +30,6 @@ enum class SHAPE : int32_t
 
     // CUSTOM SHAPES GOES HERE
     SHAPE_CUSTOM // NOTE: Important: the custom object are comprised of simpler objects hence not a part of model factories
-
-    /***********************/
-//    SHAPE_NONE = -1,
-
-//    // BASIC SHAPES GOES HERE
-//    SHAPE_CUBE,
-//    SHAPE_RECTANGLE,
-
-//    SHAPE_COUNT, // TOTAL SHAPE COUNTS
-
-//    // CUSTOM SHAPES GOES HERE
-//    SHAPE_CUSTOM // NOTE: Important: the custom object are comprised of simpler objects hence not a part of model factories
 };
 
 enum class RENDER_SCEHEME_TYPE : int32_t
