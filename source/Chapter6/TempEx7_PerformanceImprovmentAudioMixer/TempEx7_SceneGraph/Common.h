@@ -1,20 +1,50 @@
 #pragma once
 
-#define M_PI (3.14)
-#define M_PI_2 (3.14 * 2)
+//#define M_PI (3.14)
+//#define M_PI_2 (3.14 * 2)
 
+enum SCENE_GRAPH_STATES
+{
+    SG_STATE_NONE = -1,
+
+    SG_STATE_SETUP,     // Initial setup
+    SG_STATE_RESIZE,    // Resize of window
+    SG_STATE_RENDER,    // Scene Rendering
+
+    SG_STATE_CUSTOM
+};
+
+// 1. Rename SHAPE to SCHEME
+// 2. Think over this: Can we reduce the enum by only keeping the scheme type lke enum SCHEME { MULTI_DRAW, INSTANCED }, with SHAPE there is a risk
+//    that the user can create a RECTANGLE object by by Rectnagl class but pass the SHAPE_CIRCLE_MULTIDRAW/INSTANCED enum as scheme type.
+//    This is not good.
 enum class SHAPE : int32_t
 {
     SHAPE_NONE = -1,
 
     // BASIC SHAPES GOES HERE
-    SHAPE_CUBE,
-    SHAPE_RECTANGLE,
+    SHAPE_RECTANGLE_MULTIDRAW,
+    SHAPE_RECTANGLE_INSTANCED,
+
+    SHAPE_CIRCLE_MULTIDRAW,
+    SHAPE_CIRCLE_INSTANCED,
 
     SHAPE_COUNT, // TOTAL SHAPE COUNTS
 
     // CUSTOM SHAPES GOES HERE
     SHAPE_CUSTOM // NOTE: Important: the custom object are comprised of simpler objects hence not a part of model factories
+
+    /***********************/
+//    SHAPE_NONE = -1,
+
+//    // BASIC SHAPES GOES HERE
+//    SHAPE_CUBE,
+//    SHAPE_RECTANGLE,
+
+//    SHAPE_COUNT, // TOTAL SHAPE COUNTS
+
+//    // CUSTOM SHAPES GOES HERE
+//    SHAPE_CUSTOM // NOTE: Important: the custom object are comprised of simpler objects hence not a part of model factories
 };
 
 enum class RENDER_SCEHEME_TYPE : int32_t

@@ -17,7 +17,7 @@ public:
     ~Node();
     virtual void Setup();
     void Update();
-    virtual RenderSchemeFactory* GetRenderScemeFactory() { return NULL; } // Custom model class do not need to implement it as they are made of basic model classes.
+    virtual RenderSchemeFactory* GetRenderSchemeFactory() { return NULL; } // Custom model class do not need to implement it as they are made of basic model classes.
 
 	void Rotate(float p_Angle, float p_X, float p_Y, float p_Z) { m_Model = glm::rotate(m_Model, p_Angle, glm::vec3(p_X, p_Y, p_Z)); }
 	void Translate(float p_X, float p_Y, float p_Z) { m_Model = glm::translate(m_Model, glm::vec3(p_X, p_Y, p_Z)); }
@@ -78,7 +78,7 @@ public:
     glm::mat4 GetRelativeTransformations() const { return GetParentsTransformation(GetParent()) * m_Model; }
     glm::mat4 GetParentsTransformation(Node* p_Parent) const { return p_Parent ? (GetParentsTransformation(p_Parent->GetParent()) * p_Parent->m_Model) : glm::mat4(); }
 
-    void GatherFlatList();
+    void GatherFlatNodeList();
 
     //AbstractModelFactory* m_AbstractFactory; // REMOVE ME
 

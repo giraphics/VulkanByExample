@@ -11,7 +11,7 @@ Node::Node(Scene *p_Scene, Node *p_Parent, const BoundingRegion& p_BoundedRegion
     , m_Visible(true)
     , m_DirtyType(DIRTY_TYPE::ALL)
 {
-    m_Parent ? m_Parent->m_ChildList.append(this) : p_Scene->AddModel(this);
+    m_Parent ? m_Parent->m_ChildList.append(this) : p_Scene->AddItem(this);
 
     // Todo: We can directly use the translate as the m_BoundedRegion is already set
     SetGeometry(m_BoundedRegion.m_Position.x, m_BoundedRegion.m_Position.y, m_BoundedRegion.m_Dimension.x, m_BoundedRegion.m_Dimension.y, m_BoundedRegion.m_Position.z);
@@ -21,7 +21,7 @@ Node::~Node()
 {
     if (m_Scene)
     {
-        m_Scene->RemoveModel(this);
+        m_Scene->RemoveItem(this);
     }
 }
 
@@ -110,7 +110,7 @@ void Node::Update()
     m_Scene->PushMatrix();
     m_Scene->ApplyTransformation(m_Model);
 
-    m_ModelTransformation = *m_Scene->m_Transform.GetModelMatrix();
+    m_ModelTransformation = *m_Scene->GetRefTransform().GetModelMatrix();
 
     Q_FOREACH(Node* child, m_ChildList)
     {
@@ -190,13 +190,13 @@ void Node::SetDirtyType(DIRTY_TYPE p_InvalidateType)
     }
 }
 
-void Node::GatherFlatList()
+void Node::GatherFlatNodeList()
 {
-    m_Scene->m_FlatList.push_back(this);
+    m_Scene->AppendToFlatNodeList(this);
 
     Q_FOREACH(Node* child, m_ChildList)
     {
         assert(child);
-        child->GatherFlatList();
+        child->GatherFlatNodeList();
     }
 }

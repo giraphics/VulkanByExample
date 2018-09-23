@@ -1,10 +1,7 @@
-#include "UiDemoApp.h"
-#include "../../../common/VulkanHelper.h"
+#include "UIDemoApp.h"
 #include "UIDemo.h"
 #include "Rect.h"
 
-#include <QMainWindow>
-#include <QHBoxLayout>
 #include <QApplication>
 
 int main(int argc, char **argv)
@@ -125,22 +122,22 @@ void UIDemoApp::Configure()
 //        m_Cube->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
 //    }
 
-//    // Grid Demo
-//    {
-//        m_UIDemo.Grid(m_Scene, m_windowDim.width, m_windowDim.height);
-//    }
+    // Grid Demo
+    {
+        m_UIDemo.Grid(m_Scene, m_windowDim.width, m_windowDim.height);
+    }
 
 //    // Progress Bar Demo
 //    {
-//        BoundingRegion boundedRegion(200, 400, 400, 100);
+//        BoundingRegion boundedRegion(20, 20, 400, 100);
 //        ProgressBar* pb = new ProgressBar(m_Scene, NULL, boundedRegion, "Progressbar", SHAPE::SHAPE_CUSTOM);
 //        pb->SetZOrder(1);
 //    }
 
-    // Mixer View Demo
-    {
-        m_UIDemo.MixerView(m_Scene, m_windowDim.width, m_windowDim.height);
-    }
+//    // Mixer View Demo
+//    {
+//        m_UIDemo.MixerView(m_Scene, m_windowDim.width, m_windowDim.height);
+//    }
 }
 
 void UIDemoApp::Setup()
@@ -154,11 +151,11 @@ void UIDemoApp::Setup()
     poolInfo.queueFamilyIndex = m_physicalDeviceInfo.graphicsFamilyIndex;
     VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo, &poolInfo);
 
-	//static glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-	static glm::mat4 Projection = glm::ortho(0.0f, static_cast<float>(m_windowDim.width), 0.0f, static_cast<float>(m_windowDim.height));
-	m_Scene->SetProjection(&Projection);
+    //static glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+    static glm::mat4 Projection = glm::ortho(0.0f, static_cast<float>(m_windowDim.width), 0.0f, static_cast<float>(m_windowDim.height));
+    m_Scene->SetProjection(&Projection);
 
-	//static glm::mat4 View = glm::lookAt(glm::vec3(0, 0, 1500), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+    //static glm::mat4 View = glm::lookAt(glm::vec3(0, 0, 1500), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
     static glm::mat4 View;
 //    View = glm::translate(View, glm::vec3(100, -0, 0));
     m_Scene->SetView(&View);
@@ -182,17 +179,17 @@ bool UIDemoApp::Render()
 
 void UIDemoApp::mousePressEvent(QMouseEvent* p_Event)
 {
-	m_Scene->mousePressEvent(p_Event);
+    m_Scene->mousePressEvent(p_Event);
 }
 
 void UIDemoApp::mouseReleaseEvent(QMouseEvent* p_Event)
-{ 
-	m_Scene->mouseReleaseEvent(p_Event);
+{
+    m_Scene->mouseReleaseEvent(p_Event);
 }
 
 void UIDemoApp::mouseMoveEvent(QMouseEvent* p_Event)
-{ 
-	m_Scene->mouseMoveEvent(p_Event);
+{
+    m_Scene->mouseMoveEvent(p_Event);
 }
 
 void UIDemoApp::ResizeWindow(int p_Width, int p_Height)

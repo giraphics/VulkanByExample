@@ -124,11 +124,11 @@ public:
 
     void SetView(glm::mat4 mat);
 
-	int TransformProject( float objx, float objy, float objz, glm::mat4 *modelview_matrix, glm::mat4 *projection_matrix, int *viewport_matrix, float *winx, float *winy, float *winz );
+    int TransformProject( float objx, float objy, float objz, glm::mat4 *modelview_matrix, glm::mat4 *projection_matrix, int *viewport_matrix, float *winx, float *winy, float *winz );
 
-	int TransformUnproject( float winx, float winy, float winz, glm::mat4 *modelview_matrix, glm::mat4 *projection_matrix, int *viewport_matrix, float *objx, float *objy, float *objz );
+    int TransformUnproject( float winx, float winy, float winz, glm::mat4 *modelview_matrix, glm::mat4 *projection_matrix, int *viewport_matrix, float *objx, float *objy, float *objz );
 
-	void Vec4MultiplyMat4( glm::vec4* dst, glm::vec4 *v0, glm::mat4 *v1 );
+    void Vec4MultiplyMat4( glm::vec4* dst, glm::vec4 *v0, glm::mat4 *v1 );
 
-	TransformData TransformMemData;
+    TransformData TransformMemData;
 };

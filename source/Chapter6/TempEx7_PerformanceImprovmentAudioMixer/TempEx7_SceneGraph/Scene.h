@@ -16,18 +16,18 @@ class AbstractApp;
 class Scene
 {
 public:
-    Scene(AbstractApp* p_Application = NULL);
+    Scene(AbstractApp* p_Application = NULL, const QString& p_Name = QString());
     virtual ~Scene();
 
     void Setup();
     void Update();
     void Render();
 
-    void AddModel(Node* p_Model);
-    void RemoveModel(Node *p_Model);
+    void AddItem(Node* p_Item);
+    void RemoveItem(Node* p_Item);
 
     void Resize(int p_Width, int p_Height);
-    void SetUpProjection();
+    virtual void SetUpProjection();
     inline Transformation& Transform() { return m_Transform; }
 
     void PushMatrix() { m_Transform.PushMatrix(); }
@@ -42,30 +42,30 @@ public:
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
     virtual void mouseMoveEvent(QMouseEvent* p_Event);
 
-    GETSET(glm::mat4*, Projection)	    // Not owned by Scene, double check this can be owned. TODO: PS
-    GETSET(glm::mat4*, View)		    // Not owned by Scene
-    GETSET(Node*, CurrentHoverItem)	// Not owned by Scene
-    GETSET(AbstractApp*, Application)
-    
-    RenderSchemeFactory* GetFactory(Node* p_Model);
+    GETSET(glm::mat4*, Projection)      // Not owned by Scene, double check this can be owned. TODO: PS
+    GETSET(glm::mat4*, View)            // Not owned by Scene
 
 private:
-    void GatherFlatList();
+    RenderSchemeFactory* GetRenderSchemeFactory(Node* p_Item);
 
-public:
-    int m_ScreenHeight;
-    int m_ScreenWidth;
+public: // Parminder: Todo this public method should not be visible to the outside world. Covert recurvise gathering of node list to iterative
+    void AppendToFlatNodeList(Node* p_Item);
 
-    std::vector<Node*> m_ModelList;
-    Transformation m_Transform;
-    int m_Frame;
+private:
+    void GatherFlatNodeList();
 
-    std::vector<QMatrix4x4> m_MatrixVector;
-    std::vector<Node*> m_FlatList;
-    std::set<RenderSchemeFactory*> m_ModelFactories;
+    std::vector<Node*>                      m_NodeList;
+    std::vector<Node*>                      m_FlatList;
+    std::set<RenderSchemeFactory*>          m_RenderSchemeFactorySet;
+    std::map<SHAPE, RenderSchemeFactory*>   m_ShapeRenderSchemeTypeMap;
 
-    typedef std::map<RENDER_SCEHEME_TYPE, RenderSchemeFactory*> RenderSchemeTypeMap;
-    std::map<SHAPE, RenderSchemeTypeMap*> m_ShapeRenderSchemeTypeMap;
+    GETSET(QString,                         Name)
+    GETSET(Node*,                           CurrentHoverItem)  // Not owned by Scene
+    GETSET(AbstractApp*,                    Application)
+    GETSET(int,                             ScreenHeight);
+    GETSET(int,                             ScreenWidth);
+    GETSET(int,                             Frame);
+    GETSET(Transformation,                  Transform);
 
 private:
     SCENE_DIRTY_TYPE m_DirtyType;

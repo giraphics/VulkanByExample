@@ -1,51 +1,60 @@
 #include "Rect.h"
 
-#include "../../../common/VulkanHelper.h"
+//#include "../../../common/VulkanHelper.h"
 
-#include <QMainWindow>
-#include <QHBoxLayout>
-#include <QApplication>
-#include <QMouseEvent>
-
-#include <memory> // For shared ptr
-using namespace std;
-
-#include <random>
 #define VERTEX_BUFFER_BIND_IDX 0
 #define INSTANCE_BUFFER_BIND_IDX 1
 
 static char* PIPELINE_RECT_FILLED = "RectFilled";
 static char* PIPELINE_RECT_OUTLINE = "RectOutline";
 
+struct Vertex
+{
+    glm::vec3 m_Position;       // Vertex Position => x, y, z
+    glm::vec3 m_Color;          // Color format => r, g, b
+//    unsigned int m_DrawType;
+};
+
 std::shared_ptr<RectangleDescriptorSet> CDS = NULL;// std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
 RectangleDescriptorSet::UniformBufferObj* UniformBuffer = NULL;
 
 static const Vertex rectFilledVertices[] =
 {
-    { glm::vec3(1, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
-    { glm::vec3(0, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
-    { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
-    { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
-    { glm::vec3(0, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
-    { glm::vec3(0, 1, 0),	glm::vec3(1.f, 1.f, 0.f) },
+    { glm::vec3(1, 0, 0),   glm::vec3(0.f, 0.f, 0.f) },
+    { glm::vec3(0, 0, 0),   glm::vec3(1.f, 0.f, 0.f) },
+    { glm::vec3(1, 1, 0),   glm::vec3(0.f, 1.f, 0.f) },
+    { glm::vec3(1, 1, 0),   glm::vec3(0.f, 1.f, 0.f) },
+    { glm::vec3(0, 0, 0),   glm::vec3(1.f, 0.f, 0.f) },
+    { glm::vec3(0, 1, 0),   glm::vec3(1.f, 1.f, 0.f) },
 };
 
 static const Vertex rectOutlineVertices[] =
 {
-    { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
-    { glm::vec3(1, 0, 0),	glm::vec3(1.f, 0.f, 0.f) },
-    { glm::vec3(1, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
-    { glm::vec3(0, 1, 0),	glm::vec3(0.f, 1.f, 0.f) },
-    { glm::vec3(0, 0, 0),	glm::vec3(0.f, 0.f, 0.f) },
+    { glm::vec3(0, 0, 0),   glm::vec3(0.f, 0.f, 0.f) },
+    { glm::vec3(1, 0, 0),   glm::vec3(1.f, 0.f, 0.f) },
+    { glm::vec3(1, 1, 0),   glm::vec3(0.f, 1.f, 0.f) },
+    { glm::vec3(0, 1, 0),   glm::vec3(0.f, 1.f, 0.f) },
+    { glm::vec3(0, 0, 0),   glm::vec3(0.f, 0.f, 0.f) },
 };
+
+Rectangl::Rectangl(Scene *p_Scene, Node *p_Parent, const BoundingRegion& p_BoundedRegion, const QString &p_Name, SHAPE p_ShapeType, RENDER_SCEHEME_TYPE p_RenderSchemeType)
+    : Node(p_Scene, p_Parent, p_BoundedRegion, p_Name, p_ShapeType, p_RenderSchemeType)
+    , m_DrawType(FILLED)
+{
+}
+
+RenderSchemeFactory* Rectangl::GetRenderSchemeFactory()
+{
+    return new RectangleInstancingScheme(static_cast<VulkanApp*>(m_Scene->GetApplication()));
+}
 
 RectangleInstancingScheme::RectangleInstancingScheme(VulkanApp* p_VulkanApp)
 {
-	assert(p_VulkanApp);
+    assert(p_VulkanApp);
     m_VulkanApplication = p_VulkanApp;
 
-	memset(&UniformBuffer, 0, sizeof(UniformBuffer));
-	memset(&m_VertexBuffer, 0, sizeof(VulkanBuffer) * PIPELINE_COUNT);
+    memset(&UniformBuffer, 0, sizeof(UniformBuffer));
+    memset(&m_VertexBuffer, 0, sizeof(VulkanBuffer) * PIPELINE_COUNT);
     memset(&m_InstanceBuffer, 0, sizeof(VulkanBuffer) * PIPELINE_COUNT);
     memset(&m_OldInstanceDataSize, 0, sizeof(int) * PIPELINE_COUNT);
 }
@@ -168,11 +177,11 @@ void RectangleInstancingScheme::CreateRectOutlinePipeline()
     VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     // Check the size where every necessrry
-    vertexInputInfo.vertexBindingDescriptionCount = m_VertexInputBinding[PIPELINE_OUTLINE].size();
+    vertexInputInfo.vertexBindingDescriptionCount = (uint32_t)m_VertexInputBinding[PIPELINE_OUTLINE].size();
     vertexInputInfo.pVertexBindingDescriptions = m_VertexInputBinding[PIPELINE_OUTLINE].data();
-    vertexInputInfo.vertexAttributeDescriptionCount = m_VertexInputAttribute[PIPELINE_OUTLINE].size();
+    vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)m_VertexInputAttribute[PIPELINE_OUTLINE].size();
     vertexInputInfo.pVertexAttributeDescriptions = m_VertexInputAttribute[PIPELINE_OUTLINE].data();
-    
+
     // Setup input assembly
     // We will be rendering 1 triangle using triangle strip topology
     VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
@@ -1125,13 +1134,3 @@ void RectangleDescriptorSet::CreateDescriptorSet()
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-Rectangl::Rectangl(VulkanApp *p_VulkanApp/*REMOVE ME*/, Scene *p_Scene, Node *p_Parent, const BoundingRegion& p_BoundedRegion, const QString &p_Name, SHAPE p_ShapeType, RENDER_SCEHEME_TYPE p_RenderSchemeType)
-    : Node(p_Scene, p_Parent, p_BoundedRegion, p_Name, p_ShapeType, p_RenderSchemeType)
-    , m_DrawType(FILLED)
-{
-}
-
-RenderSchemeFactory* Rectangl::GetRenderScemeFactory()
-{
-    return new RectangleInstancingScheme(static_cast<VulkanApp*>(m_Scene->GetApplication()));
-}

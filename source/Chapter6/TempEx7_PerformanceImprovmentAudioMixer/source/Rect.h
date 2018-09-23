@@ -5,12 +5,6 @@
 #include "../TempEx7_SceneGraph/Scene.h"
 #include "../TempEx7_SceneGraph/Node.h"
 
-struct Vertex
-{
-    glm::vec3 m_Position; // Vertex Position => x, y, z
-    glm::vec3 m_Color;    // Color format => r, g, b
-};
-
 class Rectangl : public Node
 {
 public:
@@ -23,11 +17,11 @@ public:
     };
 
 public:
-    Rectangl(VulkanApp* p_VulkanApp/*REMOVE ME*/, Scene* p_Scene, Node* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_TYPE::RENDER_SCEHEME_INSTANCED);
+    Rectangl(Scene* p_Scene, Node* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_TYPE::RENDER_SCEHEME_INSTANCED);
     virtual ~Rectangl() {}
     GETSET(DRAW_TYPE, DrawType)
 
-    virtual RenderSchemeFactory* GetRenderScemeFactory();
+    virtual RenderSchemeFactory* GetRenderSchemeFactory();
 };
 
 struct RectangleDescriptorSet
@@ -38,11 +32,11 @@ struct RectangleDescriptorSet
             memset(this, 0, sizeof(UniformBufferObj));
         }
 
-        VulkanBuffer					m_BufObj;
-        VkDescriptorBufferInfo			m_DescriptorBufInfo;// Descriptor buffer info that need to supplied into write descriptor set (VkWriteDescriptorSet)
-        std::vector<VkMappedMemoryRange>m_MappedRange;		// Metadata of memory mapped objects
-        uint8_t*						m_MappedMemory;  	// Host pointer containing the mapped device address which is used to write data into.
-        size_t							m_DataSize;			// Data size.
+        VulkanBuffer                    m_BufObj;
+        VkDescriptorBufferInfo          m_DescriptorBufInfo;// Descriptor buffer info that need to supplied into write descriptor set (VkWriteDescriptorSet)
+        std::vector<VkMappedMemoryRange>m_MappedRange;      // Metadata of memory mapped objects
+        uint8_t*                        m_MappedMemory;     // Host pointer containing the mapped device address which is used to write data into.
+        size_t                          m_DataSize;         // Data size.
     };
 
     RectangleDescriptorSet(VulkanApp* p_VulkanApplication)
@@ -53,16 +47,18 @@ struct RectangleDescriptorSet
 
         CreateDescriptor();
     }
+
     ~RectangleDescriptorSet()
     {
-        //// Destroy descriptors
-        //for (int i = 0; i < descLayout.size(); i++) {
-        //	vkDestroyDescriptorSetLayout(m_VulkanApplication->m_hDevice, descLayout[i], NULL);
-        //}
-        //descLayout.clear();
+        // Destroy descriptors
+        for (int i = 0; i < descLayout.size(); i++)
+        {
+            vkDestroyDescriptorSetLayout(m_VulkanApplication->m_hDevice, descLayout[i], NULL);
+        }
+        descLayout.clear();
 
-        //vkFreeDescriptorSets(m_VulkanApplication->m_hDevice, descriptorPool, (uint32_t)descriptorSet.size(), &descriptorSet[0]);
-        //vkDestroyDescriptorPool(m_VulkanApplication->m_hDevice, descriptorPool, NULL);
+        vkFreeDescriptorSets(m_VulkanApplication->m_hDevice, descriptorPool, (uint32_t)descriptorSet.size(), &descriptorSet[0]);
+        vkDestroyDescriptorPool(m_VulkanApplication->m_hDevice, descriptorPool, NULL);
     }
 
     void CreateUniformBuffer();
@@ -71,6 +67,15 @@ struct RectangleDescriptorSet
     void CreateDescriptorSetLayout();
     void DestroyDescriptorLayout();
 
+    UniformBufferObj* UniformBuffer;
+
+    // List of all the VkDescriptorSetLayouts 
+    std::vector<VkDescriptorSetLayout> descLayout;
+
+    // List of all created VkDescriptorSet
+    std::vector<VkDescriptorSet> descriptorSet;
+
+private:
     void CreateDescriptor();
 
     // Creates the descriptor pool, this function depends on - 
@@ -79,17 +84,10 @@ struct RectangleDescriptorSet
     // This function depend on the createDescriptorPool() and createUniformBuffer().
     void CreateDescriptorSet();
 
-    // List of all the VkDescriptorSetLayouts 
-    std::vector<VkDescriptorSetLayout> descLayout;
-
     // Decriptor pool object that will be used for allocating VkDescriptorSet object
     VkDescriptorPool descriptorPool;
 
-    // List of all created VkDescriptorSet
-    std::vector<VkDescriptorSet> descriptorSet;
-
     VulkanApp*		 m_VulkanApplication;
-    UniformBufferObj* UniformBuffer;
 };
 
 class RectangleInstancingScheme : public RenderSchemeFactory
@@ -99,13 +97,12 @@ public:
     virtual ~RectangleInstancingScheme();
 
 public:
-	virtual void Setup();
+    virtual void Setup();
     virtual void Update();
     virtual void UpdateDirty();
     virtual void Render() { RecordCommandBuffer(); }
 
     void ResizeWindow(int width, int height);
-//	virtual void Prepare(Scene* p_Scene);
 
 private:
     void CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap = false);
