@@ -15,9 +15,6 @@ struct Vertex
 //    unsigned int m_DrawType;
 };
 
-std::shared_ptr<RectangleDescriptorSet> CDS = NULL;// std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
-RectangleDescriptorSet::UniformBufferObj* UniformBuffer = NULL;
-
 static const Vertex rectFilledVertices[] =
 {
     { glm::vec3(1, 0, 0),   glm::vec3(0.f, 0.f, 0.f) },

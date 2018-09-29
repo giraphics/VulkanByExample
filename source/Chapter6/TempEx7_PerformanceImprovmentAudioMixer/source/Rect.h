@@ -147,4 +147,7 @@ public:
     VulkanBuffer m_InstanceBuffer[PIPELINE_COUNT];
     ModelVector m_PipelineTypeModelVector[PIPELINE_COUNT];
     int m_OldInstanceDataSize[PIPELINE_COUNT];
+
+    std::shared_ptr<RectangleDescriptorSet> CDS = NULL;// std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
+    RectangleDescriptorSet::UniformBufferObj* UniformBuffer = NULL;
 };
