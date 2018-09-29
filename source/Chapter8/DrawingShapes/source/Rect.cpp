@@ -34,15 +34,25 @@ static const Vertex rectOutlineVertices[] =
     { glm::vec3(0, 0, 0),   glm::vec3(0.f, 0.f, 0.f) },
 };
 
-Rectangl::Rectangl(Scene *p_Scene, Node *p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name)
-    : Node(p_Scene, p_Parent, p_BoundedRegion, p_Name, SHAPE_RECTANGLE_MULTIDRAW)
+Rectangl::Rectangl(Scene *p_Scene, Node *p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType)
+    : Node(p_Scene, p_Parent, p_BoundedRegion, p_Name, p_ShapeType)
     , m_DrawType(FILLED)
 {
 }
 
 RenderSchemeFactory* Rectangl::GetRenderSchemeFactory()
 {
-    return new RectangleMultiDrawScheme(static_cast<VulkanApp*>(m_Scene->GetApplication()));
+    if (m_ShapeType == SHAPE::SHAPE_RECTANGLE_MULTIDRAW)
+    {
+        return new RectangleMultiDrawScheme(static_cast<VulkanApp*>(m_Scene->GetApplication()));
+    }
+    else if (m_ShapeType == SHAPE::SHAPE_RECTANGLE_INSTANCED)
+    {
+        return new RectangleMultiDrawScheme(static_cast<VulkanApp*>(m_Scene->GetApplication()));
+    }
+
+    assert(false);
+    return NULL;
 }
 
 void Rectangl::Setup()
@@ -112,7 +122,7 @@ RectangleMultiDrawScheme::~RectangleMultiDrawScheme()
         // Destroy Vertex Buffer
         for (int j = 0; j < modelSize; j++)
         {
-            if (m_ModelList.at(j)->GetRefShapeType() == SHAPE_RECTANGLE_MULTIDRAW)
+            if (m_ModelList.at(j)->GetRefShapeType() == SHAPE::SHAPE_RECTANGLE_MULTIDRAW)
             {
                 Rectangl* model = (static_cast<Rectangl*>(m_ModelList.at(j)));
                 if (!model) return;

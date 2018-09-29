@@ -1,6 +1,9 @@
 #include "RenderSchemeFactory.h"
 
-RenderSchemeFactory::RenderSchemeFactory() {}
+RenderSchemeFactory::RenderSchemeFactory()
+    : m_MemPoolIdx(0)
+{
+}
 
 RenderSchemeFactory::~RenderSchemeFactory() {}
 

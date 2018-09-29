@@ -22,6 +22,7 @@ public:
 
     GETSET(glm::mat4x4, ProjectViewMatrix);
     GETSET(VulkanApp*, VulkanApplication)
+    GETSET(unsigned int, MemPoolIdx)
 
 protected:
     QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;

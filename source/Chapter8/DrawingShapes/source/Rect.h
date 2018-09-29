@@ -17,7 +17,7 @@ public:
     };
 
 public:
-    Rectangl(Scene* p_Scene, Node* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "");
+    Rectangl(Scene* p_Scene, Node* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
     virtual ~Rectangl() {}
 
     GETSET(DRAW_TYPE, DrawType)

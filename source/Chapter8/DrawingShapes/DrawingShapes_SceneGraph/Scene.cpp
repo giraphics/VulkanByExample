@@ -113,15 +113,11 @@ void Scene::Update()
 //    }
 
 
-    foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
+    foreach (RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
     {
         if (!currentModelFactory) continue;
 
-        if (static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::ALL_ITEMS))
-        {
-            currentModelFactory->Update();
-        }
-        else if (static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::TRANSFORMATION))
+        if (static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::TRANSFORMATION))
         {
             currentModelFactory->Update();
         }
@@ -268,7 +264,7 @@ void Scene::mouseMoveEvent(QMouseEvent* p_Event)
 RenderSchemeFactory* Scene::GetRenderSchemeFactory(Node* p_Item)
 {
     const SHAPE shapeType = p_Item->GetShapeType();
-    if ((shapeType <= SHAPE_NONE) && (shapeType >= SHAPE_COUNT)) return NULL;
+    if ((shapeType <= SHAPE::SHAPE_NONE) && (shapeType >= SHAPE::SHAPE_COUNT)) return NULL;
 
     std::map<SHAPE, RenderSchemeFactory*>::iterator it = m_ShapeRenderSchemeTypeMap.find(shapeType);
     if (it != m_ShapeRenderSchemeTypeMap.end())

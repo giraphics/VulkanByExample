@@ -32,13 +32,13 @@ static const CircleVertex rectOutlineVertices[] =
 };
 
 Circle::Circle(Scene *p_Scene, Node *p_Parent, const BoundingRegion &p_BoundedRegion, const QString &p_Name)
-    : Node(p_Scene, p_Parent, p_BoundedRegion, p_Name, SHAPE_CIRCLE_MULTIDRAW)
+    : Node(p_Scene, p_Parent, p_BoundedRegion, p_Name, SHAPE::SHAPE_CIRCLE_MULTIDRAW)
     , m_DrawType(FILLED)
 {
 }
 
 Circle::Circle(Scene *p_Scene, Node *p_Parent, glm::vec2 m_Center, float radius, const QString &p_Name)
-    : Node(p_Scene, p_Parent, BoundingRegion(m_Center.x - (radius * 0.5f), m_Center.y - (radius * 0.5f), radius, radius), p_Name, SHAPE_CIRCLE_MULTIDRAW)
+    : Node(p_Scene, p_Parent, BoundingRegion(m_Center.x - (radius * 0.5f), m_Center.y - (radius * 0.5f), radius, radius), p_Name, SHAPE::SHAPE_CIRCLE_MULTIDRAW)
     , m_DrawType(FILLED)
 {
 }
@@ -115,7 +115,7 @@ CircleMultiDrawFactory::~CircleMultiDrawFactory()
         // Destroy Vertex Buffer
         for (int j = 0; j < modelSize; j++)
         {
-            if (m_ModelList.at(j)->GetRefShapeType() == SHAPE_CIRCLE_MULTIDRAW)
+            if (m_ModelList.at(j)->GetRefShapeType() == SHAPE::SHAPE_CIRCLE_MULTIDRAW)
             {
                 Circle* model = (static_cast<Circle*>(m_ModelList.at(j)));
                 if (!model) return;

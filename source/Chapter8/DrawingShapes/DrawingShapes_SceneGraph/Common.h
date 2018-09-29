@@ -52,9 +52,8 @@ enum class SCENE_DIRTY_TYPE : uint32_t
 {
     NONE            = (0u),
     TRANSFORMATION  = (1u << 0u),
-    ALL_ITEMS       = (1u << 1u),
     DIRTY_ITEMS     = (1u << 2u),
-    ALL             = (TRANSFORMATION | ALL_ITEMS),
+    ALL             = (TRANSFORMATION),
 };
 
 struct BoundingRegion

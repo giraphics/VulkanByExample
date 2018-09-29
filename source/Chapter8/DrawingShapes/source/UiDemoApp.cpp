@@ -53,6 +53,19 @@ void UIDemoApp::Configure()
     // m_SceneVector.push_back(std::make_shared<Scene>(this));
      m_Scene = new Scene(this);//m_SceneVector[0].get();
 
+     //BoundingRegion bgDim(10, 10, 400, 50);
+     //Node* background = new Rectangl(p_Scene, this, bgDim);
+//    Node* m_Parent = new Rectangl(m_Scene, NULL, BoundingRegion(300, 300, 200, 200), "Node 1", SHAPE::SHAPE_RECTANGLE_INSTANCED);
+//    m_Parent->SetColor(glm::vec4(1.0, 0.0, 0.0, 1.0));
+//    m_Parent->SetDefaultColor(glm::vec4(1.0, 0.0, 0.0, 1.0));
+//    m_Parent->SetMemPoolIdx(0);
+
+//    Node* m_Parent1 = new Rectangl(m_Scene, NULL, BoundingRegion(400, 400, 200, 200), "Node 1", SHAPE::SHAPE_RECTANGLE_INSTANCED);
+//    m_Parent1->SetColor(glm::vec4(0.0, 1.0, 0.0, 1.0));
+//    m_Parent1->SetDefaultColor(glm::vec4(0.0, 1.0, 0.0, 1.0));
+//    m_Parent1->SetMemPoolIdx(1);
+//    m_Parent1->SetZOrder(10);
+
      //m_UIDemo.Grid(m_Scene, m_windowDim.width, m_windowDim.height);             // Grid demo
      //m_UIDemo.ProgressBarFunc(m_Scene);                                         // Progress bar
      //m_UIDemo.MixerView(m_Scene, m_windowDim.width, m_windowDim.height);        // Mixer View demo
@@ -64,7 +77,7 @@ void UIDemoApp::Setup()
     m_Scene->SetUpProjection();
     m_Scene->Setup();
 
-    RecordRenderPass(1, SG_STATE_SETUP);
+    RecordRenderPass(1, SG_STATE_SETUP); // Parminder: Double check if this is required
 
     // At least update the scene once so that in case UpdateMeAndMyChildren() is being used it has all transformation readily available
     m_Scene->Update();

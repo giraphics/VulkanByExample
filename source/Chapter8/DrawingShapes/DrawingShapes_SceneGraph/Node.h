@@ -59,7 +59,7 @@ public:
 
     GETSET(QString,                     Name)
     GETSET(SHAPE,                       ShapeType)
-    GETSET(RENDER_SCEHEME_TYPE,         RenderSchemeType); // Currently unused, TODO: do the necessary implementation
+    //GETSET(RENDER_SCEHEME_TYPE,         RenderSchemeType);
     GETSET(glm::vec4,                   DefaultColor)
     GETSET(glm::mat4,                   ModelTransformation)
     GETSET(glm::vec3,                   OriginOffset)
@@ -69,6 +69,7 @@ public:
     GETSET(QList<Node*>,                ChildList)
     GETSET(bool,                        Visible)
     GETSET(unsigned int,                GpuMemOffset)  // TODO the data type should be unsigned long long to accomodate large offsets
+    GETSET(unsigned int,                MemPoolIdx)
 
     void QuerySupportedSchemes() { } // this function must tell the user what schemes are supported
 

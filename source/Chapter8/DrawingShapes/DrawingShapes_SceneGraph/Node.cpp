@@ -11,6 +11,7 @@ Node::Node(Scene* p_Scene, Node* p_Parent, const BoundingRegion& p_BoundedRegion
     , m_OriginOffset(glm::vec3(0.0f, 0.0f, 0.0f))
     , m_Visible(true)
     , m_DirtyType(DIRTY_TYPE::ALL)
+    , m_MemPoolIdx(0)
 {
     m_Parent ? m_Parent->m_ChildList.append(this) : p_Scene->AddItem(this);
     
