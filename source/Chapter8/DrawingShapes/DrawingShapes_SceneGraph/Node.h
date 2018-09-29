@@ -29,6 +29,7 @@ public:
     glm::mat4 GetParentsTransformation(Node* p_Parent) const;
 
     inline Node* GetParent() const;
+    Node* GetRoot() const;
     void GatherFlatNodeList();
 
     bool IsDirty() { return (m_DirtyType != DIRTY_TYPE::NONE); }

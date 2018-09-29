@@ -29,10 +29,6 @@ public:
     virtual void SetUpProjection();
     inline Transformation& Transform() { return m_Transform; }
 
-    void PushMatrix() { m_Transform.PushMatrix(); }
-    void PopMatrix() { m_Transform.PopMatrix(); }
-    void ApplyTransformation(const glm::mat4& m_TransformationMatrix) { *m_Transform.GetModelMatrix() *= m_TransformationMatrix; }
-
     bool IsDirty() { return (m_DirtyType != SCENE_DIRTY_TYPE::NONE); }
     SCENE_DIRTY_TYPE GetDirtyType() { return m_DirtyType; }
     void SetDirtyType(SCENE_DIRTY_TYPE p_InvalidateType) { m_DirtyType = p_InvalidateType; }
@@ -41,16 +37,17 @@ public:
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
     virtual void mouseMoveEvent(QMouseEvent* p_Event);
 
+    void PushMatrix() { m_Transform.PushMatrix(); }
+    void PopMatrix() { m_Transform.PopMatrix(); }
+    void ApplyTransformation(const glm::mat4& p_TransformationMatrix) { *m_Transform.GetModelMatrix() *= p_TransformationMatrix; }
+
 private:
     RenderSchemeFactory* GetRenderSchemeFactory(Node* p_Item);
-
-public: // Parminder: Todo this public method should not be visible to the outside world. Covert recurvise gathering of node list to iterative
     void AppendToFlatNodeList(Node* p_Item);
-
-private:
     void GatherFlatNodeList();
 
-    std::vector<Node*>                      m_NodeList;
+private:
+    std::vector<Node*>                      m_RootDrawableList;
     std::vector<Node*>                      m_FlatList;
     std::set<RenderSchemeFactory*>          m_RenderSchemeFactorySet;
     std::map<SHAPE, RenderSchemeFactory*>   m_ShapeRenderSchemeTypeMap;
@@ -65,4 +62,5 @@ private:
 
 private:
     SCENE_DIRTY_TYPE m_DirtyType;
+    friend class Node;
 };

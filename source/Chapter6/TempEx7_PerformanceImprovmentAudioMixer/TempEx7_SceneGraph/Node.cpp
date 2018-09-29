@@ -282,7 +282,6 @@ void Node::SetDirtyType(DIRTY_TYPE p_InvalidateType)
         const DIRTY_TYPE isPositionUpdated = static_cast<DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(DIRTY_TYPE::POSITION));
         if (isPositionUpdated == DIRTY_TYPE::POSITION)
         {
-
             m_Scene->SetDirtyType(static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_Scene->GetDirtyType()) | static_cast<int>(SCENE_DIRTY_TYPE::TRANSFORMATION)));
         }
 

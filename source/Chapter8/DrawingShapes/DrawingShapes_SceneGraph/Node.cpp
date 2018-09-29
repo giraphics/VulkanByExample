@@ -238,6 +238,24 @@ Node* Node::GetParent() const
     return m_Parent;
 }
 
+Node* Node::GetRoot() const
+{
+    Node* currentNode = const_cast<Node*>(this);
+    Node* parent = NULL;
+    while (currentNode)
+    {
+        parent = currentNode->GetParent();
+        if (parent == NULL)
+        {
+            return currentNode;
+        }
+
+        currentNode = parent;
+    }
+
+    return NULL;
+}
+
 void Node::GatherFlatNodeList()
 {
     if (!m_Scene) return;

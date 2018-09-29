@@ -28,7 +28,7 @@ Scene::~Scene()
         ++itSRST;
     }
 
-    foreach (Node* currentNode, m_NodeList)
+    foreach (Node* currentNode, m_RootDrawableList)
     {
         delete currentNode;
     }
@@ -40,7 +40,7 @@ void Scene::Setup()
 {
     GatherFlatNodeList(); // Assuming all nodes are added into the scenes by now
 
-    foreach (Node* currentModel, m_NodeList)
+    foreach (Node* currentModel, m_RootDrawableList)
     {
         currentModel->Setup();
     }
@@ -84,7 +84,7 @@ void Scene::Update()
     const SCENE_DIRTY_TYPE updateTransformType = static_cast<SCENE_DIRTY_TYPE>(static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::TRANSFORMATION));
     if (updateTransformType == SCENE_DIRTY_TYPE::TRANSFORMATION)
     {
-        foreach (Node* item, m_NodeList)
+        foreach (Node* item, m_RootDrawableList)
         {
             assert(item);
 
@@ -149,7 +149,7 @@ void Scene::GatherFlatNodeList()
 {
     m_FlatList.clear();
 
-    foreach (Node* item, m_NodeList)
+    foreach (Node* item, m_RootDrawableList)
     {
         assert(item);
 
@@ -161,7 +161,7 @@ void Scene::AddItem(Node* p_Item)
 {
     if (p_Item && !p_Item->GetParent())
     {
-        m_NodeList.push_back(p_Item);
+        m_RootDrawableList.push_back(p_Item);
     }
 }
 
@@ -171,10 +171,10 @@ void Scene::RemoveItem(Node* p_Item)
 {
     while (true)
     {
-        auto result = std::find(std::begin(m_NodeList), std::end(m_NodeList), p_Item);
-        if (result == std::end(m_NodeList)) break;
+        auto result = std::find(std::begin(m_RootDrawableList), std::end(m_RootDrawableList), p_Item);
+        if (result == std::end(m_RootDrawableList)) break;
 
-        m_NodeList.erase(result);
+        m_RootDrawableList.erase(result);
     }
 
     while (true)
@@ -218,7 +218,7 @@ void Scene::SetUpProjection()
 
 void Scene::mousePressEvent(QMouseEvent* p_Event)
 {
-    foreach (Node* item, m_NodeList)
+    foreach (Node* item, m_RootDrawableList)
     {
         assert(item);
 
@@ -228,7 +228,7 @@ void Scene::mousePressEvent(QMouseEvent* p_Event)
 
 void Scene::mouseReleaseEvent(QMouseEvent* p_Event)
 {
-    foreach (Node* item, m_NodeList)
+    foreach (Node* item, m_RootDrawableList)
     {
         assert(item);
 
@@ -239,9 +239,9 @@ void Scene::mouseReleaseEvent(QMouseEvent* p_Event)
 void Scene::mouseMoveEvent(QMouseEvent* p_Event)
 {
     static Node* oldModelItem = NULL;
-    for (int i = m_NodeList.size() - 1; i >= 0; i--)
+    for (int i = m_RootDrawableList.size() - 1; i >= 0; i--)
     {
-        Node* item = m_NodeList.at(i);
+        Node* item = m_RootDrawableList.at(i);
         assert(item);
 
         item->mouseMoveEvent(p_Event);
