@@ -34,8 +34,8 @@ static const Vertex rectOutlineVertices[] =
     { glm::vec3(0, 0, 0),   glm::vec3(0.f, 0.f, 0.f) },
 };
 
-Rectangl::Rectangl(Scene *p_Scene, Node *p_Parent, const BoundingRegion& p_BoundedRegion, const QString &p_Name, SHAPE p_ShapeType, RENDER_SCEHEME_TYPE p_RenderSchemeType)
-    : Node(p_Scene, p_Parent, p_BoundedRegion, p_Name, p_ShapeType, p_RenderSchemeType)
+Rectangl::Rectangl(Scene *p_Scene, Node *p_Parent, const BoundingRegion& p_BoundedRegion, const QString &p_Name, SHAPE p_ShapeType)
+    : Node(p_Scene, p_Parent, p_BoundedRegion, p_Name, p_ShapeType)
     , m_DrawType(FILLED)
 {
 }

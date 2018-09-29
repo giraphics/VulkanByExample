@@ -2,16 +2,16 @@
 #include<QMouseEvent>
 #include<glm/gtx/string_cast.hpp>
 
-Node::Node(Scene *p_Scene, Node *p_Parent, const BoundingRegion& p_BoundedRegion, const QString &p_Name, SHAPE p_ShapeType, RENDER_SCEHEME_TYPE p_RenderSchemeType)
+Node::Node(Scene* p_Scene, Node* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name, SHAPE p_ShapeType)
     : m_Scene(p_Scene)
     , m_Parent(p_Parent)
     , m_Name(p_Name)
     , m_ShapeType(p_ShapeType)
     , m_BoundedRegion(p_BoundedRegion)
     , m_OriginOffset(glm::vec3(0.0f, 0.0f, 0.0f))
-    , m_RenderSchemeType(p_RenderSchemeType)
     , m_Visible(true)
     , m_DirtyType(DIRTY_TYPE::ALL)
+    , m_MemPoolIdx(0)
 {
     m_Parent ? m_Parent->m_ChildList.append(this) : p_Scene->AddItem(this);
     
@@ -191,7 +191,7 @@ void Node::mouseReleaseEvent(QMouseEvent* p_Event)
     }
 }
 
-bool Node::mouseMoveEvent(QMouseEvent* p_Event)
+void Node::mouseMoveEvent(QMouseEvent* p_Event)
 {
     glm::vec4 posStart((0 * m_BoundedRegion.m_Dimension.x), (0 * m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
     glm::vec4 posStartResult = /*GetParentsTransformation(GetParent()) **/ m_AbsoluteTransformation * posStart;
@@ -209,16 +209,14 @@ bool Node::mouseMoveEvent(QMouseEvent* p_Event)
             Node* childItem = m_ChildList.at(i);
             assert(childItem);
 
-            if (childItem->mouseMoveEvent(p_Event))
-            {
-                return true;
-            }
+            childItem->mouseMoveEvent(p_Event);
         }
 
-        return true;
+        p_Event->accept();
+        return;
     }
 
-    return false;
+    p_Event->ignore();
 }
 
 void Node::ApplyTransformation()

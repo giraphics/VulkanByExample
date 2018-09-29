@@ -1,6 +1,9 @@
 #include "RenderSchemeFactory.h"
 
-RenderSchemeFactory::RenderSchemeFactory() {}
+RenderSchemeFactory::RenderSchemeFactory()
+    : m_MemPoolIdx(0)
+{
+}
 
 RenderSchemeFactory::~RenderSchemeFactory() {}
 
@@ -10,7 +13,7 @@ void RenderSchemeFactory::Update() {}
 
 void RenderSchemeFactory::UpdateDirty() {}
 
-void RenderSchemeFactory::Render() {}
+void RenderSchemeFactory::Render(VkCommandBuffer &p_CommandBuffer) {}
 
 void RenderSchemeFactory::Prepare(Scene *p_Scene) {}
 
@@ -18,4 +21,4 @@ void RenderSchemeFactory::UpdateNodeList(Node *p_Item) {}
 
 void RenderSchemeFactory::RemoveNodeList(Node *p_Item) {}
 
-void RenderSchemeFactory::ResizeWindow(int p_Width, int p_Height) {}
+void RenderSchemeFactory::ResizeWindow(VkCommandBuffer &p_CommandBuffer) {}

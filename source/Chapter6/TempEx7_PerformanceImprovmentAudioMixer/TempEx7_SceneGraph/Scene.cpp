@@ -19,7 +19,7 @@ Scene::Scene(AbstractApp* p_Application, const QString& p_Name)
 
 Scene::~Scene()
 {
-    std::map<SHAPE, RenderSchemeFactory*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
+    std::multimap<SHAPE, RenderSchemeFactory*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
 
     while (itSRST != m_ShapeRenderSchemeTypeMap.end())
     {
@@ -53,7 +53,7 @@ void Scene::Setup()
         renderSchemeFactory->UpdateNodeList(currentModel);
     }
 
-    std::map<SHAPE, RenderSchemeFactory*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
+    std::multimap<SHAPE, RenderSchemeFactory*>::iterator itSRST = m_ShapeRenderSchemeTypeMap.begin();
     while (itSRST != m_ShapeRenderSchemeTypeMap.end())
     {
         m_RenderSchemeFactorySet.insert(itSRST->second);
@@ -113,15 +113,11 @@ void Scene::Update()
 //    }
 
 
-    foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
+    foreach (RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
     {
         if (!currentModelFactory) continue;
 
-        if (static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::ALL_ITEMS))
-        {
-            currentModelFactory->Update();
-        }
-        else if (static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::TRANSFORMATION))
+        if (static_cast<int>(m_DirtyType) & static_cast<int>(SCENE_DIRTY_TYPE::TRANSFORMATION))
         {
             currentModelFactory->Update();
         }
@@ -137,11 +133,11 @@ void Scene::Update()
     m_DirtyType = SCENE_DIRTY_TYPE::NONE;
 }
 
-void Scene::Render()
+void Scene::Render(VkCommandBuffer& p_CommandBuffer)
 {
     foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
     {
-        currentModelFactory->Render();
+        currentModelFactory->Render(p_CommandBuffer);
     }
 }
 
@@ -191,14 +187,14 @@ void Scene::RemoveItem(Node* p_Item)
     factory->RemoveNodeList(p_Item);
 }
 
-void Scene::Resize(int p_Width, int p_Height)
+void Scene::Resize(VkCommandBuffer& p_CommandBuffer, int p_Width, int p_Height)
 {
     m_ScreenWidth = p_Width;
     m_ScreenHeight = p_Height;
 
     foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
     {
-        currentModelFactory->ResizeWindow(p_Width, p_Height);
+        currentModelFactory->ResizeWindow(p_CommandBuffer);
     }
 }
 
@@ -238,13 +234,14 @@ void Scene::mouseReleaseEvent(QMouseEvent* p_Event)
 
 void Scene::mouseMoveEvent(QMouseEvent* p_Event)
 {
-    Node* oldModelItem = GetCurrentHoverItem();
+    static Node* oldModelItem = NULL;
     for (int i = m_RootDrawableList.size() - 1; i >= 0; i--)
     {
         Node* item = m_RootDrawableList.at(i);
         assert(item);
 
-        if (item->mouseMoveEvent(p_Event))
+        item->mouseMoveEvent(p_Event);
+        if (p_Event->isAccepted())
         {
             Node* currentModel = GetCurrentHoverItem();
             if (oldModelItem && oldModelItem != currentModel)
@@ -252,7 +249,8 @@ void Scene::mouseMoveEvent(QMouseEvent* p_Event)
                 oldModelItem->SetColor(oldModelItem->GetDefaultColor());
             }
 
-            currentModel->SetColor(glm::vec4(1.0, 1.0, 0.3, 1.0));
+            currentModel->SetColor(glm::vec4(1.0, 1.0, 0.3, 0.5));
+            oldModelItem = GetCurrentHoverItem();
             return;
         }
     }
@@ -268,17 +266,25 @@ RenderSchemeFactory* Scene::GetRenderSchemeFactory(Node* p_Item)
     const SHAPE shapeType = p_Item->GetShapeType();
     if ((shapeType <= SHAPE::SHAPE_NONE) && (shapeType >= SHAPE::SHAPE_COUNT)) return NULL;
 
-    std::map<SHAPE, RenderSchemeFactory*>::iterator it = m_ShapeRenderSchemeTypeMap.find(shapeType);
-    if (it != m_ShapeRenderSchemeTypeMap.end())
+    typedef std::multimap<SHAPE, RenderSchemeFactory*>::iterator MMAPIterator;
+    std::pair<MMAPIterator, MMAPIterator> result = m_ShapeRenderSchemeTypeMap.equal_range(shapeType);
+    for (MMAPIterator it = result.first; it != result.second; it++)
     {
-        return it->second;
+        if (it->second->GetMemPoolIdx() == p_Item->GetMemPoolIdx())
+            return it->second;
     }
 
+//    std::map<SHAPE, RenderSchemeFactory*>::iterator it = m_ShapeRenderSchemeTypeMap.find(shapeType);
+//    if (it != m_ShapeRenderSchemeTypeMap.end())
+//    {
+//        return it->second;
+//    }
+
     RenderSchemeFactory* renderSchemeFactoryItem = p_Item->GetRenderSchemeFactory();
-    if (renderSchemeFactoryItem)
-    {
-        (m_ShapeRenderSchemeTypeMap)[shapeType] = renderSchemeFactoryItem;
-    }
+    if (!renderSchemeFactoryItem) return NULL;
+
+    renderSchemeFactoryItem->SetMemPoolIdx(p_Item->GetMemPoolIdx());
+    m_ShapeRenderSchemeTypeMap.insert (std::make_pair(shapeType, renderSchemeFactoryItem));
 
     return renderSchemeFactoryItem;
 }

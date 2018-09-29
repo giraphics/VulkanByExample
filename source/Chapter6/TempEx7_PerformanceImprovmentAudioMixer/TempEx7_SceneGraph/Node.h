@@ -9,7 +9,7 @@ class VulkanApp;
 class Node
 {
 public:
-    Node(Scene* p_Scene, Node* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE, RENDER_SCEHEME_TYPE p_RenderSchemeType = RENDER_SCEHEME_TYPE::RENDER_SCEHEME_INSTANCED);
+    Node(Scene* p_Scene, Node* p_Parent, const BoundingRegion& p_BoundedRegion, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
     ~Node();
 
     virtual void Setup();
@@ -50,10 +50,8 @@ public:
     // Event Management
     virtual void mousePressEvent(QMouseEvent* p_Event);
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
-    virtual bool mouseMoveEvent(QMouseEvent* p_Event);
+    virtual void mouseMoveEvent(QMouseEvent* p_Event);
     virtual void mouseDoubleClickEvent(QMouseEvent* p_Event) UNIMPLEMENTED_INTEFACE
-
-    // Key interaction: Dummy interface for now.
     virtual void keyPressEvent() UNIMPLEMENTED_INTEFACE
 
     // Application Window resizing
@@ -61,7 +59,7 @@ public:
 
     GETSET(QString,                     Name)
     GETSET(SHAPE,                       ShapeType)
-    GETSET(RENDER_SCEHEME_TYPE,         RenderSchemeType);
+    //GETSET(RENDER_SCEHEME_TYPE,         RenderSchemeType);
     GETSET(glm::vec4,                   DefaultColor)
     GETSET(glm::mat4,                   ModelTransformation)
     GETSET(glm::vec3,                   OriginOffset)
@@ -71,6 +69,7 @@ public:
     GETSET(QList<Node*>,                ChildList)
     GETSET(bool,                        Visible)
     GETSET(unsigned int,                GpuMemOffset)  // TODO the data type should be unsigned long long to accomodate large offsets
+    GETSET(unsigned int,                MemPoolIdx)
 
     void QuerySupportedSchemes() { } // this function must tell the user what schemes are supported
 

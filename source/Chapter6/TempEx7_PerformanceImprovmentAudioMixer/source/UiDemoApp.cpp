@@ -53,26 +53,31 @@ void UIDemoApp::Configure()
     // m_SceneVector.push_back(std::make_shared<Scene>(this));
      m_Scene = new Scene(this);//m_SceneVector[0].get();
 
+    Node* m_Parent = new Rectangl(m_Scene, NULL, BoundingRegion(300, 300, 200, 200), "Node 1", SHAPE::SHAPE_RECTANGLE_INSTANCED);
+    m_Parent->SetColor(glm::vec4(1.0, 0.0, 0.0, 1.0));
+    m_Parent->SetDefaultColor(glm::vec4(1.0, 0.0, 0.0, 1.0));
+    m_Parent->SetMemPoolIdx(0);
+
+    Node* m_Parent1 = new Rectangl(m_Scene, NULL, BoundingRegion(400, 400, 200, 200), "Node 1", SHAPE::SHAPE_RECTANGLE_INSTANCED);
+    m_Parent1->SetColor(glm::vec4(0.0, 1.0, 0.0, 1.0));
+    m_Parent1->SetDefaultColor(glm::vec4(0.0, 1.0, 0.0, 1.0));
+    m_Parent1->SetMemPoolIdx(1);
+    m_Parent1->SetZOrder(10);
+
      m_UIDemo.Grid(m_Scene, m_windowDim.width, m_windowDim.height);             // Grid demo
-     //m_UIDemo.ProgressBarFunc(m_Scene);                                         // Progress bar
+     m_UIDemo.ProgressBarFunc(m_Scene);                                         // Progress bar
      //m_UIDemo.MixerView(m_Scene, m_windowDim.width, m_windowDim.height);        // Mixer View demo
      //m_UIDemo.InitTransformationConformTest(m_Scene);                           // Transformation test demo
 }
 
 void UIDemoApp::Setup()
 {
-    // Note: We are overidding the default Create Command pool with VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
-    // because we need to re-record the command buffer when the instance data size changes.
-    // This need to recreate the command buffer.
-    //VkCommandPoolCreateInfo poolInfo = {};
-    //poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    //poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    //poolInfo.queueFamilyIndex = m_physicalDeviceInfo.graphicsFamilyIndex;
-    //VulkanHelper::CreateCommandPool(m_hDevice, m_hCommandPool, m_physicalDeviceInfo, &poolInfo);
-
-    m_Scene->SetUpProjection(); // For some reason the ViewMatrix is not working properly, this setupensure model matrix is set properly.
+    m_Scene->SetUpProjection();
     m_Scene->Setup();
 
+    RecordRenderPass(1, SG_STATE_SETUP); // Parminder: Double check if this is required
+
+    // At least update the scene once so that in case UpdateMeAndMyChildren() is being used it has all transformation readily available
     m_Scene->Update();
 }
 
@@ -84,8 +89,7 @@ void UIDemoApp::Update()
 
 bool UIDemoApp::Render()
 {
-    // Important: Unlike non-instaced jobs the instanced jobs are more efficient in terms of performance
-    m_Scene->Render();
+    RecordRenderPass(1, SG_STATE_RENDER);
 
     return VulkanApp::Render();
 }
@@ -109,7 +113,7 @@ void UIDemoApp::ResizeWindow(int p_Width, int p_Height)
 {
     VulkanApp::ResizeWindow(p_Width, p_Height);
 
-    m_Scene->Resize(p_Width, p_Height);
+    RecordRenderPass(3, SG_STATE_RESIZE, p_Width, p_Height);
 }
 
 void UIDemoApp::RecordRenderPass(int p_Argcount, ...)
@@ -191,11 +195,11 @@ void UIDemoApp::RecordRenderPass(int p_Argcount, ...)
         {
         case SG_STATE_SETUP:
         case SG_STATE_RENDER:
-            //m_Scene->Render(m_hCommandBufferList[i]);
+            m_Scene->Render(m_hCommandBufferList[i]);
             break;
 
         case SG_STATE_RESIZE:
-            //m_Scene->Resize(m_hCommandBufferList[i], resizedDimension.width(), resizedDimension.height());
+            m_Scene->Resize(m_hCommandBufferList[i], resizedDimension.width(), resizedDimension.height());
             break;
 
         default:

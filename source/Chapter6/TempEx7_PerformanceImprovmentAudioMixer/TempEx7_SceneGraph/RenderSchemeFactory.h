@@ -14,15 +14,16 @@ public:
 
     virtual void Setup();
     virtual void Update();
-    virtual void UpdateDirty(); // XXX
-    virtual void Render();
+    virtual void Render(VkCommandBuffer& p_CommandBuffer);
+    virtual void UpdateDirty(); // XXXXXX
     virtual void Prepare(Scene* p_Scene);
     virtual void UpdateNodeList(Node* p_Item);
     virtual void RemoveNodeList(Node* p_Item);
-    virtual void ResizeWindow(int p_Width, int p_Height);
+    virtual void ResizeWindow(VkCommandBuffer& p_CommandBuffer);
 
     GETSET(glm::mat4x4, ProjectViewMatrix);
     GETSET(VulkanApp*, VulkanApplication)
+    GETSET(unsigned int, MemPoolIdx)
 
 protected:
     QMap<QString, QPair<VkPipeline, VkPipelineLayout> > m_GraphicsPipelineMap;

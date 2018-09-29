@@ -11,10 +11,6 @@ enum SCENE_GRAPH_STATES
     SG_STATE_CUSTOM
 };
 
-// 1. Rename SHAPE to SCHEME
-// 2. Think over this: Can we reduce the enum by only keeping the scheme type lke enum SCHEME { MULTI_DRAW, INSTANCED }, with SHAPE there is a risk
-//    that the user can create a RECTANGLE object by by Rectnagl class but pass the SHAPE_CIRCLE_MULTIDRAW/INSTANCED enum as scheme type.
-//    This is not good.
 enum class SHAPE : int32_t
 {
     SHAPE_NONE = -1,
@@ -32,14 +28,6 @@ enum class SHAPE : int32_t
     SHAPE_CUSTOM // NOTE: Important: the custom object are comprised of simpler objects hence not a part of model factories
 };
 
-enum class RENDER_SCEHEME_TYPE : int32_t
-{
-    RENDER_SCEHEME_NONE         = -1,
-    RENDER_SCEHEME_INSTANCED,               // Single Command buffer, Single Draw call
-    RENDER_SCEHEME_MULTIDRAW,               // Single Command buffer, Multiple Draw call
-    RENDER_SCEHEME_COUNT
-};
-
 enum class DIRTY_TYPE : uint32_t
 {
     NONE       = (0u),
@@ -52,9 +40,8 @@ enum class SCENE_DIRTY_TYPE : uint32_t
 {
     NONE            = (0u),
     TRANSFORMATION  = (1u << 0u),
-    ALL_ITEMS       = (1u << 1u),
     DIRTY_ITEMS     = (1u << 2u),
-    ALL             = (TRANSFORMATION | ALL_ITEMS),
+    ALL             = (TRANSFORMATION),
 };
 
 struct BoundingRegion

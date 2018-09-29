@@ -20,12 +20,12 @@ public:
 
     void Setup();
     void Update();
-    void Render();
+    void Render(VkCommandBuffer& p_CommandBuffer); // TODO do not expose implementation here, Vulkan must be abstracted
 
     void AddItem(Node* p_Item);
     void RemoveItem(Node* p_Item);
 
-    virtual void Resize(int p_Width, int p_Height);
+    virtual void Resize(VkCommandBuffer& p_CommandBuffer, int p_Width, int p_Height);
     virtual void SetUpProjection();
     inline Transformation& Transform() { return m_Transform; }
 
@@ -50,7 +50,7 @@ private:
     std::vector<Node*>                      m_RootDrawableList;
     std::vector<Node*>                      m_FlatList;
     std::set<RenderSchemeFactory*>          m_RenderSchemeFactorySet;
-    std::map<SHAPE, RenderSchemeFactory*>   m_ShapeRenderSchemeTypeMap;
+    std::multimap<SHAPE, RenderSchemeFactory*>   m_ShapeRenderSchemeTypeMap;
 
     GETSET(QString,                         Name)
     GETSET(Node*,                           CurrentHoverItem)  // Not owned by Scene

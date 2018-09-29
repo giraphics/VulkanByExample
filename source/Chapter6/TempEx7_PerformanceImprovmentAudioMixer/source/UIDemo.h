@@ -35,7 +35,7 @@ signals:
 
 protected:
     virtual void mousePressEvent(QMouseEvent* p_Event);
-    virtual bool mouseMoveEvent(QMouseEvent* p_Event);
+    virtual void mouseMoveEvent(QMouseEvent* p_Event);
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
     virtual void EmitValueChanged(int p_NewValue);
 

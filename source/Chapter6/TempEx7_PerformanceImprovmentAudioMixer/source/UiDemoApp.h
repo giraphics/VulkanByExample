@@ -3,7 +3,7 @@
 #include "../TempEx7_SceneGraph/Scene.h"
 #include "UIDemo.h"
 
-class RectangleInstancingScheme;
+//class RectangleInstancingScheme;
 class UIDemoApp : public VulkanApp
 {
 public:
