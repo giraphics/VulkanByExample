@@ -3,6 +3,7 @@
 #include "../TempEx7_SceneGraph/Scene.h"
 #include "UIDemo.h"
 
+class UiMetalPaintEngine;
 //class RectangleInstancingScheme;
 class UIDemoApp : public VulkanApp
 {
@@ -17,6 +18,8 @@ public:
     virtual bool Render();
     virtual void ResizeWindow(int p_Width, int p_Height);
 
+    virtual bool InitMetalEngine();
+
 protected:
     virtual void mousePressEvent(QMouseEvent* p_Event);
     virtual void mouseReleaseEvent(QMouseEvent* p_Event);
@@ -27,6 +30,8 @@ private:
 
 private:
     Scene* m_Scene;
+    Scene* m_ScenePainterEngine;
     UIDemo m_UIDemo;
+    QScopedPointer<UiMetalPaintEngine> m_MetalPaintEngine;
 };
     

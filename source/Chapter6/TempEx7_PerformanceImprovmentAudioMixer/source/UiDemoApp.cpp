@@ -1,5 +1,6 @@
 #include "UIDemoApp.h"
 #include "UIDemo.h"
+#include "UiMetalPaintEngine.h"
 #include "Rect.h"
 
 #include <QApplication>
@@ -27,6 +28,7 @@ UIDemoApp::UIDemoApp()
 UIDemoApp::~UIDemoApp()
 {
     delete m_Scene;
+    delete m_ScenePainterEngine;
 }
 
 void UIDemoApp::Configure()
@@ -51,21 +53,24 @@ void UIDemoApp::Configure()
 #endif
 
     // m_SceneVector.push_back(std::make_shared<Scene>(this));
-     m_Scene = new Scene(this);//m_SceneVector[0].get();
+    m_Scene = new Scene(this);//m_SceneVector[0].get();
+    m_ScenePainterEngine = new Scene(this);//m_SceneVector[0].get();
+
+    InitMetalEngine();
 
 //    Node* m_Parent = new Rectangl(m_Scene, NULL, BoundingRegion(300, 300, 200, 200), "Node 1", SHAPE::SHAPE_RECTANGLE_INSTANCED);
 //    m_Parent->SetColor(glm::vec4(1.0, 0.0, 0.0, 1.0));
 //    m_Parent->SetDefaultColor(glm::vec4(1.0, 0.0, 0.0, 1.0));
 //    m_Parent->SetMemPoolIdx(0);
 
-//    Node* m_Parent1 = new Rectangl(m_Scene, NULL, BoundingRegion(400, 400, 200, 200), "Node 1", SHAPE::SHAPE_RECTANGLE_INSTANCED);
+//    Node* m_Parent1 = new Rectangl(m_ScenePainterEngine, NULL, BoundingRegion(400, 400, 200, 200), "Node 1", SHAPE::SHAPE_RECTANGLE_INSTANCED);
 //    m_Parent1->SetColor(glm::vec4(0.0, 1.0, 0.0, 1.0));
 //    m_Parent1->SetDefaultColor(glm::vec4(0.0, 1.0, 0.0, 1.0));
 //    m_Parent1->SetMemPoolIdx(1);
 //    m_Parent1->SetZOrder(10);
 
      m_UIDemo.Grid(m_Scene, m_windowDim.width, m_windowDim.height);             // Grid demo
-     //m_UIDemo.ProgressBarFunc(m_Scene);                                         // Progress bar
+//     m_UIDemo.ProgressBarFunc(m_Scene);                                         // Progress bar
      //m_UIDemo.MixerView(m_Scene, m_windowDim.width, m_windowDim.height);        // Mixer View demo
      //m_UIDemo.InitTransformationConformTest(m_Scene);                           // Transformation test demo
 }
@@ -73,22 +78,29 @@ void UIDemoApp::Configure()
 void UIDemoApp::Setup()
 {
     m_Scene->SetUpProjection();
+    m_ScenePainterEngine->SetUpProjection();
     m_Scene->Setup();
+    m_ScenePainterEngine->Setup();
 
     RecordRenderPass(1, SG_STATE_SETUP); // Parminder: Double check if this is required
 
     // At least update the scene once so that in case UpdateMeAndMyChildren() is being used it has all transformation readily available
     m_Scene->Update();
+    m_ScenePainterEngine->Update();
 }
 
 void UIDemoApp::Update()
 {
     m_UIDemo.UpdateTransformationConformTest();
     m_Scene->Update();
+    m_ScenePainterEngine->Update();
 }
 
 bool UIDemoApp::Render()
 {
+    QRectF rect;
+    m_MetalPaintEngine->drawRects(&rect, 1);
+
     RecordRenderPass(1, SG_STATE_RENDER);
 
     return VulkanApp::Render();
@@ -114,6 +126,18 @@ void UIDemoApp::ResizeWindow(int p_Width, int p_Height)
     VulkanApp::ResizeWindow(p_Width, p_Height);
 
     RecordRenderPass(3, SG_STATE_RESIZE, p_Width, p_Height);
+}
+
+bool UIDemoApp::InitMetalEngine()
+{
+    if (!m_MetalPaintEngine)
+    {
+        m_MetalPaintEngine.reset(new UiMetalPaintEngine());
+
+        return m_MetalPaintEngine->Init(m_ScenePainterEngine);
+    }
+
+    return true;
 }
 
 void UIDemoApp::RecordRenderPass(int p_Argcount, ...)
@@ -196,10 +220,12 @@ void UIDemoApp::RecordRenderPass(int p_Argcount, ...)
         case SG_STATE_SETUP:
         case SG_STATE_RENDER:
             m_Scene->Render(m_hCommandBufferList[i]);
+            m_ScenePainterEngine->Render(m_hCommandBufferList[i]);
             break;
 
         case SG_STATE_RESIZE:
             m_Scene->Resize(m_hCommandBufferList[i], resizedDimension.width(), resizedDimension.height());
+            m_ScenePainterEngine->Resize(m_hCommandBufferList[i], resizedDimension.width(), resizedDimension.height());
             break;
 
         default:

@@ -39,6 +39,12 @@ struct RectangleDescriptorSet
         size_t                          m_DataSize;         // Data size.
     };
 
+    struct UBORect {
+        glm::mat4 m_ProjViewMat;
+        float m_Time;
+        int m_DirtyTest; // 1: true, 0: false
+    } uboRectParameters;
+
     RectangleDescriptorSet(VulkanApp* p_VulkanApplication)
     {
         m_VulkanApplication = p_VulkanApplication;
@@ -100,6 +106,7 @@ public:
     virtual void Setup();
     virtual void Update();
     virtual void UpdateDirty();
+    virtual void UpdateUniform();
     virtual void Render() { RecordCommandBuffer(); }
 
     void ResizeWindow(int width, int height);

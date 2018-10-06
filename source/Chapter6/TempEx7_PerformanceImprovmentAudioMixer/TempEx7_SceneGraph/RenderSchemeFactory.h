@@ -14,6 +14,7 @@ public:
 
     virtual void Setup();
     virtual void Update();
+    virtual void UpdateUniform();
     virtual void Render(VkCommandBuffer& p_CommandBuffer);
     virtual void UpdateDirty(); // XXXXXX
     virtual void Prepare(Scene* p_Scene);

@@ -32,6 +32,7 @@ SOURCES += \
         TempEx7_SceneGraph/Scene.cpp \
         TempEx7_SceneGraph/Transformation.cpp \
         source/Rect.cpp \
+        source/UiMetalPaintEngine.cpp \
         source/UiDemo.cpp \
         source/UiDemoApp.cpp
 
@@ -45,6 +46,7 @@ HEADERS += \
         TempEx7_SceneGraph/Common.h \
         source/Rect.h \
         source/UiDemo.h \
+        source/UiMetalPaintEngine.h \
         source/UiDemoApp.h
 
 #QMAKE_CXXFLAGS += -std=c++11

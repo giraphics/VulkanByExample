@@ -3,6 +3,8 @@
 #extension GL_ARB_separate_shader_objects : enable
 layout (std140, binding = 0) uniform bufferVals {
 mat4 mvp;
+float time;
+int dirtyTest;
 } myBufferVals;
 
 layout (location = 0) in vec4 inPosition;
@@ -16,6 +18,8 @@ layout (location = 8) in uint isVisible;
 layout(location = 0) out vec4 fragColor;
 layout(location = 1) out vec4 texCoord;
 layout(location = 2) flat out uint visibilityFlag;
+layout(location = 3) flat out float time;
+layout(location = 4) flat out float dirtyTest;
 
 out gl_PerVertex { 
     vec4 gl_Position;
@@ -28,6 +32,8 @@ void main()
 	fragColor = color;
 	texCoord = inPosition;
 	visibilityFlag = isVisible;
+	time = myBufferVals.time;
+	dirtyTest = myBufferVals.dirtyTest;
 
 	inPositionNew.x = inPosition.x * dimension.x;
 	inPositionNew.y = inPosition.y * dimension.y;

@@ -62,7 +62,7 @@ void Scene::Setup()
         itSRST++;
     }
 
-    assert(m_RenderSchemeFactorySet.size());
+    // assert(m_RenderSchemeFactorySet.size()); // Commented because painter engine adds the node on fly
     foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
     {
         currentModelFactory->Setup();
@@ -74,6 +74,10 @@ void Scene::Setup()
 
 void Scene::Update()
 {
+    foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)
+    {
+        currentModelFactory->UpdateUniform();
+    }
     if (!IsDirty()) return;
 
     foreach(RenderSchemeFactory* currentModelFactory, m_RenderSchemeFactorySet)

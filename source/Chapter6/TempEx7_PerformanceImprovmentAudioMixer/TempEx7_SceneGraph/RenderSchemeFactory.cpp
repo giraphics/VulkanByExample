@@ -11,6 +11,8 @@ void RenderSchemeFactory::Setup() {}
 
 void RenderSchemeFactory::Update() {}
 
+void RenderSchemeFactory::UpdateUniform() {}
+
 void RenderSchemeFactory::UpdateDirty() {}
 
 void RenderSchemeFactory::Render(VkCommandBuffer &p_CommandBuffer) {}

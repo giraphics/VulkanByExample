@@ -15,6 +15,9 @@ struct Vertex
 //    unsigned int m_DrawType;
 };
 
+static float s_Time = 0.0;
+static bool s_EnableDirtyTest = false;
+
 static const Vertex rectFilledVertices[] =
 {
     { glm::vec3(1, 0, 0),   glm::vec3(0.f, 0.f, 0.f) },
@@ -110,24 +113,69 @@ void RectangleInstancingScheme::Setup()
 
 void RectangleInstancingScheme::Update()
 {
+    if (s_EnableDirtyTest)
+    {
+        s_Time += 0.01;
+        if (s_Time > 1.0)
+            s_Time = 0.0;
+    }
+
+    RectangleDescriptorSet::UBORect ubo;
+    ubo.m_ProjViewMat = m_ProjectViewMatrix;
+    ubo.m_Time = s_Time;
+    ubo.m_DirtyTest = s_EnableDirtyTest;
+
     VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice,
         UniformBuffer->m_MappedMemory,
         UniformBuffer->m_MappedRange,
         UniformBuffer->m_BufObj.m_MemoryFlags,
-        &m_ProjectViewMatrix, sizeof(m_ProjectViewMatrix));
+        &ubo, sizeof(RectangleDescriptorSet::UBORect));
 
     PrepareInstanceData();
 }
 
 void RectangleInstancingScheme::UpdateDirty()
 {
+    if (s_EnableDirtyTest)
+    {
+        s_Time += 0.01;
+        if (s_Time > 1.0)
+            s_Time = 0.0;
+    }
+
+    RectangleDescriptorSet::UBORect ubo;
+    ubo.m_ProjViewMat = m_ProjectViewMatrix;
+    ubo.m_Time = s_Time;
+    ubo.m_DirtyTest = s_EnableDirtyTest;
+
     VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice,
         UniformBuffer->m_MappedMemory,
         UniformBuffer->m_MappedRange,
         UniformBuffer->m_BufObj.m_MemoryFlags,
-        &m_ProjectViewMatrix, sizeof(m_ProjectViewMatrix));
+        &ubo, sizeof(RectangleDescriptorSet::UBORect));
 
     UpdateDirtyInstanceData();
+}
+
+void RectangleInstancingScheme::UpdateUniform()
+{
+    if (s_EnableDirtyTest)
+    {
+        s_Time += 0.01;
+        if (s_Time > 1.0)
+            s_Time = 0.0;
+    }
+
+    RectangleDescriptorSet::UBORect ubo;
+    ubo.m_ProjViewMat = m_ProjectViewMatrix;
+    ubo.m_Time = s_Time;
+    ubo.m_DirtyTest = s_EnableDirtyTest;
+
+    VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice,
+        UniformBuffer->m_MappedMemory,
+        UniformBuffer->m_MappedRange,
+        UniformBuffer->m_BufObj.m_MemoryFlags,
+        &ubo, sizeof(RectangleDescriptorSet::UBORect));
 }
 
 void RectangleInstancingScheme::ResizeWindow(int width, int height)
@@ -320,8 +368,9 @@ void RectangleInstancingScheme::CreateRectFillPipeline()
 #ifdef _WIN32
     VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CubeVert.spv"); // Relative path to binary output dir
 #elif __APPLE__
-    VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice,
-    "/Users/parminder/Dev/Giraphics/VulkanByExample/source/Chapter6/TempEx7_PerformanceImprovmentAudioMixer/source/shaders/CubeVert.spv"); // Relative path to binary output dir
+//    VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice,
+//    "/Users/parminder/Dev/Giraphics/VulkanByExample/source/Chapter6/TempEx7_PerformanceImprovmentAudioMixer/source/shaders/CubeVert.spv"); // Relative path to binary output dir
+    VkShaderModule vertShader = VulkanHelper::CreateShaderFromQRCResource(m_VulkanApplication->m_hDevice, "://source/shaders/CubeVert.spv");
 #endif
 
     // Setup the vertex shader stage create info structures
@@ -335,8 +384,9 @@ void RectangleInstancingScheme::CreateRectFillPipeline()
 #ifdef _WIN32
     VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CubeFrag.spv"); // Relative path to binary output dir
 #elif __APPLE__
-    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice,
-    "/Users/parminder/Dev/Giraphics/VulkanByExample/source/Chapter6/TempEx7_PerformanceImprovmentAudioMixer/source/shaders/CubeFrag.spv"); // Relative path to binary output dir
+//    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice,
+//    "/Users/parminder/Dev/Giraphics/VulkanByExample/source/Chapter6/TempEx7_PerformanceImprovmentAudioMixer/source/shaders/CubeFrag.spv"); // Relative path to binary output dir
+    VkShaderModule fragShader = VulkanHelper::CreateShaderFromQRCResource(m_VulkanApplication->m_hDevice, "://source/shaders/CubeFrag.spv");
 #endif
     // Setup the fragment shader stage create info structures
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
@@ -815,7 +865,7 @@ void RectangleInstancingScheme::PrepareInstanceData(RECTANGLE_GRAPHICS_PIPELINES
 {
     bool update = false;
     bool isSinglePipelinePrepareRequest = (p_Pipeline != PIPELINE_COUNT);
-    for (int pipelineIdx = (isSinglePipelinePrepareRequest ? p_Pipeline : 0); (pipelineIdx < PIPELINE_COUNT); (isSinglePipelinePrepareRequest ? (p_Pipeline = PIPELINE_COUNT/*break with single iteration*/) : pipelineIdx++))
+    for (int pipelineIdx = (isSinglePipelinePrepareRequest ? p_Pipeline : 0); (pipelineIdx < PIPELINE_COUNT); pipelineIdx++)
     {
         ModelVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
         const int modelSize = m_ModelList.size();
@@ -859,6 +909,12 @@ void RectangleInstancingScheme::PrepareInstanceData(RECTANGLE_GRAPHICS_PIPELINES
         }
 
         m_OldInstanceDataSize[pipelineIdx] = modelSize;
+
+        if (isSinglePipelinePrepareRequest)
+        {
+             // Single pipeline prepare only loop once.
+             break;
+        }
     }
 
     if (update)
@@ -990,7 +1046,7 @@ void RectangleInstancingScheme::Render(VkCommandBuffer& p_CmdBuffer)
 void RectangleDescriptorSet::CreateUniformBuffer()
 {
     UniformBuffer->m_BufObj.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    UniformBuffer->m_BufObj.m_DataSize = sizeof(glm::mat4);
+    UniformBuffer->m_BufObj.m_DataSize = sizeof(UBORect);
 
     // Create buffer resource states using VkBufferCreateInfo
     VulkanHelper::CreateBuffer(m_VulkanApplication->m_hDevice, m_VulkanApplication->m_physicalDeviceInfo.memProp, UniformBuffer->m_BufObj, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
