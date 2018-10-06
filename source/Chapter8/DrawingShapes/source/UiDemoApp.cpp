@@ -66,10 +66,10 @@ void UIDemoApp::Configure()
 //    m_Parent1->SetMemPoolIdx(1);
 //    m_Parent1->SetZOrder(10);
 
-     //m_UIDemo.Grid(m_Scene, m_windowDim.width, m_windowDim.height);             // Grid demo
+     m_UIDemo.Grid(m_Scene, m_windowDim.width, m_windowDim.height);             // Grid demo
      //m_UIDemo.ProgressBarFunc(m_Scene);                                         // Progress bar
      //m_UIDemo.MixerView(m_Scene, m_windowDim.width, m_windowDim.height);        // Mixer View demo
-     m_UIDemo.InitTransformationConformTest(m_Scene);                           // Transformation test demo
+     //m_UIDemo.InitTransformationConformTest(m_Scene);                           // Transformation test demo
 }
 
 void UIDemoApp::Setup()

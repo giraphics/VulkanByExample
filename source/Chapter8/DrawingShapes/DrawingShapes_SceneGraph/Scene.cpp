@@ -3,6 +3,7 @@
 
 #include "../../common/VulkanApp.h" // Not a good design to include vulkan app here: Todo move AbstractApp 
 #include <QMouseEvent> 
+#include <QMessageBox>
 
 #define DIRTY_UPDATE_IMPLEMENTED 0
 
@@ -214,11 +215,42 @@ void Scene::SetUpProjection()
 
 void Scene::mousePressEvent(QMouseEvent* p_Event)
 {
-    foreach (Node* item, m_RootDrawableList)
+//    foreach (Node* item, m_RootDrawableList)
+//    {
+//        assert(item);
+
+//        item->mousePressEvent(p_Event);
+//    }
+
+    static Node* oldModelItem = NULL;
+    for (int i = m_RootDrawableList.size() - 1; i >= 0; i--)
     {
+        Node* item = m_RootDrawableList.at(i);
         assert(item);
 
         item->mousePressEvent(p_Event);
+        if (p_Event->isAccepted())
+        {
+            Node* currentModel = GetCurrentHoverItem();
+            if (oldModelItem && oldModelItem != currentModel)
+            {
+                oldModelItem->SetColor(oldModelItem->GetDefaultColor());
+            }
+
+            currentModel->SetColor(glm::vec4(1.0, 1.0, 0.3, 0.5));
+            oldModelItem = GetCurrentHoverItem();
+
+            QMessageBox msgBox;
+            msgBox.setText(QString("Item: %1 Clicked").arg(currentModel->GetName()));
+            msgBox.exec();
+
+            return;
+        }
+    }
+
+    if (oldModelItem)
+    {
+        oldModelItem->SetColor(oldModelItem->GetDefaultColor());
     }
 }
 
