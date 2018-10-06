@@ -1,4 +1,5 @@
 #pragma once
+
 #include "RectangleShaderTypes.h"
 
 static const Vertex rectFilledVertices[] =

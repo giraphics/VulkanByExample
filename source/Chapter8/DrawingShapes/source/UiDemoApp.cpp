@@ -2,6 +2,7 @@
 #include "UIDemo.h"
 #include "UiMetalPaintEngine.h"
 #include "Circle/Circle.h"
+#include "Rectangle/Rect.h"
 
 #include <QApplication>
 
@@ -57,8 +58,7 @@ void UIDemoApp::Configure()
     m_ScenePainterEngine = new Scene(this);//m_SceneVector[0].get();
 
     InitMetalEngine();
-     //BoundingRegion bgDim(10, 10, 400, 50);
-     //Node* background = new Rectangl(p_Scene, this, bgDim);
+
 //    Node* m_Parent = new Rectangl(m_Scene, NULL, BoundingRegion(300, 300, 200, 200), "Node 1", SHAPE::SHAPE_RECTANGLE_INSTANCED);
 //    m_Parent->SetColor(glm::vec4(1.0, 0.0, 0.0, 1.0));
 //    m_Parent->SetDefaultColor(glm::vec4(1.0, 0.0, 0.0, 1.0));
@@ -70,10 +70,10 @@ void UIDemoApp::Configure()
 //    m_Parent1->SetMemPoolIdx(1);
 //    m_Parent1->SetZOrder(10);
 
-     m_UIDemo.Grid(m_Scene, m_windowDim.width, m_windowDim.height);             // Grid demo
+     //m_UIDemo.Grid(m_Scene, m_windowDim.width, m_windowDim.height);             // Grid demo
      //m_UIDemo.ProgressBarFunc(m_Scene);                                         // Progress bar
      //m_UIDemo.MixerView(m_Scene, m_windowDim.width, m_windowDim.height);        // Mixer View demo
-     //m_UIDemo.InitTransformationConformTest(m_Scene);                           // Transformation test demo
+     m_UIDemo.InitTransformationConformTest(m_Scene);                           // Transformation test demo
 }
 
 void UIDemoApp::Setup()

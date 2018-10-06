@@ -3,7 +3,7 @@
 #include "source/Rectangle/Rect.h"
 
 #if CIRCLE_DEFINED == 1
-#include "Circle.h"
+#include "Circle/Circle.h"
 #endif
 
 // Todo: Parminder

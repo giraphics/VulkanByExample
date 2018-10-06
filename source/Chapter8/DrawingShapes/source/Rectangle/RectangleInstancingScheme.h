@@ -3,8 +3,7 @@
 
 #include "../../DrawingShapes_SceneGraph/RenderSchemeFactory.h"
 
-class RectangleDescriptorSet;
-
+#include "RectangleDescriptorSet.h"
 
 class RectangleInstancingScheme : public RenderSchemeFactory
 {
@@ -48,7 +47,6 @@ public:
     void PrepareInstanceData(RECTANGLE_GRAPHICS_PIPELINES p_Pipeline = PIPELINE_COUNT);
     void UpdateDirtyInstanceData();
 
-
     // Per-instance data block
     struct InstanceData {
         glm::mat4 m_Model;
@@ -63,4 +61,7 @@ public:
     VulkanBuffer m_InstanceBuffer[PIPELINE_COUNT];
     ModelVector m_PipelineTypeModelVector[PIPELINE_COUNT];
     int m_OldInstanceDataSize[PIPELINE_COUNT];
+
+    std::shared_ptr<RectangleDescriptorSet> CDS = NULL;// std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
+    RectangleDescriptorSet::UniformBufferObj* UniformBuffer = NULL;
 };

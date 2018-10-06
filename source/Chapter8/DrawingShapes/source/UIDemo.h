@@ -2,7 +2,7 @@
 #include "../DrawingShapes_SceneGraph/Scene.h"
 #include "../DrawingShapes_SceneGraph/Node.h"
 
-#define CIRCLE_DEFINED 0
+#define CIRCLE_DEFINED 1
 
 #if CIRCLE_DEFINED == 1
 class Circle;

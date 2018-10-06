@@ -29,7 +29,7 @@ struct RectangleDescriptorSet
 
     UniformBufferObj* UniformBuffer;
 
-    // List of all the VkDescriptorSetLayouts 
+    // List of all the VkDescriptorSetLayouts
     std::vector<VkDescriptorSetLayout> descLayout;
 
     // List of all created VkDescriptorSet
@@ -38,7 +38,7 @@ struct RectangleDescriptorSet
 private:
     void CreateDescriptor();
 
-    // Creates the descriptor pool, this function depends on - 
+    // Creates the descriptor pool, this function depends on -
     void CreateDescriptorPool();
     // Creates the descriptor sets using descriptor pool.
     // This function depend on the createDescriptorPool() and createUniformBuffer().

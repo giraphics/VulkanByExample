@@ -1,15 +1,9 @@
 #include "RectangleInstancingScheme.h"
 
 #include "Rect.h"
-#include "RectangleDescriptorSet.h"
+
 #include "RectangleGeometry.h"
 #include "RectangleShaderTypes.h"
-
-// REview this design:
-std::shared_ptr<RectangleDescriptorSet> CDS = NULL;// std::make_shared<CubeDescriptorSet>(m_VulkanApplication);
-RectangleDescriptorSet::UniformBufferObj* UniformBuffer = NULL;
-
-// Move the descriptor in seperate class
 
 RectangleInstancingScheme::RectangleInstancingScheme(VulkanApp* p_VulkanApp)
 {
@@ -60,7 +54,6 @@ void RectangleInstancingScheme::Setup()
     if (!CDS)
     {
         CDS = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
-        //CDS->CreateDescriptor();
         UniformBuffer = CDS->UniformBuffer;
     }
 
@@ -709,9 +702,7 @@ void RectangleInstancingScheme::UpdateNodeList(Node* p_Item)
 {
     //m_ModelList.push_back(p_Item);
 
-//    RectangleModel* rectangle = dynamic_cast<RectangleModel*>(p_Item);
     Rectangl* rectangle = dynamic_cast<Rectangl*>(p_Item);
-
     assert(rectangle);
 
     // Note: Based on the draw type push the model in respective pipelines

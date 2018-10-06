@@ -34,7 +34,7 @@ public:
         Update(this);
     }
 
-    RenderSchemeFactory* GetRenderSchemeFactory();
+    virtual RenderSchemeFactory* GetRenderSchemeFactory();
 
     virtual void Setup();
     void CreateRectVertexBuffer();
