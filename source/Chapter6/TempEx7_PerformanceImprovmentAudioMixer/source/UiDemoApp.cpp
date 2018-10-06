@@ -1,7 +1,7 @@
 #include "UIDemoApp.h"
 #include "UIDemo.h"
 #include "UiMetalPaintEngine.h"
-#include "Rect.h"
+#include "Rectangle/Rect.h"
 
 #include <QApplication>
 

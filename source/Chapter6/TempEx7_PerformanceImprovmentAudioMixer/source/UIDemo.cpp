@@ -1,6 +1,6 @@
 #include "UIDemo.h"
 
-#include "Rect.h"
+#include "Rectangle/Rect.h"
 
 #if CIRCLE_DEFINED == 1
 #include "Circle.h"

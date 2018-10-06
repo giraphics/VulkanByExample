@@ -1,6 +1,6 @@
 #include "UiMetalPaintEngine.h"
 
-#include "Rect.h"
+#include "Rectangle/Rect.h"
 #include "../TempEx7_SceneGraph/Scene.h"
 
 UiMetalPaintEngine::UiMetalPaintEngine()

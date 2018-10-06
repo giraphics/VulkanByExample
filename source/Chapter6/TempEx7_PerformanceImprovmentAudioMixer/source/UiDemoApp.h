@@ -34,4 +34,3 @@ private:
     UIDemo m_UIDemo;
     QScopedPointer<UiMetalPaintEngine> m_MetalPaintEngine;
 };
-    

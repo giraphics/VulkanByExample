@@ -24,6 +24,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 RESOURCES += resource.qrc
 
+include($$PWD/source/Rectangle/Rectangle.pri)
+
 SOURCES += \
         ../../../source/common/VulkanHelper.cpp \
         ../../../source/common/VulkanApp.cpp \
@@ -31,7 +33,6 @@ SOURCES += \
         TempEx7_SceneGraph/Node.cpp \
         TempEx7_SceneGraph/Scene.cpp \
         TempEx7_SceneGraph/Transformation.cpp \
-        source/Rect.cpp \
         source/UiMetalPaintEngine.cpp \
         source/UiDemo.cpp \
         source/UiDemoApp.cpp
@@ -42,6 +43,7 @@ HEADERS += \
         TempEx7_SceneGraph/RenderSchemeFactory.h \
         TempEx7_SceneGraph/Node.h \
         TempEx7_SceneGraph/Scene.h \
+source/UiMetalPaintEngine.cpp \
         TempEx7_SceneGraph/Transformation.h \
         TempEx7_SceneGraph/Common.h \
         source/Rect.h \
