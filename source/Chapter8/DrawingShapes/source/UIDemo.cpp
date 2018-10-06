@@ -7,7 +7,7 @@
 #endif
 
 // Todo: Parminder
-// The below flag is temporary removed once multi-draw
+// The below flag is temporary, removed once multi-draw added
 const bool useInstancing = true;
 
 UIDemo::UIDemo()
