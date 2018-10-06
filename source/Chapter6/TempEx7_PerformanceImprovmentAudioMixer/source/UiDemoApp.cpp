@@ -31,8 +31,8 @@ UIDemoApp::~UIDemoApp()
 
 void UIDemoApp::Configure()
 {
-    SetApplicationName("Instancing Demo");
-    SetWindowDimension(800 , 600);
+    SetApplicationName("Metal performance test");
+    SetWindowDimension(1200 , 800);
 
 #ifdef _WIN32
     // Add Validation Layers
@@ -53,19 +53,19 @@ void UIDemoApp::Configure()
     // m_SceneVector.push_back(std::make_shared<Scene>(this));
      m_Scene = new Scene(this);//m_SceneVector[0].get();
 
-    Node* m_Parent = new Rectangl(m_Scene, NULL, BoundingRegion(300, 300, 200, 200), "Node 1", SHAPE::SHAPE_RECTANGLE_INSTANCED);
-    m_Parent->SetColor(glm::vec4(1.0, 0.0, 0.0, 1.0));
-    m_Parent->SetDefaultColor(glm::vec4(1.0, 0.0, 0.0, 1.0));
-    m_Parent->SetMemPoolIdx(0);
+//    Node* m_Parent = new Rectangl(m_Scene, NULL, BoundingRegion(300, 300, 200, 200), "Node 1", SHAPE::SHAPE_RECTANGLE_INSTANCED);
+//    m_Parent->SetColor(glm::vec4(1.0, 0.0, 0.0, 1.0));
+//    m_Parent->SetDefaultColor(glm::vec4(1.0, 0.0, 0.0, 1.0));
+//    m_Parent->SetMemPoolIdx(0);
 
-    Node* m_Parent1 = new Rectangl(m_Scene, NULL, BoundingRegion(400, 400, 200, 200), "Node 1", SHAPE::SHAPE_RECTANGLE_INSTANCED);
-    m_Parent1->SetColor(glm::vec4(0.0, 1.0, 0.0, 1.0));
-    m_Parent1->SetDefaultColor(glm::vec4(0.0, 1.0, 0.0, 1.0));
-    m_Parent1->SetMemPoolIdx(1);
-    m_Parent1->SetZOrder(10);
+//    Node* m_Parent1 = new Rectangl(m_Scene, NULL, BoundingRegion(400, 400, 200, 200), "Node 1", SHAPE::SHAPE_RECTANGLE_INSTANCED);
+//    m_Parent1->SetColor(glm::vec4(0.0, 1.0, 0.0, 1.0));
+//    m_Parent1->SetDefaultColor(glm::vec4(0.0, 1.0, 0.0, 1.0));
+//    m_Parent1->SetMemPoolIdx(1);
+//    m_Parent1->SetZOrder(10);
 
      m_UIDemo.Grid(m_Scene, m_windowDim.width, m_windowDim.height);             // Grid demo
-     m_UIDemo.ProgressBarFunc(m_Scene);                                         // Progress bar
+     //m_UIDemo.ProgressBarFunc(m_Scene);                                         // Progress bar
      //m_UIDemo.MixerView(m_Scene, m_windowDim.width, m_windowDim.height);        // Mixer View demo
      //m_UIDemo.InitTransformationConformTest(m_Scene);                           // Transformation test demo
 }

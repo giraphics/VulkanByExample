@@ -30,12 +30,14 @@ void UIDemo::Grid(Scene* p_Scene, int p_Width, int p_Height)
     float colWidth = parentColWidth / Col;
     float colHeight = parentColHeight / Row;
 
+    QString name;
+    static long itemNum = 0;
     for (int i = 0; i < parentCol; i++)
     {
         for (int j = 0; j < parentRow; j++)
         {
-            Node* m_Parent = new Rectangl(p_Scene, NULL, BoundingRegion((i * parentColWidth), (j * parentColHeight), parentColWidth - 2, parentColHeight), "Node 1", (useInstancing ? SHAPE::SHAPE_RECTANGLE_MULTIDRAW : SHAPE::SHAPE_RECTANGLE_INSTANCED));
-            //m_Parent->Rectangle((i * parentColWidth), (j * parentColHeight), parentColWidth - 2, parentColHeight);
+            name = QString::number(++itemNum);
+            Node* m_Parent = new Rectangl(p_Scene, NULL, BoundingRegion((i * parentColWidth), (j * parentColHeight), parentColWidth - 2, parentColHeight), name, (useInstancing ? SHAPE::SHAPE_RECTANGLE_MULTIDRAW : SHAPE::SHAPE_RECTANGLE_INSTANCED));
             m_Parent->SetColor(glm::vec4(0.6, 0.2, 0.20, 1.0));
             m_Parent->SetDefaultColor(glm::vec4(0.42, 0.15, 0.60, 1.0));
 
@@ -43,8 +45,8 @@ void UIDemo::Grid(Scene* p_Scene, int p_Width, int p_Height)
             {
                 for (int l = 0; l < Row; l++)
                 {
-                    Rectangl* rect = new Rectangl(p_Scene, m_Parent, BoundingRegion((k * colWidth), (l * colHeight), colWidth, colHeight), "Node 1", (useInstancing ? SHAPE::SHAPE_RECTANGLE_MULTIDRAW : SHAPE::SHAPE_RECTANGLE_INSTANCED));
-                    //rect->Rectangle((k * colWidth), (l * colHeight), colWidth, colHeight);
+                    name = QString::number(++itemNum);
+                    Rectangl* rect = new Rectangl(p_Scene, m_Parent, BoundingRegion((k * colWidth), (l * colHeight), colWidth, colHeight), name, (useInstancing ? SHAPE::SHAPE_RECTANGLE_MULTIDRAW : SHAPE::SHAPE_RECTANGLE_INSTANCED));
                     rect->SetColor(glm::vec4(l / Col, k / Row, 0.50, 1.0));
                     rect->SetDefaultColor(glm::vec4(0.2, 0.5, 0.50, 1.0));
                     //rect->SetVisible(!(k == l));

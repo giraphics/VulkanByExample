@@ -160,25 +160,51 @@ void Node::SetGeometry(float p_X, float p_Y, float p_Width, float p_Height, floa
 
 void Node::mousePressEvent(QMouseEvent* p_Event)
 {
+//    glm::vec4 posStart((0 * m_BoundedRegion.m_Dimension.x), (0 * m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
+//    glm::vec4 posStartResult = m_AbsoluteTransformation * posStart;
+
+//    glm::vec4 posEnd((m_BoundedRegion.m_Dimension.x), (m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
+//    glm::vec4 posEndResult = m_AbsoluteTransformation * posEnd;
+
+//    cout << "\n##### mousePressEventS" << glm::to_string(posStartResult);// << posEndResult;
+//    cout << "\n##### mousePressEventE" << glm::to_string(posEndResult);// << posEndResult;
+
+//    QRect rect(QPoint(posStartResult.x, posStartResult.y), QPoint(posEndResult.x, posEndResult.y));
+//    if (rect.contains(p_Event->x(), p_Event->y()))
+//        cout << "\n***************";
+
+//    foreach(Node* childItem, m_ChildList)
+//    {
+//        assert(childItem);
+
+//        childItem->mousePressEvent(p_Event);
+//    }
+
+
     glm::vec4 posStart((0 * m_BoundedRegion.m_Dimension.x), (0 * m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
     glm::vec4 posStartResult = m_AbsoluteTransformation * posStart;
 
     glm::vec4 posEnd((m_BoundedRegion.m_Dimension.x), (m_BoundedRegion.m_Dimension.y), 0.0, 1.0);
     glm::vec4 posEndResult = m_AbsoluteTransformation * posEnd;
 
-    cout << "\n##### mousePressEventS" << glm::to_string(posStartResult);// << posEndResult;
-    cout << "\n##### mousePressEventE" << glm::to_string(posEndResult);// << posEndResult;
-
     QRect rect(QPoint(posStartResult.x, posStartResult.y), QPoint(posEndResult.x, posEndResult.y));
     if (rect.contains(p_Event->x(), p_Event->y()))
-        cout << "\n***************";
-
-    foreach(Node* childItem, m_ChildList)
     {
-        assert(childItem);
+        m_Scene->SetCurrentHoverItem(this);
 
-        childItem->mousePressEvent(p_Event);
+        for (int i = m_ChildList.size() - 1; i >= 0; i--)
+        {
+            Node* childItem = m_ChildList.at(i);
+            assert(childItem);
+
+            childItem->mousePressEvent(p_Event);
+        }
+
+        p_Event->accept();
+        return;
     }
+
+    p_Event->ignore();
 }
 
 void Node::mouseReleaseEvent(QMouseEvent* p_Event)
