@@ -1,102 +1,11 @@
-#include  "Circle.h"
+#include "RectangleMultiDrawScheme.h"
 
-#define VERTEX_BUFFER_BIND_IDX 0
+#include "Rect.h"
+#include "RectangleDescriptorSet.h"
+#include "RectangleGeometry.h"
+#include "RectangleShaderTypes.h"
 
-static char* PIPELINE_CIRCLE_FILLED = "CircleFilled";
-static char* PIPELINE_CIRCLE_OUTLINE = "CircleOutline";
-
-struct CircleVertex
-{
-    glm::vec3 m_Position;       // Vertex Position => x, y, z
-    glm::vec2 m_TexCoord;       // TexCoord format => u, v
-    unsigned int m_DrawType;
-};
-
-static const CircleVertex circleFilledVertices[] =
-{
-    { glm::vec3(1, 0, 0),   glm::vec2(0.f, 0.f), 0 },
-    { glm::vec3(0, 0, 0),   glm::vec2(1.f, 0.f), 0 },
-    { glm::vec3(1, 1, 0),   glm::vec2(0.f, 1.f), 0 },
-    { glm::vec3(1, 1, 0),   glm::vec2(0.f, 1.f), 0 },
-    { glm::vec3(0, 0, 0),   glm::vec2(1.f, 0.f), 0 },
-    { glm::vec3(0, 1, 0),   glm::vec2(1.f, 1.f), 0 },
-};
-
-static const CircleVertex rectOutlineVertices[] =
-{
-    { glm::vec3(0, 0, 0),   glm::vec3(0.f, 0.f, 0.f) },
-    { glm::vec3(1, 0, 0),   glm::vec3(1.f, 0.f, 0.f) },
-    { glm::vec3(1, 1, 0),   glm::vec3(0.f, 1.f, 0.f) },
-    { glm::vec3(0, 1, 0),   glm::vec3(0.f, 1.f, 0.f) },
-    { glm::vec3(0, 0, 0),   glm::vec3(0.f, 0.f, 0.f) },
-};
-
-Circle::Circle(Scene *p_Scene, Node *p_Parent, const BoundingRegion &p_BoundedRegion, const QString &p_Name)
-    : Node(p_Scene, p_Parent, p_BoundedRegion, p_Name, SHAPE::SHAPE_CIRCLE_MULTIDRAW)
-    , m_DrawType(FILLED)
-{
-}
-
-Circle::Circle(Scene *p_Scene, Node *p_Parent, glm::vec2 m_Center, float radius, const QString &p_Name)
-    : Node(p_Scene, p_Parent, BoundingRegion(m_Center.x - (radius * 0.5f), m_Center.y - (radius * 0.5f), radius, radius), p_Name, SHAPE::SHAPE_CIRCLE_MULTIDRAW)
-    , m_DrawType(FILLED)
-{
-}
-
-RenderSchemeFactory* Circle::GetRenderSchemeFactory()
-{
-    return new CircleMultiDrawFactory(static_cast<VulkanApp*>(m_Scene->GetApplication()));
-}
-
-void Circle::Setup()
-{
-    CreateCircleVertexBuffer();
-
-    Node::Setup();
-}
-
-void Circle::CreateCircleVertexBuffer()
-{
-    glm::mat4 parentTransform = GetAbsoluteTransformation();//m_Model * GetParentsTransformation(GetParent());
-
-    CircleVertex rectVertices[6];
-    memcpy(rectVertices, circleFilledVertices, sizeof(CircleVertex) * 6);
-    uint32_t dataSize = sizeof(rectVertices);
-    uint32_t dataStride = sizeof(rectVertices[0]);
-    const int vertexCount = dataSize / dataStride;
-    for (int i = 0; i < vertexCount; ++i)
-    {
-        glm::vec4 pos(circleFilledVertices[i].m_Position, 1.0);
-        pos.x = pos.x * m_BoundedRegion.m_Dimension.x;
-        pos.y = pos.y * m_BoundedRegion.m_Dimension.y;
-
-        pos = parentTransform * pos;
-        //std::cout << m_Name.toStdString() << "=+ x:" << pos.x << ", y:" << pos.y << ", z:" << pos.z << endl;
-
-        rectVertices[i].m_Position.x = pos.x;
-        rectVertices[i].m_Position.y = pos.y;
-        rectVertices[i].m_Position.z = pos.z;
-    }
-
-    VulkanApp* app = static_cast<VulkanApp*>(m_Scene->GetApplication());
-    const VkDevice& device = app->m_hDevice;
-
-    if (m_VertexBuffer.m_Buffer != VK_NULL_HANDLE)
-    {
-        vkDestroyBuffer(device, m_VertexBuffer.m_Buffer, NULL);
-        vkFreeMemory(device, m_VertexBuffer.m_Memory, NULL);
-    }
-
-    m_VertexBuffer.m_DataSize = dataSize;
-    m_VertexBuffer.m_MemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-
-    const VkPhysicalDeviceMemoryProperties& memProp = app->m_physicalDeviceInfo.memProp;
-    VulkanHelper::CreateBuffer(device, memProp, m_VertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, rectVertices);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-CircleMultiDrawFactory::CircleMultiDrawFactory(VulkanApp* p_VulkanApp)
+RectangleMultiDrawScheme::RectangleMultiDrawScheme(VulkanApp* p_VulkanApp)
 {
     assert(p_VulkanApp);
     m_VulkanApplication = p_VulkanApp;
@@ -104,9 +13,9 @@ CircleMultiDrawFactory::CircleMultiDrawFactory(VulkanApp* p_VulkanApp)
     m_DescriptorSet = NULL;
 }
 
-CircleMultiDrawFactory::~CircleMultiDrawFactory()
+RectangleMultiDrawScheme::~RectangleMultiDrawScheme()
 {
-    for (int pipelineIdx = 0; pipelineIdx < CIRCLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
+    for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
     {
         NodeVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
         const int modelSize = m_ModelList.size();
@@ -115,9 +24,9 @@ CircleMultiDrawFactory::~CircleMultiDrawFactory()
         // Destroy Vertex Buffer
         for (int j = 0; j < modelSize; j++)
         {
-            if (m_ModelList.at(j)->GetRefShapeType() == SHAPE::SHAPE_CIRCLE_MULTIDRAW)
+            if (m_ModelList.at(j)->GetRefShapeType() == SHAPE::SHAPE_RECTANGLE_MULTIDRAW)
             {
-                Circle* model = (static_cast<Circle*>(m_ModelList.at(j)));
+                Rectangl* model = (static_cast<Rectangl*>(m_ModelList.at(j)));
                 if (!model) return;
 
                 vkDestroyBuffer(m_VulkanApplication->m_hDevice, model->m_VertexBuffer.m_Buffer, NULL);
@@ -135,15 +44,15 @@ CircleMultiDrawFactory::~CircleMultiDrawFactory()
     //vkFreeDescriptorSets(m_VulkanApplication->m_hDevice, descriptorPool, (uint32_t)descriptorSet.size(), &descriptorSet[0]);
     //vkDestroyDescriptorPool(m_VulkanApplication->m_hDevice, descriptorPool, NULL);
 
-    CircleDescriptorSet::UniformBufferObj* UniformBuffer = m_DescriptorSet->UniformBuffer;
+    RectangleDescriptorSet::UniformBufferObj* UniformBuffer = m_DescriptorSet->UniformBuffer;
     vkUnmapMemory(m_VulkanApplication->m_hDevice, UniformBuffer->m_BufObj.m_Memory);
     vkDestroyBuffer(m_VulkanApplication->m_hDevice, UniformBuffer->m_BufObj.m_Buffer, NULL);
     vkFreeMemory(m_VulkanApplication->m_hDevice, UniformBuffer->m_BufObj.m_Memory, NULL);
 }
 
-void CircleMultiDrawFactory::Setup()
+void RectangleMultiDrawScheme::Setup()
 {
-    m_DescriptorSet = std::make_shared<CircleDescriptorSet>(m_VulkanApplication);
+    m_DescriptorSet = std::make_shared<RectangleDescriptorSet>(m_VulkanApplication);
 
     CreateVertexLayoutBinding();
 
@@ -153,9 +62,9 @@ void CircleMultiDrawFactory::Setup()
     createPushConstants();
 }
 
-void CircleMultiDrawFactory::Update()
+void RectangleMultiDrawScheme::Update()
 {
-    CircleDescriptorSet::UniformBufferObj* UniformBuffer = m_DescriptorSet->UniformBuffer;
+    RectangleDescriptorSet::UniformBufferObj* UniformBuffer = m_DescriptorSet->UniformBuffer;
     VulkanHelper::WriteMemory(m_VulkanApplication->m_hDevice,
         UniformBuffer->m_MappedMemory,
         UniformBuffer->m_MappedRange,
@@ -163,22 +72,23 @@ void CircleMultiDrawFactory::Update()
         &m_ProjectViewMatrix, sizeof(m_ProjectViewMatrix));
 }
 
-void CircleMultiDrawFactory::ResizeWindow(VkCommandBuffer& p_CommandBuffer)
+void RectangleMultiDrawScheme::ResizeWindow(VkCommandBuffer& p_CommandBuffer)
 {
     CreateGraphicsPipeline(true);
 
     Render(p_CommandBuffer);
 }
 
-void CircleMultiDrawFactory::CreateCircleOutlinePipeline()
+void RectangleMultiDrawScheme::CreateRectOutlinePipeline()
 {
     // Compile the vertex shader
 #ifdef _WIN32
-    VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CircleVert.spv"); // Relative path to binary output dir
+    VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/RectInstanceVert.spv"); // Relative path to binary output dir
+                                                                                                                                      // Setup the vertex shader stage create info structures
 #elif __APPLE__
-    VkShaderModule vertShader = VulkanHelper::CreateShaderFromQRCResource(m_VulkanApplication->m_hDevice, "://source/shaders/CircleVert.spv");
+    VkShaderModule vertShader = VulkanHelper::CreateShaderFromQRCResource(m_VulkanApplication->m_hDevice, "://source/shaders/RectInstanceVert.spv");
 //    VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice,
-//    "/Users/Parminder/Dev/MVK/VulkanByExample-master/source/Chapter8/DrawingShapes/source/shaders/CircleVert.spv");
+//    "/Users/Parminder/Dev/MVK/VulkanByExample-master/source/Chapter8/DrawingShapes/source/shaders/RectInstanceVert.spv");
 #endif
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -188,12 +98,14 @@ void CircleMultiDrawFactory::CreateCircleOutlinePipeline()
 
     // Compile the fragment shader
 #ifdef _WIN32
-    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CircleFrag.spv"); // Relative path to binary output dir
+    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/RectInstanceFrag.spv"); // Relative path to binary output dir
+                                                                                                                                      // Setup the fragment shader stage create info structures
 #elif __APPLE__
-    VkShaderModule fragShader = VulkanHelper::CreateShaderFromQRCResource(m_VulkanApplication->m_hDevice, "://source/shaders/CircleFrag.spv");
+    VkShaderModule fragShader = VulkanHelper::CreateShaderFromQRCResource(m_VulkanApplication->m_hDevice, "://source/shaders/RectInstanceFrag.spv");
 //    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice,
-//    "/Users/Parminder/Dev/MVK/VulkanByExample-master/source/Chapter8/DrawingShapes/source/shaders/CircleFrag.spv");
+//    "/Users/Parminder/Dev/MVK/VulkanByExample-master/source/Chapter8/DrawingShapes/source/shaders/RectInstanceFrag.spv");
 #endif
+
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
     fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -339,22 +251,20 @@ void CircleMultiDrawFactory::CreateCircleOutlinePipeline()
         assert(false);
     }
 
-    m_GraphicsPipelineMap[PIPELINE_CIRCLE_OUTLINE] = qMakePair(graphicsPipeline, graphicsPipelineLayout);
+    m_GraphicsPipelineMap[PIPELINE_RECT_OUTLINE] = qMakePair(graphicsPipeline, graphicsPipelineLayout);
 
     // Cleanup
     vkDestroyShaderModule(m_VulkanApplication->m_hDevice, fragShader, nullptr);
     vkDestroyShaderModule(m_VulkanApplication->m_hDevice, vertShader, nullptr);
 }
 
-void CircleMultiDrawFactory::CreateCircleFillPipeline()
+void RectangleMultiDrawScheme::CreateRectFillPipeline()
 {
     // Compile the vertex shader
 #ifdef _WIN32
-    VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CircleVert.spv"); // Relative path to binary output dir
+    VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/RectInstanceVert.spv"); // Relative path to binary output dir
 #elif __APPLE__
-    VkShaderModule vertShader = VulkanHelper::CreateShaderFromQRCResource(m_VulkanApplication->m_hDevice, "://source/shaders/CircleVert.spv");
-//    VkShaderModule vertShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice,
-//    "/Users/Parminder/Dev/MVK/VulkanByExample-master/source/Chapter8/DrawingShapes/source/shaders/CircleVert.spv");
+    VkShaderModule vertShader = VulkanHelper::CreateShaderFromQRCResource(m_VulkanApplication->m_hDevice, "://source/shaders/RectInstanceVert.spv");
 #endif
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -364,12 +274,11 @@ void CircleMultiDrawFactory::CreateCircleFillPipeline()
 
     // Compile the fragment shader
 #ifdef _WIN32
-    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CircleFrag.spv"); // Relative path to binary output dir
+    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/RectInstanceFrag.spv"); // Relative path to binary output dir
 #elif __APPLE__
-    VkShaderModule fragShader = VulkanHelper::CreateShaderFromQRCResource(m_VulkanApplication->m_hDevice, "://source/shaders/CircleFrag.spv");
-//    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice,
-//    "/Users/Parminder/Dev/MVK/VulkanByExample-master/source/Chapter8/DrawingShapes/source/shaders/CircleFrag.spv");
+    VkShaderModule fragShader = VulkanHelper::CreateShaderFromQRCResource(m_VulkanApplication->m_hDevice, "://source/shaders/RectInstanceFrag.spv");
 #endif
+
     VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
     fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -532,14 +441,14 @@ void CircleMultiDrawFactory::CreateCircleFillPipeline()
         assert(false);
     }
 
-    m_GraphicsPipelineMap[PIPELINE_CIRCLE_FILLED] = qMakePair(graphicsPipeline, graphicsPipelineLayout);
+    m_GraphicsPipelineMap[PIPELINE_RECT_FILLED] = qMakePair(graphicsPipeline, graphicsPipelineLayout);
 
     // Cleanup
     vkDestroyShaderModule(m_VulkanApplication->m_hDevice, fragShader, nullptr);
     vkDestroyShaderModule(m_VulkanApplication->m_hDevice, vertShader, nullptr);
 }
 
-void CircleMultiDrawFactory::CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap)
+void RectangleMultiDrawScheme::CreateGraphicsPipeline(bool p_ClearGraphicsPipelineMap)
 {
     if (p_ClearGraphicsPipelineMap)
     {
@@ -556,18 +465,18 @@ void CircleMultiDrawFactory::CreateGraphicsPipeline(bool p_ClearGraphicsPipeline
 
     VkPipelineLayout graphicsPipelineLayout = VK_NULL_HANDLE;
     VkPipeline       graphicsPipeline = VK_NULL_HANDLE;
-    if (m_GraphicsPipelineMap.contains(PIPELINE_CIRCLE_FILLED))
+    if (m_GraphicsPipelineMap.contains(PIPELINE_RECT_FILLED))
     {
-        graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_CIRCLE_FILLED].first;
-        graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_CIRCLE_FILLED].second;
+        graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].first;
+        graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].second;
         return;
     }
 
-    CreateCircleFillPipeline();
-    CreateCircleOutlinePipeline();
+    CreateRectFillPipeline();
+    CreateRectOutlinePipeline();
 }
 
-void CircleMultiDrawFactory::createPushConstants()
+void RectangleMultiDrawScheme::createPushConstants()
 {
     return;
     VkCommandBuffer copyCmd;
@@ -614,36 +523,36 @@ void CircleMultiDrawFactory::createPushConstants()
     //CommandBufferMgr::submitCommandBuffer(deviceObj->queue, &cmdPushConstant);
 }
 
-void CircleMultiDrawFactory::CreateVertexLayoutBinding()
+void RectangleMultiDrawScheme::CreateVertexLayoutBinding()
 {
-    for (int pipelineIdx = 0; pipelineIdx < CIRCLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
+    for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
     {
         if (pipelineIdx == PIPELINE_FILLED)
         {
             m_VertexInputBinding[pipelineIdx].resize(1);   // 0 for position and 1 for color
-            m_VertexInputAttribute[pipelineIdx].resize(3); // Why 2 = 2(for position and color
+            m_VertexInputAttribute[pipelineIdx].resize(2); // Why 2 = 2(for position and color
 
             // Indicates the rate at which the information will be
             // injected for vertex input.
             m_VertexInputBinding[pipelineIdx][0].binding = VERTEX_BUFFER_BIND_IDX;
             m_VertexInputBinding[pipelineIdx][0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-            m_VertexInputBinding[pipelineIdx][0].stride = sizeof(CircleVertex);
+            m_VertexInputBinding[pipelineIdx][0].stride = sizeof(Vertex);
 
             // The VkVertexInputAttribute interpreting the data.
             m_VertexInputAttribute[pipelineIdx][0].binding = VERTEX_BUFFER_BIND_IDX;
             m_VertexInputAttribute[pipelineIdx][0].location = 0;
             m_VertexInputAttribute[pipelineIdx][0].format = VK_FORMAT_R32G32B32_SFLOAT;
-            m_VertexInputAttribute[pipelineIdx][0].offset = offsetof(CircleVertex, m_Position);
+            m_VertexInputAttribute[pipelineIdx][0].offset = offsetof(struct Vertex, m_Position);
 
             m_VertexInputAttribute[pipelineIdx][1].binding = VERTEX_BUFFER_BIND_IDX;
             m_VertexInputAttribute[pipelineIdx][1].location = 1;
-            m_VertexInputAttribute[pipelineIdx][1].format = VK_FORMAT_R32G32_SFLOAT;
-            m_VertexInputAttribute[pipelineIdx][1].offset = offsetof(CircleVertex, m_TexCoord);
+            m_VertexInputAttribute[pipelineIdx][1].format = VK_FORMAT_R32G32B32_SFLOAT;
+            m_VertexInputAttribute[pipelineIdx][1].offset = offsetof(struct Vertex, m_Color);
 
-            m_VertexInputAttribute[pipelineIdx][2].binding = VERTEX_BUFFER_BIND_IDX;
-            m_VertexInputAttribute[pipelineIdx][2].location = 2;
-            m_VertexInputAttribute[pipelineIdx][2].format = VK_FORMAT_R32_UINT;
-            m_VertexInputAttribute[pipelineIdx][2].offset = offsetof(CircleVertex, m_DrawType);
+//            m_VertexInputAttribute[pipelineIdx][2].binding = VERTEX_BUFFER_BIND_IDX;
+//            m_VertexInputAttribute[pipelineIdx][2].location = 2;
+//            m_VertexInputAttribute[pipelineIdx][2].format = VK_FORMAT_R32_UINT;
+//            m_VertexInputAttribute[pipelineIdx][2].offset = offsetof(struct Vertex, m_DrawType);
         }
         else if (pipelineIdx == PIPELINE_OUTLINE)
         {
@@ -654,25 +563,25 @@ void CircleMultiDrawFactory::CreateVertexLayoutBinding()
             // injected for vertex input.
             m_VertexInputBinding[pipelineIdx][0].binding = VERTEX_BUFFER_BIND_IDX;
             m_VertexInputBinding[pipelineIdx][0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-            m_VertexInputBinding[pipelineIdx][0].stride = sizeof(CircleVertex);
+            m_VertexInputBinding[pipelineIdx][0].stride = sizeof(Vertex);
 
             // The VkVertexInputAttribute interpreting the data.
             m_VertexInputAttribute[pipelineIdx][0].binding = VERTEX_BUFFER_BIND_IDX;
             m_VertexInputAttribute[pipelineIdx][0].location = 0;
             m_VertexInputAttribute[pipelineIdx][0].format = VK_FORMAT_R32G32B32_SFLOAT;
-            m_VertexInputAttribute[pipelineIdx][0].offset = offsetof(CircleVertex, m_Position);
+            m_VertexInputAttribute[pipelineIdx][0].offset = offsetof(struct Vertex, m_Position);
 
             m_VertexInputAttribute[pipelineIdx][1].binding = VERTEX_BUFFER_BIND_IDX;
             m_VertexInputAttribute[pipelineIdx][1].location = 1;
-            m_VertexInputAttribute[pipelineIdx][1].format = VK_FORMAT_R32G32_SFLOAT;
-            m_VertexInputAttribute[pipelineIdx][1].offset = offsetof(CircleVertex, m_TexCoord);
+            m_VertexInputAttribute[pipelineIdx][1].format = VK_FORMAT_R32G32B32_SFLOAT;
+            m_VertexInputAttribute[pipelineIdx][1].offset = offsetof(struct Vertex, m_Color);
         }
     }
 }
 
-void CircleMultiDrawFactory::UpdateNodeList(Node *p_Item)
+void RectangleMultiDrawScheme::UpdateNodeList(Node *p_Item)
 {
-    Circle* rectangle = dynamic_cast<Circle*>(p_Item);
+    Rectangl* rectangle = dynamic_cast<Rectangl*>(p_Item);
     assert(rectangle);
 
     // Note: Based on the draw type push the model in respective pipelines
@@ -680,15 +589,15 @@ void CircleMultiDrawFactory::UpdateNodeList(Node *p_Item)
     // they may be in one-to-one correspondence but that is not necessary.
     switch (rectangle->GetDrawType())
     {
-    case Circle::FILLED:
+    case Rectangl::FILLED:
         m_PipelineTypeModelVector[PIPELINE_FILLED].push_back(p_Item);
         break;
 
-    case Circle::OUTLINE:
+    case Rectangl::OUTLINE:
         m_PipelineTypeModelVector[PIPELINE_OUTLINE].push_back(p_Item);
         break;
 
-    case Circle::ROUNDED:
+    case Rectangl::ROUNDED:
         // TODO
         break;
 
@@ -697,7 +606,53 @@ void CircleMultiDrawFactory::UpdateNodeList(Node *p_Item)
     }
 }
 
-void CircleMultiDrawFactory::Prepare(Scene* p_Scene)
+void RectangleMultiDrawScheme::RemoveNodeList(Node* p_Model)
+{
+//    Rectangl* rectangle = dynamic_cast<Rectangl*>(p_Model);
+//    assert(rectangle);
+
+//    std::vector<Node*>* modelVector = &m_PipelineTypeModelVector[rectangle->GetDrawType()];
+//    if (!modelVector) return;
+
+//    bool isUpdated = false;
+//    while (1)
+//    {
+//        auto result = std::find(std::begin(*modelVector), std::end(*modelVector), rectangle);
+//        if (result == std::end(*modelVector)) break;
+
+//        modelVector->erase(result);
+//        isUpdated = true;
+//    }
+
+//    if (isUpdated)
+//    {
+//        RECTANGLE_GRAPHICS_PIPELINES pipeline = PIPELINE_COUNT;
+
+//        switch (rectangle->GetDrawType())
+//        {
+//        case Rectangl::FILLED:
+//            pipeline = PIPELINE_FILLED;
+//            break;
+
+//        case Rectangl::OUTLINE:
+//            pipeline = PIPELINE_OUTLINE;
+//            break;
+
+//        case Rectangl::ROUNDED:
+//            // TODO
+//            break;
+
+//        default:
+//            break;
+//        }
+
+//        if (pipeline == PIPELINE_COUNT) return;
+
+//        PrepareInstanceData(pipeline);
+//    }
+}
+
+void RectangleMultiDrawScheme::Prepare(Scene* p_Scene)
 {
     // Update the uniform
     //if (!CDS)
@@ -714,10 +669,9 @@ void CircleMultiDrawFactory::Prepare(Scene* p_Scene)
     //	&m_Transform, sizeof(m_Transform));
 }
 #include <QDebug>
-
-void CircleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
+void RectangleMultiDrawScheme::Render(VkCommandBuffer& p_CmdBuffer)
 {
-    for (int pipelineIdx = 0; pipelineIdx < CIRCLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
+    for (int pipelineIdx = 0; pipelineIdx < RECTANGLE_GRAPHICS_PIPELINES::PIPELINE_COUNT; pipelineIdx++)
     {
         NodeVector& m_ModelList = m_PipelineTypeModelVector[pipelineIdx];
         const int modelSize = m_ModelList.size();
@@ -727,18 +681,18 @@ void CircleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
         VkPipeline       graphicsPipeline = VK_NULL_HANDLE;
         if (pipelineIdx == PIPELINE_FILLED)
         {
-            if (m_GraphicsPipelineMap.contains(PIPELINE_CIRCLE_FILLED))
+            if (m_GraphicsPipelineMap.contains(PIPELINE_RECT_FILLED))
             {
-                graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_CIRCLE_FILLED].first;
-                graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_CIRCLE_FILLED].second;
+                graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].first;
+                graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_RECT_FILLED].second;
             }
         }
         else if (pipelineIdx == PIPELINE_OUTLINE)
         {
-            if (m_GraphicsPipelineMap.contains(PIPELINE_CIRCLE_OUTLINE))
+            if (m_GraphicsPipelineMap.contains(PIPELINE_RECT_OUTLINE))
             {
-                graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_CIRCLE_OUTLINE].first;
-                graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_CIRCLE_OUTLINE].second;
+                graphicsPipeline = m_GraphicsPipelineMap[PIPELINE_RECT_OUTLINE].first;
+                graphicsPipelineLayout = m_GraphicsPipelineMap[PIPELINE_RECT_OUTLINE].second;
             }
         }
         else
@@ -751,8 +705,9 @@ void CircleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
 
         for (int j = 0; j < modelSize; j++)
         {
-            Circle* model = (static_cast<Circle*>(m_ModelList.at(j)));
+            Rectangl* model = (static_cast<Rectangl*>(m_ModelList.at(j)));
             if (!model || !model->GetVisible()) continue;
+
             //////////////////////////////////////////////////////////////////////////////////
             struct pushConst
             {
@@ -760,42 +715,38 @@ void CircleMultiDrawFactory::Render(VkCommandBuffer& p_CmdBuffer)
                 glm::mat4 modelMatrix;
             }PC;
 
+
             PC.inColor = model->GetColor();
+            //PC.inColor.a = 0.5;
             //PC.modelMatrix = /*(*model->GetScene()->GetProjection()) * (*model->GetScene()->GetView()) */ model->GetAbsoluteTransformation();
             //PC.modelMatrix = (*GetProjection()) * (*GetView()) model->GetModelTransformation();// GetAbsoluteTransformation();
 
             // Check if number of push constants does not exceed the allowed size
             int maxPushContantSize = m_VulkanApplication->m_physicalDeviceInfo.prop.limits.maxPushConstantsSize;
-            if (sizeof(PC) > maxPushContantSize) {
-                printf("Push constand size is greater than expected, max allow size is %d", maxPushContantSize);
+            if (sizeof(PC) > maxPushContantSize)
+            {
+                printf("Push constand size is greater than expected max allow size is %d", maxPushContantSize);
                 assert(0);
             }
 
             vkCmdPushConstants(p_CmdBuffer, graphicsPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PC), &PC);
             ////////////////////////////////////////////////////////////////////////////////
 
-            if (model->GetDrawType() == Circle::FILLED)
+            int vertexCount = 0;
+            if (model->GetDrawType() == Rectangl::FILLED)
             {
-
-                // Specify vertex buffer information
-                const VkDeviceSize offsets[1] = { 0 };
-                vkCmdBindVertexBuffers(p_CmdBuffer, VERTEX_BUFFER_BIND_IDX, 1, &model->m_VertexBuffer.m_Buffer, offsets);
-
-                // Draw the Cube
-                const int vertexCount = sizeof(circleFilledVertices) / sizeof(CircleVertex);
-                vkCmdDraw(p_CmdBuffer, vertexCount, /*INSTANCE_COUNT*/1, 0, 0);
+                vertexCount = sizeof(rectFilledVertices) / sizeof(Vertex);
             }
-            else if (model->GetDrawType() == Circle::OUTLINE)
+            else if (model->GetDrawType() == Rectangl::OUTLINE)
             {
-                // Specify vertex buffer information
-                const VkDeviceSize offsets[1] = { 0 };
-                vkCmdBindVertexBuffers(p_CmdBuffer, VERTEX_BUFFER_BIND_IDX, 1, &model->m_VertexBuffer.m_Buffer, offsets);
-
-                // Draw the Cube
-                const int vertexCount = sizeof(rectOutlineVertices) / sizeof(CircleVertex);
-                vkCmdDraw(p_CmdBuffer, vertexCount, /*INSTANCE_COUNT*/1, 0, 0);
-
+                vertexCount = sizeof(rectOutlineVertices) / sizeof(Vertex);
             }
+
+            const VkDeviceSize offsets[1] = { 0 };
+            vkCmdBindVertexBuffers(p_CmdBuffer, VERTEX_BUFFER_BIND_IDX, 1, &model->m_VertexBuffer.m_Buffer, offsets);
+            vkCmdDraw(p_CmdBuffer, vertexCount, /*INSTANCE_COUNT*/1, 0, 0);
+
+            model->SetDirtyType(DIRTY_TYPE::NONE);
         }
 
     }

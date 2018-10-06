@@ -22,6 +22,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+include($$PWD/source/Rectangle/Rectangle.pri)
+include($$PWD/source/Circle/Circle.pri)
 
 SOURCES += \
         ../../../source/common/VulkanHelper.cpp \
@@ -30,8 +32,7 @@ SOURCES += \
         DrawingShapes_SceneGraph/Scene.cpp \
         DrawingShapes_SceneGraph/Node.cpp \
         DrawingShapes_SceneGraph/Transformation.cpp \
-        source/Rect.cpp \
-        source/Circle.cpp \
+        source/UiMetalPaintEngine.cpp \
         source/UIDemo.cpp \
         source/UiDemoApp.cpp
 
@@ -43,9 +44,8 @@ HEADERS += \
         DrawingShapes_SceneGraph/Node.h \
         DrawingShapes_SceneGraph/Transformation.h \
         DrawingShapes_SceneGraph/Common.h \
-        source/Rect.h \
-        source/Circle.h \
         source/UIDemo.h \
+        source/UiMetalPaintEngine.h \
         source/UiDemoApp.h
 
 #QMAKE_CXXFLAGS += -std=c++11

@@ -1,7 +1,7 @@
 #include "UIDemoApp.h"
 #include "UIDemo.h"
 #include "UiMetalPaintEngine.h"
-#include "Circle.h"
+#include "Circle/Circle.h"
 
 #include <QApplication>
 
