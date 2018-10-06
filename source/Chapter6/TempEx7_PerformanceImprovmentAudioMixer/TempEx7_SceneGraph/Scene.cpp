@@ -11,6 +11,7 @@ Scene::Scene(AbstractApp* p_Application, const QString& p_Name)
     : m_Application(p_Application)
     , m_Name(p_Name)
     , m_Frame(0)
+    , m_EarlyDepthTest(false)
     , m_ScreenWidth(1200)
     , m_ScreenHeight(800)
     , m_CurrentHoverItem(NULL)
@@ -146,6 +147,21 @@ void Scene::Render(VkCommandBuffer& p_CommandBuffer)
     }
 }
 
+// The early depth testing
+/*
+1. Draw two rectangles(with partial alpha) in order RED(Depth 0) > GREEN(Depth 0)
+Expect output: Draw Red(Below) and Green(Above)
+Actual output: Draw Red(Below) and Green(Above)
+
+2. Draw two rectangles(with partial alpha) in order RED(Depth 15) > GREEN(Depth 0)
+Expect output: Draw Red(Above) and Green(Below)
+Actual output: Draw Red(Above) and Green(Below), the alpha of Red above create artefact on the green rect.
+               (The alpha region of red eats aways the overlap portion of Green Rectangle)
+
+Fix: SetEarlyDepthTest(true);
+Expect output: Draw Red(Above) and Green(Below)
+Actual output: Draw Red(Above) and Green(Below), the alpha of Red rectangle appears correct on of top Green one.
+*/
 void Scene::GatherFlatNodeList()
 {
     m_FlatList.clear();
@@ -155,6 +171,18 @@ void Scene::GatherFlatNodeList()
         assert(item);
 
         item->GatherFlatNodeList();
+    }
+
+    if (m_EarlyDepthTest)
+    {
+        // Sort Z-Order
+        std::sort(m_FlatList.begin(), m_FlatList.end(),
+            [](const Node* p_Item1, const Node* p_Item2) -> bool
+        {
+            if (!p_Item1 || !p_Item2) return true;
+
+            return (p_Item1->GetBoundedRegion().m_Position.z < p_Item2->GetBoundedRegion().m_Position.z);
+        });
     }
 }
 

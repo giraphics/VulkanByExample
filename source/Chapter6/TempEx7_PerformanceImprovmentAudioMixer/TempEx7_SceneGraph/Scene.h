@@ -59,6 +59,7 @@ private:
     GETSET(int,                             ScreenWidth);
     GETSET(int,                             Frame);
     GETSET(Transformation,                  Transform);
+    GETSET(bool,                            EarlyDepthTest);
 
 private:
     SCENE_DIRTY_TYPE m_DirtyType;

@@ -135,18 +135,20 @@ void UiMetalPaintEngine::drawRects(const QRectF* pRects, int pRectCount)
         rect1 = new Rectangl(m_Scene, NULL, BoundingRegion(300, 300, 200, 200), "Node 1", SHAPE::SHAPE_RECTANGLE_INSTANCED);
     }
 
-    rect1->SetColor(glm::vec4(1.0, 0.0, 0.0, 1.0));
+    rect1->SetColor(glm::vec4(1.0, 0.0, 0.0, 1.0)); // RED
     rect1->SetDefaultColor(glm::vec4(1.0, 0.0, 0.0, 1.0));
+    rect1->SetZOrder(15);
 
     if (!rect2)
     {
         rect2 = new Rectangl(m_Scene, NULL, BoundingRegion(400, 400, 200, 200), "Node 2", SHAPE::SHAPE_RECTANGLE_INSTANCED);
         m_Scene->Setup();
+        m_Scene->SetEarlyDepthTest(true);
     }
 
-    rect2->SetColor(glm::vec4(0.0, 1.0, 0.0, 1.0));
+    rect2->SetColor(glm::vec4(0.0, 1.0, 0.0, 1.0)); // GREEN
     rect2->SetDefaultColor(glm::vec4(0.0, 1.0, 0.0, 1.0));
-    rect2->SetZOrder(-10);
+    //rect2->SetZOrder(0);
 
     if (updated)
     {
