@@ -1,5 +1,6 @@
 #include "UIDemoApp.h"
 #include "UIDemo.h"
+#include "UiMetalPaintEngine.h"
 #include "Circle.h"
 
 #include <QApplication>
@@ -27,12 +28,13 @@ UIDemoApp::UIDemoApp()
 UIDemoApp::~UIDemoApp()
 {
     delete m_Scene;
+    delete m_ScenePainterEngine;
 }
 
 void UIDemoApp::Configure()
 {
-    SetApplicationName("Multidraw Demo");
-    SetWindowDimension(800, 600);
+    SetApplicationName("Metal performance test");
+    SetWindowDimension(1200 , 800);
 
 #ifdef _WIN32
     // Add Validation Layers
@@ -52,7 +54,9 @@ void UIDemoApp::Configure()
 
     // m_SceneVector.push_back(std::make_shared<Scene>(this));
      m_Scene = new Scene(this);//m_SceneVector[0].get();
+    m_ScenePainterEngine = new Scene(this);//m_SceneVector[0].get();
 
+    InitMetalEngine();
      //BoundingRegion bgDim(10, 10, 400, 50);
      //Node* background = new Rectangl(p_Scene, this, bgDim);
 //    Node* m_Parent = new Rectangl(m_Scene, NULL, BoundingRegion(300, 300, 200, 200), "Node 1", SHAPE::SHAPE_RECTANGLE_INSTANCED);
@@ -75,12 +79,15 @@ void UIDemoApp::Configure()
 void UIDemoApp::Setup()
 {
     m_Scene->SetUpProjection();
+    m_ScenePainterEngine->SetUpProjection();
     m_Scene->Setup();
+    m_ScenePainterEngine->Setup();
 
     RecordRenderPass(1, SG_STATE_SETUP); // Parminder: Double check if this is required
 
     // At least update the scene once so that in case UpdateMeAndMyChildren() is being used it has all transformation readily available
     m_Scene->Update();
+    m_ScenePainterEngine->Update();
 }
 
 void UIDemoApp::Update()
@@ -90,13 +97,16 @@ void UIDemoApp::Update()
     // Note: There are two ways to apply update
     // 1. Scene Update: This will traverse all childs and apply updates (like creating vertex buffer) depending upon the derivation implementation.
     m_Scene->Update();
-
+    m_ScenePainterEngine->Update();
     // 2. Model Update: This update will not bother the all model nodes to update but only the intended one with its children.
     //m_Cube2->UpdateMeAndMyChildren();
 }
 
 bool UIDemoApp::Render()
 {
+    QRectF rect;
+    m_MetalPaintEngine->drawRects(&rect, 1);
+
     RecordRenderPass(1, SG_STATE_RENDER);
 
     return VulkanApp::Render();
@@ -122,6 +132,18 @@ void UIDemoApp::ResizeWindow(int p_Width, int p_Height)
     VulkanApp::ResizeWindow(p_Width, p_Height);
 
     RecordRenderPass(3, SG_STATE_RESIZE, p_Width, p_Height);
+}
+
+bool UIDemoApp::InitMetalEngine()
+{
+    if (!m_MetalPaintEngine)
+    {
+        m_MetalPaintEngine.reset(new UiMetalPaintEngine());
+
+        return m_MetalPaintEngine->Init(m_ScenePainterEngine);
+    }
+
+    return true;
 }
 
 void UIDemoApp::RecordRenderPass(int p_Argcount, ...)
@@ -204,10 +226,12 @@ void UIDemoApp::RecordRenderPass(int p_Argcount, ...)
         case SG_STATE_SETUP:
         case SG_STATE_RENDER:
             m_Scene->Render(m_hCommandBufferList[i]);
+            m_ScenePainterEngine->Render(m_hCommandBufferList[i]);
             break;
 
         case SG_STATE_RESIZE:
             m_Scene->Resize(m_hCommandBufferList[i], resizedDimension.width(), resizedDimension.height());
+            m_ScenePainterEngine->Resize(m_hCommandBufferList[i], resizedDimension.width(), resizedDimension.height());
             break;
 
         default:
