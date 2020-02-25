@@ -17,8 +17,9 @@ public:
 
 	virtual Model3D* GetModel(VulkanApp* p_VulkanApp, Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE) { return NULL; }
 	virtual void Setup() {}
-	virtual void Update() {}
-	virtual void Prepare(Scene3D* p_Scene) {}
+    virtual void Update() {}
+    virtual void Render() {}
+    virtual void Prepare(Scene3D* p_Scene) {}
     virtual void UpdateModelList(Model3D* p_Parent) {}
     virtual void ResizeWindow(int p_Width, int p_Height) {}
 
@@ -41,6 +42,7 @@ public:
 
 	void Rectangle(float p_X, float p_Y, float p_Width, float p_Height, float p_ZOrder = 0.0f);
     void SetZOrder(float p_ZOrder);
+    void SetPosition(float p_X, float p_Y);
 
 	GETSET(SHAPE, ShapeType);
 	GETSET(RENDER_SCEHEME_TYPE, RenderSchemeType);
@@ -52,6 +54,7 @@ public:
 	GETSET(Scene3D*, Scene)
 	GETSET(Model3D*, Parent)
    	GETSET(glm::mat4, TransformedModel)		// Owned by drawable item
+    GETSET(unsigned int, GpuMemOffset)
 
 	// Mouse interaction: Dummy interface for now.
 	virtual void mousePressEvent(QMouseEvent* p_Event);
@@ -77,24 +80,25 @@ private:
     QList<Model3D*> m_ChildList;
 };
 
-class RectangleModel;
-class ProgressBar : public Model3D
-{
-public:
-    ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
-    virtual ~ProgressBar() {}
-
-    virtual bool mouseMoveEvent(QMouseEvent* p_Event);
-    RectangleModel* progressIndicator;
-};
-
-class AudioMixerItem : public Model3D
-{
-public:
-    AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, glm::vec2 p_TopLeftPos, glm::vec2 p_Dim, SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
-    virtual ~AudioMixerItem() {}
-
-    //virtual bool mouseMoveEvent(QMouseEvent* p_Event);
-    //Model3D* progressIndicator;
-};
+//class RectangleModel;
+//class ProgressBar : public Model3D
+//{
+//public:
+//    ProgressBar(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name = "", SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
+//    virtual ~ProgressBar() {}
+//
+//    virtual bool mouseMoveEvent(QMouseEvent* p_Event);
+//    RectangleModel* progressIndicator;
+//    RectangleModel* bar;
+//};
+//
+//class AudioMixerItem : public Model3D
+//{
+//public:
+//    AudioMixerItem(Scene3D* p_Scene, Model3D* p_Parent, const QString& p_Name, glm::vec2 p_TopLeftPos, glm::vec2 p_Dim, SHAPE p_ShapeType = SHAPE::SHAPE_NONE);
+//    virtual ~AudioMixerItem() {}
+//
+//    //virtual bool mouseMoveEvent(QMouseEvent* p_Event);
+//    //Model3D* progressIndicator;
+//};
 

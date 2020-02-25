@@ -81,6 +81,7 @@ file(GLOB_RECURSE COMMON_FILES ${CMAKE_CURRENT_SOURCE_DIR}/source/../../../commo
 # Build project, give it a name and includes list of file to be compiled
 add_executable(${Example_Name} ${SOURCE_FILES} ${COMMON_FILES} ${RESOURCE_FILES})
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/../../../external)
 
 # Link the debug and release libraries to the project
 target_link_libraries( ${Example_Name} vulkan-1)

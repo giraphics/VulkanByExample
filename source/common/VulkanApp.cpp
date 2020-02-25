@@ -27,9 +27,27 @@ Window::Window(VulkanApp* vulkanApp) : m_VulkanApp(vulkanApp)
 
     VkExtent2D dimension = vulkanApp->GetWindowDimension();
 
+#ifdef USE_WINDOW
     setWidth(dimension.width);
     setHeight(dimension.height);
     setTitle(QString(vulkanApp->GetAppllicationName().c_str()));
+#else
+//    setFixedWidth(dimension.width);
+//    setFixedHeight(dimension.height);
+    resize(dimension.width, dimension.height);
+
+    // We need a QWindow backing this widget
+    setAttribute(Qt::WA_NativeWindow);
+
+    // And we need that to be a Metal surface
+    windowHandle()->setSurfaceType(QWindow::MetalSurface);
+
+    // We don't need to participate in the backingstore sync
+    setAttribute(Qt::WA_PaintOnScreen);
+
+    // We don't need any background drawn for us
+    setAttribute(Qt::WA_OpaquePaintEvent);
+#endif
 
     renderTimer = new QTimer();
     renderTimer->setInterval(1);
@@ -53,7 +71,12 @@ void Window::resizeEvent(QResizeEvent* pEvent)
 
         m_VulkanApp->ResizeWindow(newWidth, newHeight);
     }
+
+#ifdef USE_WINDOW
 	QWindow::resizeEvent(pEvent);
+#else
+    QWidget::resizeEvent(pEvent);
+#endif
 }
 
 VulkanApp::VulkanApp()
@@ -204,11 +227,15 @@ void VulkanApp::CreateVulkanInstance()
 void VulkanApp::CreateSurface()
 {
 	m_pWindow = new Window(this); // Create the window to provide display housing
-    #ifdef _WIN32
+
+#ifdef _WIN32
 	m_pWindow->show(); // This is fatal, on MacOS do not show the window as
 	#endif // Remove this show() once fixed for all example call show from the app itself.
+#ifdef USE_WINDOW
     m_pView = GetWinID(m_pWindow->winId());
-
+#else
+    m_pView = GetWinID(m_pWindow->windowHandle()->winId());
+#endif
 	VkResult  result;
 	// Create the Vulkan surface for the application window
 #ifdef _WIN32

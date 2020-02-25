@@ -88,6 +88,8 @@ if(WIN32)
 	find_library(ASSIMP_LIBRARIES NAMES assimp libassimp.dll.a PATHS ${EXAMPLE_SOURCE_DIR}/libs/assimp)
 endif(WIN32)
 
+include_directories(ASSIMP_INCLUDES)
+
 # Gather list of header and source files for compilation
 file(GLOB_RECURSE SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/source/*.*)
 file(GLOB_RECURSE COMMON_FILES ${CMAKE_CURRENT_SOURCE_DIR}/source/../../../common/*.*)

@@ -90,7 +90,8 @@ endif(WIN32)
 
 # Gather list of header and source files for compilation
 file(GLOB_RECURSE SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/source/*.*)
-file(GLOB_RECURSE COMMON_FILES ${CMAKE_CURRENT_SOURCE_DIR}/source/../../../common/*.*)
+#file(GLOB_RECURSE COMMON_FILES ${CMAKE_CURRENT_SOURCE_DIR}/source/../../../common/*.*)
+#file(GLOB_RECURSE COMMON_FILES ${CMAKE_CURRENT_SOURCE_DIR}/source/../../../common/*.*)
 file(GLOB_RECURSE SCENE_GRAPH_FILES ${CMAKE_CURRENT_SOURCE_DIR}/TempEx5_SceneGraph/*.*)
 
 # Build project, give it a name and includes list of file to be compiled

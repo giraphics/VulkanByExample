@@ -145,7 +145,14 @@ public:
     QElapsedTimer FPS; int m_Frame;
 };
 
+#include <qwidget.h>
+
+//#define USE_WINDOW
+#ifdef USE_WINDOW
 class Window : public QWindow
+#else
+class Window : public QWidget
+#endif
 {
 	Q_OBJECT
 

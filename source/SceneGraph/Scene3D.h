@@ -4,7 +4,7 @@
 #include <QMatrix4x4>
 
 #include "Transformation3D.h"
-#include "../VulkanHelper.h"
+#include "../../../common/VulkanHelper.h"
 #include "SGCommon.h"
 
 class Model3D;
@@ -21,6 +21,7 @@ public:
 
     void Setup();
     void Update();
+    void Render();
 
     void AddModel(Model3D* p_Model);
     void RemoveModel(Model3D *p_Model);

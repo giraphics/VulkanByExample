@@ -88,7 +88,7 @@ void Cube::CreateGraphicsPipeline()
 
     // Compile the fragment shader
 #ifdef _WIN32
-    //    VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CubeFrag.spv"); // Relative path to binary output dir
+        VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice, "../source/shaders/CubeFrag.spv"); // Relative path to binary output dir
 #elif __APPLE__
     VkShaderModule fragShader = VulkanHelper::CreateShader(m_VulkanApplication->m_hDevice,
     "/Users/parminder/Dev/Giraphics/VulkanByExample/source/Chapter4/Ch4_01c_SimpleCube_EnableDepthBuffer/source/shaders/CubeFrag.spv"); // Relative path to binary output dir
